@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import * as THREE from 'three/webgpu'
 import Game from '../Game.js'
 
 
@@ -26,7 +26,9 @@ class Rendering
   }
 
   setInstance(){
-    this.instance = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true })
+    // this.instance = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true }) 
+    this.instance = new THREE.WebGPURenderer({ canvas: this.canvas, antialias: true }) 
+
     this.instance.toneMapping = THREE.CineonToneMapping
     this.instance.toneMappingExposure = 1.75
     this.instance.shadowMap.enabled = true
@@ -41,8 +43,11 @@ class Rendering
     this.instance.setPixelRatio(this.ratio)
   }
 
-  render(){
+  /* render(){
     this.instance.render(this.scene, this.camera)
+  } */
+ async render() {
+    await this.instance.renderAsync(this.scene, this.camera)
   }
 }
 

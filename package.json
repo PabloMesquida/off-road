@@ -12,6 +12,10 @@
     "vite": "^7.1.2"
   },
   "dependencies": {
-    "three": "^0.180.0"
+    "@dimforge/rapier3d": "^0.18.2",
+    "@types/three": "^0.180.0",
+    "three": "^0.180.0",
+    "vite-plugin-top-level-await": "^1.6.0",
+    "vite-plugin-wasm": "^3.5.0"
   }
 }

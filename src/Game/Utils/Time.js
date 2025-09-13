@@ -17,6 +17,7 @@ class Time{
   tick(){
     const currentTime = Date.now()
     this.delta = currentTime - this.current
+    this.deltaScaled = this.delta * 0.001
     this.current = currentTime
     this.elapsed = this.current - this.start
 

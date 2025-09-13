@@ -1,23 +1,18 @@
-import * as THREE from 'three'
+import * as THREE from 'three/webgpu'
 import Game from "../Game.js"
+import CubeTest from './CubeTest/CubeTest.js'
+import Floor from './Floor/Floor.js'
 
 class World{
   constructor(){
     this.game = new Game()
-
     this.scene = new THREE.Scene()
+    this.cubeTest = new CubeTest()
+    this.floor = new Floor()
 
-    this.box = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshNormalMaterial()
-    )
-    this.scene.add(this.box)
-
-    this.game.time.events.on('tick', () => { this.update() })
+    this.scene.add(this.cubeTest.box)
+    this.scene.add(this.floor.floorMesh)
   }
-
-  update(){
-    this.box.rotation.y = this.game.time.elapsed * 0.0001  }
 }
 
 export default World

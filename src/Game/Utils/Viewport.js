@@ -21,7 +21,6 @@ class Viewport{
       this.ratio = Math.min(window.devicePixelRatio, 2) 
 
       this.events.trigger('change')
-      console.log('ok1')
     })
   }
 }
