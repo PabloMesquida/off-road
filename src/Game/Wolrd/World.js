@@ -10,7 +10,7 @@ class World{
     this.cubeTest = new CubeTest()
     this.floor = new Floor()
 
-    this.scene.add(this.cubeTest.box)
+   this.scene.add(this.cubeTest.box) 
     this.scene.add(this.floor.floorMesh)
   }
 }

@@ -15,9 +15,9 @@ class Physics{
   }
 
   update(){
-    this.world.timestep = this.game.time.deltaScaled
+    // this.world.timestep = this.game.time.deltaScaled
     this.world.step()
-
+    // console.log(this.game.time.deltaScaled, this.world.timestep)
     this.entities.forEach((_entity) => {
       if(_entity.visual){
         _entity.visual.position.copy(_entity.physical.body.translation())
@@ -57,6 +57,7 @@ getPhysical(_desc) {
   }
 
   // 2. Posición y rotación inicial
+  console.log(_desc.position, bodyDesc)
   if (_desc.position) {
     bodyDesc.setTranslation(
       _desc.position.x,
@@ -65,11 +66,13 @@ getPhysical(_desc) {
     )
   }
 
+
+
   if (_desc.rotation) {
     const { x, y, z, w } = _desc.rotation
     bodyDesc.setRotation({ x, y, z, w })
   }
-
+  console.log(bodyDesc)
   const body = this.world.createRigidBody(bodyDesc)
 
   // 2. Crear los colliders
@@ -78,7 +81,7 @@ getPhysical(_desc) {
   if (Array.isArray(_desc.colliders)) {
     _desc.colliders.forEach(colliderDef => {
       let colliderDesc
-
+      
       switch (colliderDef.shape) {
         case 'cuboid':
           colliderDesc = RAPIER.ColliderDesc.cuboid(...colliderDef.parameters)

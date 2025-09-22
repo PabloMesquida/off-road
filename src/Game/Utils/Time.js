@@ -1,4 +1,4 @@
-import Events from "./Events"
+import Events from "./Events.js"
 
 
 class Time{

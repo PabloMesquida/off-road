@@ -43,12 +43,12 @@ class Rendering
     this.instance.setPixelRatio(this.ratio)
   }
 
-  /* render(){
+/*   render(){
     this.instance.render(this.scene, this.camera)
-  } */
- async render() {
+  }  */
+  async render() {
     await this.instance.renderAsync(this.scene, this.camera)
-  }
+  } 
 }
 
 export default Rendering

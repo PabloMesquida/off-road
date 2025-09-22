@@ -7,17 +7,16 @@ class CubeTest{
 
     this.box = new THREE.Mesh(
       new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshNormalMaterial()
+      new THREE.MeshBasicMaterial({color: 'orange', wireframe: true})
     )
-    this.box.visible = true
+    this.box.visible = false
 
     this.game.physics.addEntity({
       type: 'dynamic',
-      position: { x:0, y:4, z:0}, 
-      rotation: { x: 0, y: 0, z: 0, w: 0 },
+      position: { x:0, y:5, z:0},
       colliders: [ { shape: 'cuboid', parameters: [0.5, 0.5, 0.5] }]
       }, 
-      this.box)
+      this.box) 
   }
 }
 

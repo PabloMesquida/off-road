@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu'
 import Game from "../Game.js";
+import { OrbitControls  } from 'three/examples/jsm/controls/OrbitControls.js'; 
 
 class View{
   constructor(){
@@ -9,6 +10,8 @@ class View{
     this.camera.position.set(10, 10, 20)
     this.camera.lookAt(0,0,0)
     this.game.world.scene.add(this.camera)
+
+    this.controls = new OrbitControls(this.camera, this.game.domElement)
 
     this.game.viewport.events.on('change', () => { this.resize() })
   }
