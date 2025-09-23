@@ -13,7 +13,6 @@ class Floor{
     this.floorMesh.visible = true
     this.floorMesh.geometry.rotateX(-Math.PI / 2)
 
-
     this.floorGroup = new THREE.Object3D()
     const halfHeight = 0.2
     this.floorMesh.position.set(0, halfHeight, 0)

@@ -12,13 +12,20 @@ class View{
     this.game.world.scene.add(this.camera)
 
     this.controls = new OrbitControls(this.camera, this.game.domElement)
+    this.controls.enableDamping = true
 
     this.game.viewport.events.on('change', () => { this.resize() })
+
+    this.game.time.events.on('tick', () => { this.update() })
   }
 
   resize(){
     this.camera.aspect = this.game.viewport.sizes.width / this.game.viewport.sizes.height
     this.camera.updateProjectionMatrix()
+  }
+
+  update(){
+      this.controls.update()
   }
 }
 

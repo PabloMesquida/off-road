@@ -15,9 +15,7 @@ class Physics{
   }
 
   update(){
-    // this.world.timestep = this.game.time.deltaScaled
     this.world.step()
-    // console.log(this.game.time.deltaScaled, this.world.timestep)
     this.entities.forEach((_entity) => {
       if(_entity.visual){
         _entity.visual.position.copy(_entity.physical.body.translation())
@@ -57,7 +55,6 @@ getPhysical(_desc) {
   }
 
   // 2. Posición y rotación inicial
-  console.log(_desc.position, bodyDesc)
   if (_desc.position) {
     bodyDesc.setTranslation(
       _desc.position.x,
