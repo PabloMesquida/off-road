@@ -1,17 +1,14 @@
 import * as THREE from 'three/webgpu'
 import Game from "../Game.js"
-import CubeTest from './CubeTest/CubeTest.js'
 import Floor from './Floor/Floor.js'
+import Vehicle from './Vehicle/Vehicle.js'
 
 class World{
   constructor(){
     this.game = new Game()
     this.scene = new THREE.Scene()
-    this.cubeTest = new CubeTest()
-    this.floor = new Floor()
-
-    this.scene.add(this.cubeTest.box) 
-    this.scene.add(this.floor.floorMesh)
+    this.vehicle = new Vehicle(this.scene)
+    this.floor = new Floor(this.scene, this.game.physics, { width: 50, depth: 50, height: 0.2 })
   }
 }
 

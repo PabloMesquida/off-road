@@ -24,9 +24,6 @@ class Game{
     this.view = new View()
     this.rendering = new Rendering() 
 
-    // this.world.scene.add(this.physicsDebug.lineSegments) 
-    // console.log(this.physicsDebug.lineSegments)
-
   }
   
 }
