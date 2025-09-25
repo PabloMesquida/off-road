@@ -1,20 +1,26 @@
-import * as RAPIER from '@dimforge/rapier3d'
+import * as RAPIER from '@dimforge/rapier3d-compat'
 import Game from "../Game.js"
 
 class Physics{
   constructor(){
-    this.game = new Game()
-    const gravity = new RAPIER.Vector3(0.0, -9.81, 0.0)
-    this.world = new RAPIER.World(gravity)
-
     this.entities = new Map()
     this.entitiesKey = 0
+    this.world = null
+    this.ready = this.init()
+  }
+  
+  async init() {
+    await RAPIER.init()  
+    const gravity = new RAPIER.Vector3(0.0, -9.81, 0.0)
+    this.world = new RAPIER.World(gravity)
+    this.game = new Game()
 
-    // Update on tick
     this.game.time.events.on('tick', () => { this.update() }, 2)
   }
 
   update(){
+    if (!this.world) return
+
     this.world.step()
     this.entities.forEach((_entity) => {
       if(_entity.visual){
@@ -25,12 +31,15 @@ class Physics{
   }
 
   addEntity(_physicalDescription = null, _visual = null){
+    if (!this.world) return
+
     const entity = {
       physical: this.getPhysical(_physicalDescription),
       visual: _visual
     }
     this.entitiesKey++
     this.entities.set(this.entitiesKey, entity)
+
     return entity
   }
 
@@ -69,7 +78,7 @@ getPhysical(_desc) {
     const { x, y, z, w } = _desc.rotation
     bodyDesc.setRotation({ x, y, z, w })
   }
-  console.log(bodyDesc)
+
   const body = this.world.createRigidBody(bodyDesc)
 
   // 2. Crear los colliders

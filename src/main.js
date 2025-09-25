@@ -1,4 +1,5 @@
 import './style.css'
 import Game from './Game/Game.js'
 
-const experience = new Game()
+const game = new Game()
+await game.start()

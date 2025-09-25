@@ -8,12 +8,7 @@ class Floor{
     this.size = { width, depth, height }
 
     this.setModel()
-
-    this.physics.addEntity({
-      type: 'fixed',
-      position: { x:0, y:0, z:0},
-      colliders: [ { shape: 'cuboid', parameters: [width * .5, height * .5, depth * .5] }]
-    }, this.floorGroup)   
+    this.setPhysics()
   }
 
   setModel(){
@@ -28,6 +23,15 @@ class Floor{
     this.floorGroup.add(floorMesh)
 
     this.scene.add(this.floorGroup)
+  }
+
+  setPhysics(){
+    const { width, depth, height } = this.size
+    this.physics.addEntity({
+      type: 'fixed',
+      position: { x:0, y:0, z:0},
+      colliders: [ { shape: 'cuboid', parameters: [width * .5, height * .5, depth * .5] }]
+    }, this.floorGroup)   
   }
 
 }

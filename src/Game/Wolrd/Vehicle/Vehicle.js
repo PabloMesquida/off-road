@@ -1,20 +1,33 @@
 import * as THREE from 'three/webgpu'
-import Game from "../../Game"
 
 class Vehicle{
-  constructor(scene){
-    this.game = new Game()
+  constructor(scene, physics){
     this.scene = scene
+    this.physics = physics
+    this.sizes = { width: 2, height: 1, depth: 4}
 
-    this.chasis = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshBasicMaterial({color: 'orange', wireframe: true})
-    )
+    this.setModel()
+    this.setPhysics()
+    this.setVehicle()
   }
 
-
   setModel(){
-    this.scene.add(this.chasis)
+    const geometry = new THREE.BoxGeometry(this.sizes.width, this.sizes.height, this.sizes.depth)
+    const material = new THREE.MeshBasicMaterial({color: 'white', wireframe: true})
+    this.chassis = new THREE.Mesh(geometry, material)
+    this.scene.add(this.chassis)
+  }
+
+  setPhysics() {
+   this.chassisBody = this.physics.addEntity({
+      type: 'dynamic',
+      position: { x:0, y:1, z:0},
+      colliders: [ { shape: 'cuboid', parameters: [this.sizes.width * .5, this.sizes.height * .5, this.sizes.depth * .5] }]
+    }, this.chassis)   
+  }
+
+  setVehicle() {
+    //console.log(this.physics.world)
   }
 }
 

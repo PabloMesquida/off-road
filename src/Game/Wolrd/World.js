@@ -7,7 +7,7 @@ class World{
   constructor(){
     this.game = new Game()
     this.scene = new THREE.Scene()
-    this.vehicle = new Vehicle(this.scene)
+    this.vehicle = new Vehicle(this.scene,  this.game.physics)
     this.floor = new Floor(this.scene, this.game.physics, { width: 50, depth: 50, height: 0.2 })
   }
 }

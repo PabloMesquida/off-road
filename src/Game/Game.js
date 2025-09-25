@@ -19,13 +19,21 @@ class Game{
     this.time = new Time()
     this.viewport = new Viewport(this.domElement)
     this.physics = new Physics()
-    this.world = new World()
-    this.physicsDebug = new PhysicsDebug() 
-    this.view = new View()
-    this.rendering = new Rendering() 
 
+    this.world = null
+    this.physicsDebug = null
+    this.view = null
+    this.rendering = null
   }
-  
+
+  async start() {
+    await this.physics.ready
+ 
+    this.world = new World()         
+    this.physicsDebug = new PhysicsDebug()
+    this.view = new View()
+    this.rendering = new Rendering()
+  }
 }
 
 export default Game

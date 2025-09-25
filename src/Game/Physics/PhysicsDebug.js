@@ -18,6 +18,8 @@ class PhysicsDebug{
   }
 
   update(){
+    if (!this.game.physics.world) return
+    
     const {vertices, colors} = this.game.physics.world.debugRender()
 
     this.geometry.attributes.position.array = vertices
