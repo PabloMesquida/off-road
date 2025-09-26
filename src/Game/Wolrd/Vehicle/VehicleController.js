@@ -37,7 +37,7 @@ class VehicleController {
     // parámetros de control
     this.accelerateForce = 5.0
     this.brakeForce = 0.05
-    this.steerAngleMax = Math.PI / 24
+    this.steerAngleMax = Math.PI / 8 //24
 
 
     this.game.time.events.on('tick', () => this.update())
@@ -67,14 +67,14 @@ class VehicleController {
   const steerDir = Number(left) - Number(right)
   const current = this.controller.wheelSteering(0) || 0
   const target = this.steerAngleMax * steerDir
-  const steering = THREE.MathUtils.lerp(current, target, 0.5)
+
+  const steering = THREE.MathUtils.lerp(current, target, 0.01)
+  console.log(current, target, steering)
   this.controller.setWheelSteering(0, steering)
   this.controller.setWheelSteering(1, steering)
 
   // ahora avanzamos la simulación del vehicle
   this.controller.updateVehicle(dt)
-
-
 
   // actualizar ruedas visuales
   this.wheels.forEach((wheel, i) => wheel.update(this.controller, i))
