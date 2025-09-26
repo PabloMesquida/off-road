@@ -30,7 +30,12 @@ class Floor{
     this.physics.addEntity({
       type: 'fixed',
       position: { x:0, y:0, z:0},
-      colliders: [ { shape: 'cuboid', parameters: [width * .5, height * .5, depth * .5] }]
+      colliders: [ { 
+        shape: 'cuboid', 
+        parameters: [width * .5, height * .5, depth * .5],
+        restitution: 1.2,   // rebote alto
+        friction: 0.1     // resbala más
+      }]
     }, this.floorGroup)   
   }
 

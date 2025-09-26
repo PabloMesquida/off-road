@@ -5,6 +5,7 @@ import Time from "./Utils/Time.js"
 import Rendering from "./Rendering/Rendering.js"
 import Physics from "./Physics/Physics.js"
 import PhysicsDebug from "./Physics/PhysicsDebug.js"
+import Inputs from "./Inputs/Inputs.js"
  
 
 
@@ -19,11 +20,19 @@ class Game{
     this.time = new Time()
     this.viewport = new Viewport(this.domElement)
     this.physics = new Physics()
+    
+    this.inputs = new Inputs([
+      { name: 'forward', keys: ['ArrowUp', 'KeyW'] },
+      { name: 'right', keys: ['ArrowRight', 'KeyD'] },
+      { name: 'backward', keys: ['ArrowDown', 'KeyS'] },
+      { name: 'left', keys: [ 'ArrowLeft', 'KeyA']}
+    ])
 
     this.world = null
     this.physicsDebug = null
     this.view = null
     this.rendering = null
+
   }
 
   async start() {

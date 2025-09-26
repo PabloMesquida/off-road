@@ -1,33 +1,23 @@
-import * as THREE from 'three/webgpu'
+import Chassis from './Chassis.js'
+import Wheel from './Wheel.js'
+import VehicleController from './VehicleController.js'
 
-class Vehicle{
-  constructor(scene, physics){
+class Vehicle {
+  constructor(scene) {
+    this.chassis = new Chassis()
     this.scene = scene
-    this.physics = physics
-    this.sizes = { width: 2, height: 1, depth: 4}
 
-    this.setModel()
-    this.setPhysics()
-    this.setVehicle()
-  }
+    this.wheels = [
+      new Wheel({ x:-1.2, y:-0.15, z:-1.45 }),
+      new Wheel({ x:-1.2, y:-0.15, z: 1.45 }),
+      new Wheel({ x: 1.2, y:-0.15, z:-1.45 }),
+      new Wheel({ x: 1.2, y:-0.15, z: 1.45 }),
+    ]
 
-  setModel(){
-    const geometry = new THREE.BoxGeometry(this.sizes.width, this.sizes.height, this.sizes.depth)
-    const material = new THREE.MeshBasicMaterial({color: 'white', wireframe: true})
-    this.chassis = new THREE.Mesh(geometry, material)
-    this.scene.add(this.chassis)
-  }
+    this.wheels.forEach(w => this.chassis.mesh.add(w.mesh))
 
-  setPhysics() {
-   this.chassisBody = this.physics.addEntity({
-      type: 'dynamic',
-      position: { x:0, y:1, z:0},
-      colliders: [ { shape: 'cuboid', parameters: [this.sizes.width * .5, this.sizes.height * .5, this.sizes.depth * .5] }]
-    }, this.chassis)   
-  }
-
-  setVehicle() {
-    //console.log(this.physics.world)
+    this.controller = new VehicleController(this.chassis, this.wheels)
+    this.scene.add(this.chassis.mesh)
   }
 }
 

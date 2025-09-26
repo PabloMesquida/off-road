@@ -43,98 +43,103 @@ class Physics{
     return entity
   }
 
-getPhysical(_desc) {
-  if (!_desc) return null
+  getPhysical(_desc) {
+    if (!_desc) return null
 
-  // 1. Crear el cuerpo rígido (RigidBody) según type
-  let bodyDesc
-  switch (_desc.type) {
-    case 'dynamic':
-      bodyDesc = RAPIER.RigidBodyDesc.dynamic()
-      break
-    case 'fixed':
-      bodyDesc = RAPIER.RigidBodyDesc.fixed()
-      break
-    case 'kinematic':
-      bodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
-      break
-    default:
-      console.warn(`Tipo de cuerpo no soportado: ${_desc.type}, usando dynamic por defecto`)
-      bodyDesc = RAPIER.RigidBodyDesc.dynamic()
+    // 1. Crear el cuerpo rígido (RigidBody) según type
+    let bodyDesc
+    switch (_desc.type) {
+      case 'dynamic':
+        bodyDesc = RAPIER.RigidBodyDesc.dynamic()
+        break
+      case 'fixed':
+        bodyDesc = RAPIER.RigidBodyDesc.fixed()
+        break
+      case 'kinematic':
+        bodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
+        break
+      default:
+        console.warn(`Tipo de cuerpo no soportado: ${_desc.type}, usando dynamic por defecto`)
+        bodyDesc = RAPIER.RigidBodyDesc.dynamic()
+    }
+
+    // 2. Posición y rotación inicial
+    if (_desc.position) {
+      bodyDesc.setTranslation(
+        _desc.position.x,
+        _desc.position.y,
+        _desc.position.z
+      )
+    }
+
+    if (_desc.rotation) {
+      const { x, y, z, w } = _desc.rotation
+      bodyDesc.setRotation({ x, y, z, w })
+    }
+
+    if (_desc.mass) {
+      bodyDesc.setAdditionalMass(_desc.mass)
+    }
+
+    const body = this.world.createRigidBody(bodyDesc)
+
+    // 2. Crear los colliders
+    const colliders = []
+
+    if (Array.isArray(_desc.colliders)) {
+      _desc.colliders.forEach(colliderDef => {
+        let colliderDesc
+        
+        switch (colliderDef.shape) {
+          case 'cuboid':
+            colliderDesc = RAPIER.ColliderDesc.cuboid(...colliderDef.parameters)
+            break
+
+          case 'sphere':
+            colliderDesc = RAPIER.ColliderDesc.ball(...colliderDef.parameters)
+            break
+
+          case 'capsule':
+            colliderDesc = RAPIER.ColliderDesc.capsule(...colliderDef.parameters)
+            break
+
+          case 'plane':
+            colliderDesc = RAPIER.ColliderDesc.cuboid(...colliderDef.parameters)
+            break
+
+          case 'trimesh':
+            colliderDesc = RAPIER.ColliderDesc.trimesh(
+              colliderDef.parameters.vertices,
+              colliderDef.parameters.indices
+            )
+            break
+
+          case 'convex':
+            colliderDesc = RAPIER.ColliderDesc.convexMesh(
+              colliderDef.parameters.vertices
+            )
+            break
+
+          default:
+            console.warn(`Forma no soportada: ${colliderDef.shape}`)
+        }
+
+        if (colliderDesc) {
+          if (typeof colliderDef.restitution === 'number') {
+            colliderDesc.setRestitution(colliderDef.restitution)
+          }
+          if (typeof colliderDef.friction === 'number') {
+            colliderDesc.setFriction(colliderDef.friction)
+          }
+          const collider = this.world.createCollider(colliderDesc, body)
+          colliders.push(collider)
+        }
+      })
+    }
+
+    // 3. Devolver el paquete físico
+    return { body, colliders }
   }
-
-  // 2. Posición y rotación inicial
-  if (_desc.position) {
-    bodyDesc.setTranslation(
-      _desc.position.x,
-      _desc.position.y,
-      _desc.position.z
-    )
-  }
-
-
-
-  if (_desc.rotation) {
-    const { x, y, z, w } = _desc.rotation
-    bodyDesc.setRotation({ x, y, z, w })
-  }
-
-  const body = this.world.createRigidBody(bodyDesc)
-
-  // 2. Crear los colliders
-  const colliders = []
-
-  if (Array.isArray(_desc.colliders)) {
-    _desc.colliders.forEach(colliderDef => {
-      let colliderDesc
-      
-      switch (colliderDef.shape) {
-        case 'cuboid':
-          colliderDesc = RAPIER.ColliderDesc.cuboid(...colliderDef.parameters)
-          break
-
-        case 'sphere':
-          colliderDesc = RAPIER.ColliderDesc.ball(...colliderDef.parameters)
-          break
-
-        case 'capsule':
-          colliderDesc = RAPIER.ColliderDesc.capsule(...colliderDef.parameters)
-          break
-
-        case 'plane':
-          colliderDesc = RAPIER.ColliderDesc.cuboid(...colliderDef.parameters)
-          break
-
-        case 'trimesh':
-          colliderDesc = RAPIER.ColliderDesc.trimesh(
-            colliderDef.parameters.vertices,
-            colliderDef.parameters.indices
-          )
-          break
-
-        case 'convex':
-          colliderDesc = RAPIER.ColliderDesc.convexMesh(
-            colliderDef.parameters.vertices
-          )
-          break
-
-        default:
-          console.warn(`Forma no soportada: ${colliderDef.shape}`)
-      }
-
-      if (colliderDesc) {
-        const collider = this.world.createCollider(colliderDesc, body)
-        colliders.push(collider)
-      }
-    })
-  }
-
-  // 3. Devolver el paquete físico
-  return { body, colliders }
-}
-
-
-
 }
 
 export default Physics
