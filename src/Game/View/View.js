@@ -15,8 +15,6 @@ class View{
     this.controls.enableDamping = true
 
     this.game.viewport.events.on('change', () => { this.resize() })
-
-    this.game.time.events.on('tick', () => { this.update() })
   }
 
   resize(){

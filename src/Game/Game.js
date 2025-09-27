@@ -1,3 +1,4 @@
+import * as THREE from 'three'
 import View from "./View/View.js"
 import Viewport from "./Utils/Viewport.js"
 import World from "./Wolrd/World.js"
@@ -7,8 +8,6 @@ import Physics from "./Physics/Physics.js"
 import PhysicsDebug from "./Physics/PhysicsDebug.js"
 import Inputs from "./Inputs/Inputs.js"
  
-
-
 class Game{
   constructor(){
     // Singleton
@@ -42,6 +41,25 @@ class Game{
     this.physicsDebug = new PhysicsDebug()
     this.view = new View()
     this.rendering = new Rendering()
+  }
+
+  updateAll(){
+    this.physics.update()
+    this.physicsDebug.update()
+    this.view.update()
+  }
+
+  updatePhysics(dt) {
+
+    const safeDt = Math.min(dt, 1/60)
+    if (this.world.vehicle.controller) {
+       this.world.vehicle.controller.update(safeDt)
+       this.world.vehicle.controller.syncMeshes()
+    }
+
+    // avanzar el mundo
+    this.physics.world.step()
+
   }
 }
 

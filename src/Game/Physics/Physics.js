@@ -15,7 +15,7 @@ class Physics{
     this.world = new RAPIER.World(gravity)
     this.game = new Game()
 
-    this.game.time.events.on('tick', () => { this.update() }, 2)
+   // this.game.time.events.on('tick', () => { this.update() }, 2)
   }
 
   update(){
@@ -77,8 +77,34 @@ class Physics{
       bodyDesc.setRotation({ x, y, z, w })
     }
 
-    if (_desc.mass) {
+    // 3. Mass / massProperties (usamos preferentemente massProperties si vienen)
+    const mp = _desc.massProperties
+    if (mp && mp.useAdditionalMassProperties) {
+      // esperar objetos bien formados; si faltan campos usamos valores por defecto razonables
+      const massVal = (typeof mp.massValue === 'number') ? mp.massValue : (_desc.mass ?? 10)
+      const com = mp.com || { x: 0.0, y: 0.0, z: 0.0 }
+      const principalInertia = mp.principalInertia || { x: 1.0, y: 1.0, z: 1.0 }
+      const inertiaFrame = mp.inertiaFrame || { w: 1.0, x: 0.0, y: 0.0, z: 0.0 }
+
+      // Aplica setAdditionalMassProperties con los valores pasados desde addEntity
+      bodyDesc.setAdditionalMassProperties(
+        massVal,
+        { x: com.x, y: com.y, z: com.z },
+        { x: principalInertia.x, y: principalInertia.y, z: principalInertia.z },
+        { w: inertiaFrame.w, x: inertiaFrame.x, y: inertiaFrame.y, z: inertiaFrame.z }
+      )
+    } else if (typeof _desc.mass === 'number') {
+      // compatibilidad: si sólo pasas mass, lo aplicamos con setAdditionalMass
       bodyDesc.setAdditionalMass(_desc.mass)
+    }
+
+    // Opciones de estabilidad/ayuda (opcionales, puedes pasarlas en _desc.physicsOptions)
+    if (_desc.physicsOptions) {
+      const po = _desc.physicsOptions
+      if (typeof po.linearDamping === 'number') bodyDesc.setLinearDamping(po.linearDamping)
+      if (typeof po.angularDamping === 'number') bodyDesc.setAngularDamping(po.angularDamping)
+      if (typeof po.ccd === 'boolean') bodyDesc.setCcdEnabled(po.ccd)
+      if (typeof po.solverIterations === 'number') bodyDesc.setAdditionalSolverIterations(po.solverIterations)
     }
 
     const body = this.world.createRigidBody(bodyDesc)
@@ -124,16 +150,28 @@ class Physics{
             console.warn(`Forma no soportada: ${colliderDef.shape}`)
         }
 
-        if (colliderDesc) {
-          if (typeof colliderDef.restitution === 'number') {
-            colliderDesc.setRestitution(colliderDef.restitution)
-          }
-          if (typeof colliderDef.friction === 'number') {
-            colliderDesc.setFriction(colliderDef.friction)
-          }
-          const collider = this.world.createCollider(colliderDesc, body)
-          colliders.push(collider)
+       if (colliderDesc) {
+        // Si se pide que los colliders NO contribuyan a la masa, ponemos density = 0
+        // (cuando usas setAdditionalMassProperties quieres controlar tú la masa)
+        if (mp && mp.collidersContribute === false) {
+          colliderDesc.setDensity(0)
+        } else if (typeof colliderDef.density === 'number') {
+          colliderDesc.setDensity(colliderDef.density)
         }
+
+        if (typeof colliderDef.restitution === 'number') {
+          colliderDesc.setRestitution(colliderDef.restitution)
+        }
+        if (typeof colliderDef.friction === 'number') {
+          colliderDesc.setFriction(colliderDef.friction)
+        }
+        if (colliderDef.offset) {
+          colliderDesc.setTranslation(colliderDef.offset.x, colliderDef.offset.y, colliderDef.offset.z)
+        }
+
+        const collider = this.world.createCollider(colliderDesc, body)
+        colliders.push(collider)
+      }
       })
     }
 

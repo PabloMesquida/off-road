@@ -8,10 +8,10 @@ class Vehicle {
     this.scene = scene
 
     this.wheels = [
-      new Wheel({ x:-1.2, y:-0.15, z:-1.45 }),
-      new Wheel({ x:-1.2, y:-0.15, z: 1.45 }),
-      new Wheel({ x: 1.2, y:-0.15, z:-1.45 }),
-      new Wheel({ x: 1.2, y:-0.15, z: 1.45 }),
+      new Wheel({ x:-1.2, y:-0.5, z:-1.45 }),
+      new Wheel({ x:-1.2, y:-0.5, z: 1.45 }),
+      new Wheel({ x: 1.2, y:-0.5, z:-1.45 }),
+      new Wheel({ x: 1.2, y:-0.5, z: 1.45 }),
     ]
 
     this.wheels.forEach(w => this.chassis.mesh.add(w.mesh))

@@ -15,10 +15,10 @@ class Wheel {
   createMesh() {
     const outer = new THREE.Group()
     const inner = new THREE.Group()
-    inner.rotation.x = -Math.PI / 2 // corregir eje del cilindro
+    inner.rotation.x = -Math.PI / 2 
 
     const tire = new THREE.Mesh(
-      new THREE.CylinderGeometry(this.radius, this.radius, this.width, 16),
+      new THREE.CylinderGeometry(this.radius, this.radius, this.width, 8),
       new THREE.MeshBasicMaterial({ color: 'red', wireframe: true })
     )
 

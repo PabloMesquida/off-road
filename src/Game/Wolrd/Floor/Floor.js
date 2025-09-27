@@ -33,8 +33,8 @@ class Floor{
       colliders: [ { 
         shape: 'cuboid', 
         parameters: [width * .5, height * .5, depth * .5],
-        restitution: 0.2,   // rebote alto
-        friction: 0.1     // resbala más
+        restitution: 0.05,   
+        friction: 0.6
       }]
     }, this.floorGroup)   
   }

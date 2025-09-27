@@ -7,17 +7,21 @@ class Rendering
   constructor(){
     this.game = new Game()
 
+    this.clock = new THREE.Clock()
+
+    this.fixedTimeStep = 1 / 60 // 60Hz
+    this.accumulator = 0
+
     this.canvas = this.game.viewport.canvas
     this.sizes = this.game.viewport.sizes
     this.ratio = this.game.viewport.ratio
     this.scene = this.game.world.scene
     this.camera = this.game.view.camera
+    
 
     this.setInstance()
 
-    this.game.time.events.on('tick', () => {
-      this.render()
-    })       
+    this.startLoop()   
         
     this.game.viewport.events.on('change', () => {
       this.resize()
@@ -43,10 +47,27 @@ class Rendering
     this.instance.setPixelRatio(this.ratio)
   }
 
-/*   render(){
-    this.instance.render(this.scene, this.camera)
-  }  */
+
+startLoop() {
+  this.instance.setAnimationLoop(async () => {
+    const delta = this.clock.getDelta()
+    this.accumulator += delta
+
+    while (this.accumulator >= this.fixedTimeStep) {
+      this.game.updatePhysics(this.fixedTimeStep)
+      this.accumulator -= this.fixedTimeStep
+    }
+
+    this.game.updateAll() 
+
+    await this.render()
+  })
+
+  }
+
   async render() {
+  
+    
     await this.instance.renderAsync(this.scene, this.camera)
   } 
 }

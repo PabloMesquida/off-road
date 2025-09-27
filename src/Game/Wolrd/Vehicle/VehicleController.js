@@ -24,61 +24,73 @@ class VehicleController {
         new RAPIER.Vector3(pos.x, pos.y, pos.z),
         suspensionDir,
         axle,
-        0.4, // 0.125
+        0.6, // 0.125
         radius
       )
     })
 
+
+
     wheels.forEach((_, i) => {
-      this.controller.setWheelSuspensionStiffness(i, 15)
-      this.controller.setWheelMaxSuspensionTravel(i, 1.5)
+      // Tamaño de ruedas
+      // wthis.controller.setWheelRadius(i, 0.4)
+
+      // Suspensión
+      this.controller.setWheelSuspensionRestLength(i, 0.6)
+      this.controller.setWheelMaxSuspensionTravel(i, 0.6) // 1
+      this.controller.setWheelSuspensionStiffness(i, 50) // 24 // 15
+      this.controller.setWheelSuspensionCompression(i, 4.0)
+      this.controller.setWheelSuspensionRelaxation(i, 2.0)
+      this.controller.setWheelMaxSuspensionForce(i, 20000) // 5000
+
+      // Fricción
+      this.controller.setWheelFrictionSlip(i, 5.0)           // tracción normal
+      this.controller.setWheelSideFrictionStiffness(i, 2.0)  // agarre lateral medio
     })
 
     // parámetros de control
-    this.accelerateForce = 5.0
+    this.accelerateForce = 4.0
     this.brakeForce = 0.05
-    this.steerAngleMax = Math.PI / 8 //24
-
-
-    this.game.time.events.on('tick', () => this.update())
+    this.steerAngleMax = Math.PI / 8 
   }
 
-  update() {
-  if (!this.controller) return
+  update(dt) {
+    if (!this.controller) return
 
-  const rawDelta = this.game.time.delta
-  const dt = rawDelta > 1 ? rawDelta * 0.002 : rawDelta
+    // motor/steering → a partir de inputs
+    const fwd  = !!this.inputs.keys['forward']
+    const back = !!this.inputs.keys['backward']
+    const left = !!this.inputs.keys['left']
+    const right= !!this.inputs.keys['right']
 
-  const fwd  = !!this.inputs.keys['forward']
-  const back = !!this.inputs.keys['backward']
-  const left = !!this.inputs.keys['left']
-  const right= !!this.inputs.keys['right']
-  const coerced = Number(fwd) - Number(back)
-  const engineForce = coerced * this.accelerateForce
+    const engineForce = (Number(fwd) - Number(back)) * this.accelerateForce
+    for (let i = 0; i < this.wheels.length; i++) {
+      this.controller.setWheelEngineForce(i, engineForce)
+    }
 
-  // --- SET FORCES BEFORE calling updateVehicle ---
-  for (let i = 0; i < this.wheels.length; i++) {
-    const testValue = engineForce === 0 ? 0 : engineForce
-    // console.log('SET: index', i, 'testValue', testValue)
-    this.controller.setWheelEngineForce(i, testValue)
+    const steerDir = Number(left) - Number(right)
+    const currentSteer = this.controller.wheelSteering(0) || 0
+    const targetSteer = this.steerAngleMax * steerDir
+    const smoothSteer = THREE.MathUtils.lerp(currentSteer, targetSteer, 0.1)
+    this.controller.setWheelSteering(0, smoothSteer)
+    this.controller.setWheelSteering(1, smoothSteer)
+
+    // avanzar la simulación del vehículo
+    this.controller.updateVehicle(dt)
   }
 
-  // steering
-  const steerDir = Number(left) - Number(right)
-  const current = this.controller.wheelSteering(0) || 0
-  const target = this.steerAngleMax * steerDir
+  syncMeshes() {
+    // chasis
+    const t = this.chassis.body.translation()
+    const r = this.chassis.body.rotation()
+    this.chassis.mesh.position.copy(new THREE.Vector3(t.x, t.y, t.z))
+    this.chassis.mesh.quaternion.copy(new THREE.Quaternion(r.x, r.y, r.z, r.w))
 
-  const steering = THREE.MathUtils.lerp(current, target, 0.01)
-  console.log(current, target, steering)
-  this.controller.setWheelSteering(0, steering)
-  this.controller.setWheelSteering(1, steering)
-
-  // ahora avanzamos la simulación del vehicle
-  this.controller.updateVehicle(dt)
-
-  // actualizar ruedas visuales
-  this.wheels.forEach((wheel, i) => wheel.update(this.controller, i))
-}
+    // ruedas
+    this.wheels.forEach((wheel, i) => {
+      wheel.update(this.controller, i)
+    })
+  }
 
 }
 

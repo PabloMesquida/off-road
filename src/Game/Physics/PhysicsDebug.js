@@ -14,13 +14,14 @@ class PhysicsDebug{
     this.lineSegments = new THREE.LineSegments(this.geometry, this.material)
     this.game.world.scene.add(this.lineSegments)  
 
-    this.game.time.events.on('tick', () => { this.update() }, 3)
+    // this.game.time.events.on('tick', () => { this.update() }, 3)
   }
 
   update(){
     if (!this.game.physics.world) return
     
     const {vertices, colors} = this.game.physics.world.debugRender()
+    
 
     this.geometry.attributes.position.array = vertices
     this.geometry.attributes.position.count = vertices.length / 3
