@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import View from "./View/View.js"
 import Viewport from "./Utils/Viewport.js"
 import World from "./Wolrd/World.js"
-import Time from "./Utils/Time.js"
+// import Time from "./Utils/Time.js"
 import Rendering from "./Rendering/Rendering.js"
 import Physics from "./Physics/Physics.js"
 import PhysicsDebug from "./Physics/PhysicsDebug.js"
@@ -16,7 +16,7 @@ class Game{
     Game.instance = this
 
     this.domElement = document.querySelector('.game')
-    this.time = new Time()
+   // this.time = new Time()
     this.viewport = new Viewport(this.domElement)
     this.physics = new Physics()
     
@@ -44,23 +44,29 @@ class Game{
   }
 
   updateAll(){
-    this.physics.update()
     this.physicsDebug.update()
     this.view.update()
   }
 
   updatePhysics(dt) {
+  const safeDt = Math.min(dt, 1/60)
 
-    const safeDt = Math.min(dt, 1/60)
-    if (this.world.vehicle.controller) {
-       this.world.vehicle.controller.update(safeDt)
-       this.world.vehicle.controller.syncMeshes()
-    }
-
-    // avanzar el mundo
-    this.physics.world.step()
-
+  // actualizar vehículo antes de step
+  if (this.world.vehicle.controller) {
+     this.world.vehicle.controller.update(dt)
   }
+
+  // avanzar el mundo
+  this.physics.world.step()
+
+  // sincronizar vehículo después de step
+  if (this.world.vehicle.controller) {
+     this.world.vehicle.controller.syncMeshes()
+  }
+
+  // sincronizar entidades físicas con sus visuales
+  this.physics.syncEntities()
+}
 }
 
 export default Game

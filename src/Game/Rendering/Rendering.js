@@ -60,16 +60,15 @@ startLoop() {
 
     this.game.updateAll() 
 
-    await this.render()
+   this.instance.render(this.scene, this.camera)
   })
 
   }
 
-  async render() {
-  
-    
-    await this.instance.renderAsync(this.scene, this.camera)
-  } 
+  // Para grabar un video frame a frame
+  // async render() {
+  //   await this.instance.render(this.scene, this.camera)
+  // } 
 }
 
 export default Rendering

@@ -18,17 +18,15 @@ class Physics{
    // this.game.time.events.on('tick', () => { this.update() }, 2)
   }
 
-  update(){
-    if (!this.world) return
-
-    this.world.step()
-    this.entities.forEach((_entity) => {
-      if(_entity.visual){
-        _entity.visual.position.copy(_entity.physical.body.translation())
-        _entity.visual.quaternion.copy(_entity.physical.body.rotation())
-      }
-    }) 
-  }
+  syncEntities(){
+  if (!this.world) return
+  this.entities.forEach((_entity) => {
+    if(_entity.visual){
+      _entity.visual.position.copy(_entity.physical.body.translation())
+      _entity.visual.quaternion.copy(_entity.physical.body.rotation())
+    }
+  }) 
+}
 
   addEntity(_physicalDescription = null, _visual = null){
     if (!this.world) return
@@ -46,7 +44,7 @@ class Physics{
   getPhysical(_desc) {
     if (!_desc) return null
 
-    // 1. Crear el cuerpo rígido (RigidBody) según type
+    // 1. Crear el RigidBody según type
     let bodyDesc
     switch (_desc.type) {
       case 'dynamic':
