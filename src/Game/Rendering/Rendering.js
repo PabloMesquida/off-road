@@ -9,15 +9,13 @@ class Rendering
 
     this.clock = new THREE.Clock()
 
-    this.fixedTimeStep = 1 / 60 // 60Hz
-    this.accumulator = 0
-
+    this.fixedTimeStep = 1 /60 
+    
     this.canvas = this.game.viewport.canvas
     this.sizes = this.game.viewport.sizes
     this.ratio = this.game.viewport.ratio
     this.scene = this.game.world.scene
     this.camera = this.game.view.camera
-    
 
     this.setInstance()
 
@@ -47,22 +45,12 @@ class Rendering
     this.instance.setPixelRatio(this.ratio)
   }
 
-
-startLoop() {
-  this.instance.setAnimationLoop(async () => {
-    const delta = this.clock.getDelta()
-    this.accumulator += delta
-
-    while (this.accumulator >= this.fixedTimeStep) {
+  startLoop() {
+    this.instance.setAnimationLoop(() => {
       this.game.updatePhysics(this.fixedTimeStep)
-      this.accumulator -= this.fixedTimeStep
-    }
-
-    this.game.updateAll() 
-
-   this.instance.render(this.scene, this.camera)
-  })
-
+      this.game.updateAll() 
+      this.instance.render(this.scene, this.camera)
+    })
   }
 
   // Para grabar un video frame a frame
