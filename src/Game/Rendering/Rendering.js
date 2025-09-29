@@ -10,7 +10,7 @@ class Rendering
     this.clock = new THREE.Clock()
 
     this.fixedTimeStep = 1 /60 
-    
+
     this.canvas = this.game.viewport.canvas
     this.sizes = this.game.viewport.sizes
     this.ratio = this.game.viewport.ratio
@@ -45,10 +45,22 @@ class Rendering
     this.instance.setPixelRatio(this.ratio)
   }
 
+
   startLoop() {
+    const fixedDelta = 1 / 60 
+    let accumulator = 0
+
     this.instance.setAnimationLoop(() => {
-      this.game.updatePhysics(this.fixedTimeStep)
-      this.game.updateAll() 
+      const delta = this.clock.getDelta()
+      const clampedDelta = Math.min(delta, 0.1)
+      accumulator += clampedDelta
+
+      while (accumulator >= fixedDelta) {
+        this.game.updatePhysics(fixedDelta)
+        accumulator -= fixedDelta
+      }
+      
+      this.game.updateAll()
       this.instance.render(this.scene, this.camera)
     })
   }

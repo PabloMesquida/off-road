@@ -49,11 +49,14 @@ class Game{
   }
 
   updatePhysics(dt) {
-  const safeDt = Math.min(dt, 1/60)
+    const safeDt = Math.min(dt, 1/60)
+      this.physics.world.timestep =  Math.min(dt, 1/60) // Math.min(delta, 0.1)
+      this.physics.world.step()
+
 
   // actualizar vehículo antes de step
   if (this.world.vehicle.controller) {
-     this.world.vehicle.controller.update(dt)
+     this.world.vehicle.controller.update(safeDt)
   }
 
   // avanzar el mundo
