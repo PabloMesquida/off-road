@@ -1,4 +1,3 @@
-import * as THREE from 'three'
 import View from "./View/View.js"
 import Viewport from "./Utils/Viewport.js"
 import World from "./Wolrd/World.js"
@@ -7,10 +6,11 @@ import Rendering from "./Rendering/Rendering.js"
 import Physics from "./Physics/Physics.js"
 import PhysicsDebug from "./Physics/PhysicsDebug.js"
 import Inputs from "./Inputs/Inputs.js"
+import sources from './sources.js'
+import Resources from "./Utils/Resources.js"
  
 class Game{
   constructor(){
-    // Singleton
     if(Game.instance) return Game.instance
 
     Game.instance = this
@@ -19,6 +19,7 @@ class Game{
    // this.time = new Time()
     this.viewport = new Viewport(this.domElement)
     this.physics = new Physics()
+    this.resources = new Resources(sources)
     
     this.inputs = new Inputs([
       { name: 'forward', keys: ['ArrowUp', 'KeyW'] },
@@ -36,40 +37,33 @@ class Game{
 
   async start() {
     await this.physics.ready
- 
     this.world = new World()         
-    this.physicsDebug = new PhysicsDebug()
+   // this.physicsDebug = new PhysicsDebug()
     this.view = new View()
     this.rendering = new Rendering()
   }
 
   updateAll(){
-    this.physicsDebug.update()
+  // this.physicsDebug.update()
     this.view.update()
   }
 
   updatePhysics(dt) {
-    const safeDt = Math.min(dt, 1/60)
-      this.physics.world.timestep =  Math.min(dt, 1/60) // Math.min(delta, 0.1)
-      this.physics.world.step()
+    const safeDt = Math.min(dt, 1 / 60)
+    this.physics.world.timestep = safeDt
 
+    if (this.world.vehicle.controller) {
+      this.world.vehicle.controller.update(safeDt)
+    }
 
-  // actualizar vehículo antes de step
-  if (this.world.vehicle.controller) {
-     this.world.vehicle.controller.update(safeDt)
+    this.physics.world.step()
+
+    if (this.world.vehicle.controller) {
+      this.world.vehicle.controller.syncMeshes()
+    }
+
+    this.physics.syncEntities()
   }
-
-  // avanzar el mundo
-  this.physics.world.step()
-
-  // sincronizar vehículo después de step
-  if (this.world.vehicle.controller) {
-     this.world.vehicle.controller.syncMeshes()
-  }
-
-  // sincronizar entidades físicas con sus visuales
-  this.physics.syncEntities()
-}
 }
 
 export default Game

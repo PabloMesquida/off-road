@@ -1,7 +1,7 @@
 import * as THREE from 'three/webgpu'
 
 class Wheel {
-  constructor(position, radius = 0.5, width = 0.5
+  constructor(position, radius = 0.35, width = 0.2
   ) {
     this.position = position
     this.radius = radius
@@ -15,13 +15,14 @@ class Wheel {
   createMesh() {
     const outer = new THREE.Group()
     const inner = new THREE.Group()
-    inner.rotation.x = -Math.PI / 2 
+    inner.rotation.y = Math.PI / 2
 
     const tire = new THREE.Mesh(
-      new THREE.CylinderGeometry(this.radius, this.radius, this.width, 8),
+      new THREE.CylinderGeometry(this.radius, this.radius, this.width, 6),
       new THREE.MeshBasicMaterial({ color: 'red', wireframe: true })
     )
 
+    tire.rotation.z = Math.PI / 2
     inner.add(tire)
     outer.add(inner)
     return outer
@@ -34,7 +35,7 @@ class Wheel {
     const conn = controller.wheelChassisConnectionPointCs(index) ?? { y: 0 }
     const steering = controller.wheelSteering(index) ?? 0
     const rotation = controller.wheelRotation(index) ?? 0
-    const axle = controller.wheelAxleCs(index)
+    const axle =   controller.wheelAxleCs(index)
     const axleVec = new THREE.Vector3(axle.x, axle.y, axle.z)
 
     // ajustar altura

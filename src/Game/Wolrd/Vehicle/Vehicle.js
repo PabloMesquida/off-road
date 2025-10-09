@@ -7,13 +7,12 @@ class Vehicle {
     this.chassis = new Chassis()
     this.scene = scene
 
-    this.wheels = [
-      new Wheel({ x:-1.2, y:-0.5, z:-1.45 }),
-      new Wheel({ x:-1.2, y:-0.5, z: 1.45 }),
-      new Wheel({ x: 1.2, y:-0.5, z:-1.45 }),
-      new Wheel({ x: 1.2, y:-0.5, z: 1.45 }),
+     this.wheels = [
+      new Wheel({ x:-1.75, y:-0.5, z:-1 }),
+      new Wheel({ x:-1.75, y:-0.5, z: 1 }),
+      new Wheel({ x: 1.2, y:-0.5, z:-1 }),
+      new Wheel({ x: 1.2, y:-0.5, z: 1 }),
     ]
-
     this.wheels.forEach(w => this.chassis.mesh.add(w.mesh))
 
     this.controller = new VehicleController(this.chassis, this.wheels)

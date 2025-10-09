@@ -16,7 +16,7 @@ class VehicleController {
     // parámetros de rueda
     const suspensionDir = new RAPIER.Vector3(0, -1, 0)
     const axle = new RAPIER.Vector3(0, 0, -1)
-    const radius = 0.5
+    const radius = 0.35
 
     wheels.forEach((wheel) => {
       const pos = wheel.position
@@ -24,12 +24,10 @@ class VehicleController {
         new RAPIER.Vector3(pos.x, pos.y, pos.z),
         suspensionDir,
         axle,
-        0.6, // 0.125
+        0.35, // 0.125
         radius
       )
     })
-
-
 
     wheels.forEach((_, i) => {
       // Tamaño de ruedas
@@ -49,7 +47,7 @@ class VehicleController {
     })
 
     // parámetros de control
-    this.accelerateForce = 4.0
+    this.accelerateForce = 30.0
     this.brakeForce = 0.05
     this.steerAngleMax = Math.PI / 8 
   }
@@ -64,9 +62,12 @@ class VehicleController {
     const right= !!this.inputs.keys['right']
 
     const engineForce = (Number(fwd) - Number(back)) * this.accelerateForce
-    for (let i = 0; i < this.wheels.length; i++) {
+/*     for (let i = 0; i < this.wheels.length; i++) {
       this.controller.setWheelEngineForce(i, engineForce)
-    }
+    } */
+
+     this.controller.setWheelEngineForce(2, engineForce)
+      this.controller.setWheelEngineForce(3, engineForce)
 
     const steerDir = Number(left) - Number(right)
     const currentSteer = this.controller.wheelSteering(0) || 0

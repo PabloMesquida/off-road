@@ -47,12 +47,12 @@ class Rendering
 
 
   startLoop() {
-    const fixedDelta = 1 / 60 
+    const fixedDelta = 1 / 60
     let accumulator = 0
 
     this.instance.setAnimationLoop(() => {
       const delta = this.clock.getDelta()
-      const clampedDelta = Math.min(delta, 0.1)
+      const clampedDelta = Math.min(delta, 0.1) 
       accumulator += clampedDelta
 
       while (accumulator >= fixedDelta) {
