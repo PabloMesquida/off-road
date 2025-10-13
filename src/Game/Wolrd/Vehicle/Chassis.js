@@ -6,7 +6,6 @@ class Chassis {
     this.game = new Game()
     this.resources = this.game.resources
     
-    // Resource
     this.resource = this.resources.items.carRastrojeroModel.scene
 
     this.physics = this.game.physics

@@ -1,31 +1,30 @@
 import * as THREE from 'three/webgpu'
+import Game from '../../Game'
 
 class Wheel {
-  constructor(position, radius = 0.35, width = 0.2
-  ) {
+  constructor(position) {
     this.position = position
-    this.radius = radius
-    this.width = width
 
-    this.mesh = this.createMesh()
+    this.game = new Game()
+    this.resources = this.game.resources
+    
+    this.resource = this.resources.items.wheelModel.scene
+
+    this.mesh = new THREE.Group()
+    this.inner = new THREE.Group()
+
+    this.model = this.resource.clone()
+
+     // ✅ rotar el modelo según el lado del coche
+    if (this.position.z <= 0) { 
+      // Lado derecho → girar la rueda
+      this.model.rotation.y = -Math.PI
+    }
+
+    this.inner.add(this.model)
+    this.mesh.add(this.inner)
+
     this.mesh.position.copy(position)
- 
-  }
-
-  createMesh() {
-    const outer = new THREE.Group()
-    const inner = new THREE.Group()
-    inner.rotation.y = Math.PI / 2
-
-    const tire = new THREE.Mesh(
-      new THREE.CylinderGeometry(this.radius, this.radius, this.width, 6),
-      new THREE.MeshBasicMaterial({ color: 'red', wireframe: true })
-    )
-
-    tire.rotation.z = Math.PI / 2
-    inner.add(tire)
-    outer.add(inner)
-    return outer
   }
 
   update(controller, index) {
