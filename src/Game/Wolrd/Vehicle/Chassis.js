@@ -20,7 +20,7 @@ class Chassis {
     this.model.position.set(-1, -1, 0) 
     this.mesh.add(this.model)
 
-    const carPaint = new PaintMaterial({ baseColor: 0x6aa0c4, rough: 0.8, metal: 0.2 });
+    const carPaint = new PaintMaterial({ baseColor: 0x6aa0c4, rough: 0.6, metal: 0.2 });
     const sideLight = new SideLightMaterial()
 
     this.model.traverse((child) => {

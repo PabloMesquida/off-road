@@ -7,7 +7,6 @@ import PhysicsDebug from "./Physics/PhysicsDebug.js"
 import Inputs from "./Inputs/Inputs.js"
 import sources from './sources.js'
 import Resources from "./Utils/Resources.js"
-import Stats from "stats-gl";
  
 class Game{
   constructor(){
@@ -26,7 +25,8 @@ class Game{
       { name: 'forward', keys: ['ArrowUp', 'KeyW'] },
       { name: 'right', keys: ['ArrowRight', 'KeyD'] },
       { name: 'backward', keys: ['ArrowDown', 'KeyS'] },
-      { name: 'left', keys: [ 'ArrowLeft', 'KeyA']}
+      { name: 'left', keys: [ 'ArrowLeft', 'KeyA']},
+      { name: 'brake', keys: [ 'Space'] }
     ])
 
     this.world = null

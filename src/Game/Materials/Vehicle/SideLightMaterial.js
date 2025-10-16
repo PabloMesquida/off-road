@@ -2,32 +2,42 @@ import * as THREE from 'three/webgpu';
 import * as TSL from 'three/tsl';
 
 class SideLightMaterial extends THREE.MeshPhysicalNodeMaterial {
-  constructor({ color = 0xba4e06, intensity = 0.0 } = {}) {
+  constructor({ _color = 0x82430c, _intensity = 0 } = {}) {
     super();
 
-    // Color base (apenas visible si apagado)
-    this.colorNode = TSL.color(color);
+    // Uniform que se puede actualizar dinámicamente
+    this.intensityNode = TSL.uniform(TSL.float(_intensity));
 
-    // Emission para efecto prendido
-    this.emissiveNode = TSL.color(color);
-    this.emissiveIntensity = intensity;
+    // Nodo de color base
+    this.colorNode = TSL.color(_color);
 
-    // Opcional: más brillante con roughness bajo
-    this.roughnessNode = TSL.float(1.0);
-    this.metalnessNode = TSL.float(0.0);
+    // Nodo emisivo = color * intensidad
+    this.emissiveNode = TSL.mul(this.colorNode, this.intensityNode);
+
+    // Evita clamping
+    this.toneMapped = false;
+     this.turnOn()
+  }
+
+  // Cambia la intensidad en vivo
+  setIntensity(value) {
+    this.intensityNode.value = value;
   }
 
   turnOn() {
-    this.emissiveIntensity = 1.0;
+    this.setIntensity(100.0);
   }
 
   turnOff() {
-    this.emissiveIntensity = 0.0;
+    this.setIntensity(0.0);
   }
 
+
   setColor(hex) {
-    this.emissiveNode = TSL.color(hex);
+    this.colorNode = TSL.color(hex);
+    // Actualiza el nodo emisivo con el nuevo color
+    this.emissiveNode = TSL.mul(this.colorNode, this.intensityNode);
   }
 }
 
-export default SideLightMaterial
+export default SideLightMaterial;

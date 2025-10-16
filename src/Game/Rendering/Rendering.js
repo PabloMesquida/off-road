@@ -1,6 +1,8 @@
 import * as THREE from 'three/webgpu'
+import * as TSL from 'three/tsl';
 import Game from '../Game.js'
 import Stats from 'stats-gl'
+import { bloom } from 'three/examples/jsm/tsl/display/BloomNode.js';
 
 
 class Rendering
@@ -20,6 +22,8 @@ class Rendering
     this.scene = this.game.world.scene
     this.camera = this.game.view.camera
 
+  
+
     this.setInstance()
 
     this.startLoop()   
@@ -34,13 +38,33 @@ class Rendering
     // this.instance = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true }) 
     this.instance = new THREE.WebGPURenderer({ canvas: this.canvas, antialias: true }) 
 
-    this.stats.init( this.instance );
-    document.body.appendChild(this.stats.dom);
+    this.postProcessing = new THREE.PostProcessing(this.instance);
+
+    // --- Render principal ---
+    this.scenePass = TSL.pass(this.scene, this.camera);
+    this.scenePassColor = this.scenePass.getTextureNode();
+
+    // --- Bloom ---
+    this.bloomPass = bloom(this.scenePassColor);
+    this.bloomPass.strength.value = 1.2;
+    this.bloomPass.radius.value = 0.6;
+    this.bloomPass.threshold.value = 1.0; // sólo cosas muy brillantes
+
+    // --- Combinar escena + bloom ---
+    const finalImage = this.scenePassColor.add(this.bloomPass);
+
+    // --- Salida final ---
+    this.postProcessing.outputNode = finalImage;
+
+
+    this.stats.init( this.instance )
+    document.body.appendChild(this.stats.dom)
 
     this.instance.toneMapping = THREE.CineonToneMapping
     this.instance.toneMappingExposure = 1.75
     this.instance.shadowMap.enabled = true
     this.instance.shadowMap.type = THREE.PCFSoftShadowMap
+    
     
     this.instance.setClearColor('#010101')
     this.instance.setSize(this.sizes.width, this.sizes.height)
@@ -73,13 +97,14 @@ class Rendering
 
       this.game.updateAll();
 
+  
       frameCount++;
 
       // Llamamos renderAsync siempre, pero solo await cada N frames
       try {
         const renderPromise = this.instance.renderAsync(this.scene, this.camera);
-
-        if (frameCount % AWAIT_EVERY_N_FRAMES === 0) {
+          this.postProcessing.render()
+       if (frameCount % AWAIT_EVERY_N_FRAMES === 0) {
           // sincronizamos de vez en cuando para mantener las timestamps bajo control
           await renderPromise;
 
@@ -102,8 +127,11 @@ class Rendering
         console.error('Render/resolve error:', err);
       }
 
+        
+
       // actualizar stats después del render / encolado
       this.stats.update();
+      
     });
   }
 }

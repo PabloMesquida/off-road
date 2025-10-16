@@ -1,5 +1,4 @@
 import * as THREE from 'three/webgpu'
-import { GridNodeMaterial } from '../../Materials/GridNodeMaterial.js'
 import PolishedConcreteMaterial from '../../Materials/PolishedConcreteMaterial.js'
 
 class Floor{
@@ -16,7 +15,6 @@ class Floor{
     const { width, depth, height } = this.size
     const geometry = new THREE.PlaneGeometry(width, depth)
     geometry.rotateX(-Math.PI / 2)
-    // const material = GridNodeMaterial.fromPreset()
     const material = new PolishedConcreteMaterial()
     const floorMesh = new THREE.Mesh(geometry, material)
 
@@ -38,7 +36,7 @@ class Floor{
         shape: 'cuboid', 
         parameters: [width * .5, height * .5, depth * .5],
         restitution: 0.05,   
-        friction: 1.0
+        friction: 0.5
       }]
     }, this.floorGroup)   
   }
