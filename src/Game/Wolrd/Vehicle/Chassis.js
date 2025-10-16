@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 import Game from "../../Game.js"
+import PaintMaterial from '../../Materials/Vehicle/PaintMaterial.js'
+import SideLightMaterial from '../../Materials/Vehicle/SideLightMaterial.js'
 
 class Chassis {
   constructor(position = {x:0,y:3,z:0}) {
@@ -18,10 +20,24 @@ class Chassis {
     this.model.position.set(-1, -1, 0) 
     this.mesh.add(this.model)
 
-     this.model.traverse((child) => {
-        if (!child.isMesh) return;
-        child.castShadow = true
+    const carPaint = new PaintMaterial({ baseColor: 0x6aa0c4, rough: 0.8, metal: 0.2 });
+    const sideLight = new SideLightMaterial()
 
+    this.model.traverse((child) => {
+        if (!child.isMesh) return
+         child.castShadow = true
+        if(child.material){
+          console.log(child.material)
+          console.log(`"${child.name}"`);
+        }
+        if (child.name.includes('Pintura')) {
+           console.log('ok Pintura')
+          child.material = carPaint;
+        }
+      if (child.name.includes("PlasticoNaranja")) {
+          console.log('ok')
+          child.material = sideLight;
+        }
     })
  
     this.entity = this.physics.addEntity({
