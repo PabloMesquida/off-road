@@ -33,23 +33,24 @@ class VehicleController {
       // Tamaño de ruedas
       // wthis.controller.setWheelRadius(i, 0.4)
 
-      // Suspensión
-      this.controller.setWheelSuspensionRestLength(i, 0.6)
-      this.controller.setWheelMaxSuspensionTravel(i, 0.6) // 1
-      this.controller.setWheelSuspensionStiffness(i, 50) // 24 // 15
-      this.controller.setWheelSuspensionCompression(i, 4.0)
-      this.controller.setWheelSuspensionRelaxation(i, 2.0)
-      this.controller.setWheelMaxSuspensionForce(i, 20000) // 5000
+      
+
+      this.controller.setWheelSuspensionRestLength(i, 0.7);
+      this.controller.setWheelMaxSuspensionTravel(i, 0.6);
+      this.controller.setWheelSuspensionStiffness(i, 65); // N/m aproximado 55
+      this.controller.setWheelSuspensionCompression(i, 3.0); // 4
+      this.controller.setWheelSuspensionRelaxation(i, 3.0); // 2
+      this.controller.setWheelMaxSuspensionForce(i,20000); // 20000
 
       // Fricción
-      this.controller.setWheelFrictionSlip(i, 5.0)           // tracción normal
-      this.controller.setWheelSideFrictionStiffness(i, 2.0)  // agarre lateral medio
+       this.controller.setWheelFrictionSlip(i, 8.0)           // tracción normal
+  this.controller.setWheelSideFrictionStiffness(i, 1)  // agarre lateral medio
     })
 
     // parámetros de control
-    this.accelerateForce = 30.0
+    this.accelerateForce = 25.0
     this.brakeForce = 0.05
-    this.steerAngleMax = Math.PI / 8 
+    this.steerAngleMax = Math.PI / 6
   }
 
   update(dt) {
@@ -61,13 +62,21 @@ class VehicleController {
     const left = !!this.inputs.keys['left']
     const right= !!this.inputs.keys['right']
 
-    const engineForce = (Number(fwd) - Number(back)) * this.accelerateForce
+   // const engineForce = (Number(fwd) - Number(back)) * this.accelerateForce
 /*     for (let i = 0; i < this.wheels.length; i++) {
       this.controller.setWheelEngineForce(i, engineForce)
     } */
 
-     this.controller.setWheelEngineForce(2, engineForce)
-      this.controller.setWheelEngineForce(3, engineForce)
+        // === SUAVIZAR LA FUERZA DE MOTOR ===
+        
+    const targetForce = (Number(fwd) - Number(back)) * this.accelerateForce
+    this.currentForce = this.currentForce ?? 0
+    // Lerp hacia el objetivo con una constante de suavizado (ajustá 6–10)
+  const smoothFactor =10  // más agresivo
+this.currentForce = THREE.MathUtils.lerp(this.currentForce, targetForce, 1 - Math.exp(-smoothFactor * dt))
+this.chassis.body.wakeUp()
+     this.controller.setWheelEngineForce(2,  this.currentForce)
+      this.controller.setWheelEngineForce(3,  this.currentForce)
 
     const steerDir = Number(left) - Number(right)
     const currentSteer = this.controller.wheelSteering(0) || 0

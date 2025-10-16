@@ -4,6 +4,7 @@ import Floor from './Floor/Floor.js'
 import Vehicle from './Vehicle/Vehicle.js'
 import Events from '../Utils/Events.js'
 import Environment from './Environment/Environment.js'
+import CubeTest from './CubeTest/CubeTest.js'
 
 class World{
   constructor(){
@@ -13,11 +14,12 @@ class World{
   
     this.resources = this.game.resources
   
-    this.floor = new Floor(this.scene, this.game.physics, { width: 100 , depth: 100, height: 0.2 }) 
+    this.floor = new Floor(this.scene, this.game.physics, { width: 8 , depth: 6, height: 0.2 }) 
 
     this.resources.events.on('ready', () => {
       this.vehicle = new Vehicle(this.scene,  this.game.physics)
       this.environment = new Environment(this.scene)
+     //  this.cubeTest = new CubeTest(this.scene)
     })
 
    }

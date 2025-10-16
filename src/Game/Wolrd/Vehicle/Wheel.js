@@ -14,6 +14,12 @@ class Wheel {
     this.inner = new THREE.Group()
 
     this.model = this.resource.clone()
+    this.model.traverse((child) => {
+        if (!child.isMesh) return;
+        child.castShadow = true
+
+    })
+ 
 
      // ✅ rotar el modelo según el lado del coche
     if (this.position.z <= 0) { 

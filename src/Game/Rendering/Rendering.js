@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu'
 import Game from '../Game.js'
+import Stats from 'stats-gl'
 
 
 class Rendering
@@ -8,6 +9,8 @@ class Rendering
     this.game = new Game()
 
     this.clock = new THREE.Clock()
+
+    this.stats = new Stats({ trackGPU: true });
 
     this.fixedTimeStep = 1 /60 
 
@@ -31,10 +34,14 @@ class Rendering
     // this.instance = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true }) 
     this.instance = new THREE.WebGPURenderer({ canvas: this.canvas, antialias: true }) 
 
+    this.stats.init( this.instance );
+    document.body.appendChild(this.stats.dom);
+
     this.instance.toneMapping = THREE.CineonToneMapping
     this.instance.toneMappingExposure = 1.75
     this.instance.shadowMap.enabled = true
     this.instance.shadowMap.type = THREE.PCFSoftShadowMap
+    
     this.instance.setClearColor('#010101')
     this.instance.setSize(this.sizes.width, this.sizes.height)
     this.instance.setPixelRatio(this.ratio)
@@ -46,29 +53,59 @@ class Rendering
   }
 
 
-  startLoop() {
-    const fixedDelta = 1 / 60
-    let accumulator = 0
+ startLoop() {
+    const fixedDelta = 1 / 60;
+    let accumulator = 0;
 
-    this.instance.setAnimationLoop(() => {
-      const delta = this.clock.getDelta()
-      const clampedDelta = Math.min(delta, 0.1) 
-      accumulator += clampedDelta
+    // estrategia: await cada N frames para equilibrar precisión y rendimiento
+    const AWAIT_EVERY_N_FRAMES = 30;
+    let frameCount = 0;
+
+    this.instance.setAnimationLoop( async () => {
+      const delta = this.clock.getDelta();
+      const clampedDelta = Math.min(delta, 0.1);
+      accumulator += clampedDelta;
 
       while (accumulator >= fixedDelta) {
-        this.game.updatePhysics(fixedDelta)
-        accumulator -= fixedDelta
+        this.game.updatePhysics(fixedDelta);
+        accumulator -= fixedDelta;
       }
-      
-      this.game.updateAll()
-      this.instance.render(this.scene, this.camera)
-    })
-  }
 
-  // Para grabar un video frame a frame
-  // async render() {
-  //   await this.instance.render(this.scene, this.camera)
-  // } 
+      this.game.updateAll();
+
+      frameCount++;
+
+      // Llamamos renderAsync siempre, pero solo await cada N frames
+      try {
+        const renderPromise = this.instance.renderAsync(this.scene, this.camera);
+
+        if (frameCount % AWAIT_EVERY_N_FRAMES === 0) {
+          // sincronizamos de vez en cuando para mantener las timestamps bajo control
+          await renderPromise;
+
+          // después del await, resolvemos las timestamp queries (RENDER)
+          // await aquí es razonable porque acabamos de await renderPromise
+          await this.instance.resolveTimestampsAsync(THREE.TimestampQuery.RENDER);
+        } else {
+          // no bloquear cada frame: dejamos la promesa en vuelo y resolvemos timestamps sin await
+          // capturamos errores para evitar promesas no manejadas
+          renderPromise.catch((e) => {
+            // opcional: console.warn('renderAsync (no-await) error', e);
+          });
+
+          this.instance.resolveTimestampsAsync(THREE.TimestampQuery.RENDER).catch(() => {
+            // opcional: silenciar errores menores
+          });
+        }
+      } catch (err) {
+        // si algo falla en render/resolve, lo logueamos sin romper el loop
+        console.error('Render/resolve error:', err);
+      }
+
+      // actualizar stats después del render / encolado
+      this.stats.update();
+    });
+  }
 }
 
 export default Rendering

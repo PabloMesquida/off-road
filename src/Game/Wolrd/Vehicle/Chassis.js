@@ -2,30 +2,36 @@ import * as THREE from 'three'
 import Game from "../../Game.js"
 
 class Chassis {
-  constructor(position = {x:0,y:10,z:0}) {
+  constructor(position = {x:0,y:3,z:0}) {
     this.game = new Game()
     this.resources = this.game.resources
     
     this.resource = this.resources.items.carRastrojeroModel.scene
 
     this.physics = this.game.physics
-    this.sizes = { x: 4.5, y: 2, z: 2}
+    this.sizes = { x: 4.5, y: 1.25, z: 2}
 
-    this.rotation = { x:0 ,y:0, z: Math.PI / 32, w: 1 } 
+    //this.rotation = { x:0 ,y:0, z: 0, w: 1 } 
 
     this.mesh = new THREE.Group()
     this.model = this.resource
-    this.model.position.set(-1, -1.4, 0) 
+    this.model.position.set(-1, -1, 0) 
     this.mesh.add(this.model)
 
+     this.model.traverse((child) => {
+        if (!child.isMesh) return;
+        child.castShadow = true
+
+    })
+ 
     this.entity = this.physics.addEntity({
       type: 'dynamic',
       position,
       rotation: this.rotation,
       massProperties: {
         useAdditionalMassProperties: true,
-         massValue: 10,
-         com: { x: -0, y:-1.5, z: 0 }, // baja el COM 0.25m
+         massValue: 12,
+         com: { x: -0.5, y:-0.5, z: 0 }, // baja el COM 0.25m
         // principalInertia: { x: 2, y: 2, z: 2 },
         // inertiaFrame: { w: 1, x: 0, y: 0, z: 0 },
         // collidersContribute: false       // evita que los colliders sumen masa

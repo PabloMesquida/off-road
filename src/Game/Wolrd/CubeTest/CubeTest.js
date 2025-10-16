@@ -1,22 +1,18 @@
 import * as THREE from 'three/webgpu'
-import Game from "../../Game.js"
+import PolishedConcreteMaterial from '../../Materials/PolishedConcreteMaterial'
 
 class CubeTest{
-  constructor(){
-    this.game = new Game()
+  constructor(scene){
+    this.scene = scene
 
     this.box = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshBasicMaterial({color: 'orange', wireframe: true})
+      new THREE.SphereGeometry(2, 16, 32),
+      new PolishedConcreteMaterial()
     )
-    this.box.visible = false
-
-    this.game.physics.addEntity({
-      type: 'dynamic',
-      position: { x:0, y:5, z:0},
-      colliders: [ { shape: 'cuboid', parameters: [0.5, 0.5, 0.5] }]
-      }, 
-      this.box) 
+    this.box.position.set(0,1,5)
+     this.box.castShadow = true;
+     this.box.receiveShadow = true;
+    this.scene.add(this.box)
   }
 }
 
