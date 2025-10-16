@@ -2,7 +2,7 @@ import * as THREE from 'three/webgpu';
 import * as TSL from 'three/tsl';
 
 class SideLightMaterial extends THREE.MeshPhysicalNodeMaterial {
-  constructor({ _color = 0x82430c, _intensity = 0 } = {}) {
+  constructor({ _color = 0xFFFFFF, _intensity = 0 } = {}) {
     super();
 
     // Uniform que se puede actualizar dinámicamente
@@ -16,7 +16,8 @@ class SideLightMaterial extends THREE.MeshPhysicalNodeMaterial {
 
     // Evita clamping
     this.toneMapped = false;
-     this.turnOn()
+    this.roughness = 0.0
+    // this.turnOn()
   }
 
   // Cambia la intensidad en vivo
@@ -25,7 +26,7 @@ class SideLightMaterial extends THREE.MeshPhysicalNodeMaterial {
   }
 
   turnOn() {
-    this.setIntensity(100.0);
+    this.setIntensity(10.0);
   }
 
   turnOff() {
