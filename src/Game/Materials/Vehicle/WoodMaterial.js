@@ -12,7 +12,7 @@ class WoodMaterial extends THREE.MeshStandardNodeMaterial {
         scale: 2,
         rings: 2,
         lengths: 2.5,
-        angle: 10,
+        angle: 0,
         fibers: 0.15,
         fibersDensity: 10,
         color: new THREE.Color(0x73400d),

@@ -82,7 +82,7 @@ class PolishedConcreteMaterial extends THREE.MeshStandardNodeMaterial {
       const mixedColor = TSL.mix(noiseColor, cracksColor,sample);
 
       const rustyColor = TSL.vec3(rusty)
-      mixedColor.assign(TSL.mix(mixedColor, rustyColor, TSL.float(0.1)))
+      mixedColor.assign(TSL.mix(noiseColor, rustyColor, TSL.float(0.1)))
       // devolvemos vec4 (RGB + alfa). Aquí ponemos alfa a 1.0 por defecto.
       // Si prefieres que la geometría sea realmente transparente fuera de la máscara,
       // activa material.transparent = true y asigna this.opacityNode = maskAlpha (ver abajo).

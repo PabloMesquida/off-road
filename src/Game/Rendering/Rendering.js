@@ -37,6 +37,7 @@ class Rendering
   setInstance(){
     // this.instance = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true }) 
     this.instance = new THREE.WebGPURenderer({ canvas: this.canvas, antialias: true }) 
+  
 
     this.postProcessing = new THREE.PostProcessing(this.instance);
 
@@ -56,7 +57,6 @@ class Rendering
     // --- Salida final ---
     this.postProcessing.outputNode = finalImage;
 
-
     this.stats.init( this.instance )
     document.body.appendChild(this.stats.dom)
 
@@ -65,8 +65,7 @@ class Rendering
     this.instance.shadowMap.enabled = true
     this.instance.shadowMap.type = THREE.PCFSoftShadowMap
     
-    
-    this.instance.setClearColor('#010101')
+    this.instance.setClearColor('#141414')
     this.instance.setSize(this.sizes.width, this.sizes.height)
     this.instance.setPixelRatio(this.ratio)
   }
