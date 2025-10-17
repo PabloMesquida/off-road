@@ -7,7 +7,7 @@ export default [
     {
         name: 'wheelModel',
         type: 'gltfModel',
-        path: 'models/Car/Wheel/glTF/Wheel01.glb'
+        path: 'models/Car/Wheel/glTF/Wheel02.glb'
     },
     {
         name: 'environmentMapTexture',

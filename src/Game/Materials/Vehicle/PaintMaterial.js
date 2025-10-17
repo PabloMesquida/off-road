@@ -8,6 +8,7 @@ class PaintMaterial extends THREE.MeshStandardNodeMaterial {
     this.colorNode = TSL.color(baseColor)
     this.roughnessNode = TSL.float(rough)
     this.metalnessNode = TSL.float(metal)
+    this.side = 2
   }
 }
 

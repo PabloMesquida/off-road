@@ -1,5 +1,7 @@
 import * as THREE from 'three/webgpu'
 import Game from '../../Game'
+import MetalMaterial from '../../Materials/Vehicle/MetalMaterial.js'
+import PaintMaterial from '../../Materials/Vehicle/PaintMaterial.js'
 
 class Wheel {
   constructor(position) {
@@ -19,6 +21,12 @@ class Wheel {
         child.castShadow = true
 
     })
+
+    this.materials = {
+      metal: new MetalMaterial({ baseColor: 0xb0b0b0, rough: 0.4, metal: 0.5 }),
+      tire: new PaintMaterial({ baseColor: 0x181818, rough: 0.8, metal: 0 }),
+      tireAccent: new PaintMaterial({ baseColor: 0xE7D6C9, rough: 0.8, metal: 0 })
+    }
  
 
      // ✅ rotar el modelo según el lado del coche
@@ -30,7 +38,10 @@ class Wheel {
     this.inner.add(this.model)
     this.mesh.add(this.inner)
 
+    this.applyMaterials()
+
     this.mesh.position.copy(position)
+     this.initialZOffset = Math.random() * Math.PI * 2;
   }
 
   update(controller, index) {
@@ -49,7 +60,22 @@ class Wheel {
     // calcular rotación
     const qSteer = new THREE.Quaternion().setFromAxisAngle(up, steering)
     const qRot = new THREE.Quaternion().setFromAxisAngle(axleVec, rotation)
-    this.mesh.quaternion.copy(qSteer).multiply(qRot)
+    const qOffset = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), this.initialZOffset);
+    this.mesh.quaternion.copy(qSteer).multiply(qRot).multiply(qOffset);
+
+  }
+
+  applyMaterials() {
+    this.model.traverse((child) => {
+      if (!child.isMesh) return
+      child.castShadow = true
+
+      const {  metal, tire, tireAccent } = this.materials
+
+      if (child.name.includes('metal')) child.material = metal
+      else if (child.name.includes('GomaNegra')) child.material = tire
+      else if (child.name.includes('GomaBlanca')) child.material = tireAccent
+    })
   }
 }
 

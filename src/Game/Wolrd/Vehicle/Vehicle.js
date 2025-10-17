@@ -14,7 +14,10 @@ class Vehicle {
       new Wheel({ x: 1.15, y:-0.15, z:-0.8 }),
       new Wheel({ x: 1.15, y:-0.15, z: 0.8 }),
     ]
-    this.wheels.forEach(w => this.chassis.mesh.add(w.mesh))
+    this.wheels.forEach(wheel => {
+        wheel.mesh.rotation.z = Math.random() * Math.PI * 2; // 0 a 360 grados
+        this.chassis.mesh.add(wheel.mesh);
+    });
 
     this.controller = new VehicleController(this.chassis, this.wheels)
     this.visuals = new VehicleVisuals(this.chassis)
