@@ -1,6 +1,7 @@
 import Chassis from './Chassis.js'
 import Wheel from './Wheel.js'
 import VehicleController from './VehicleController.js'
+import VehicleVisuals from './VehicleVisuals.js'
 
 class Vehicle {
   constructor(scene) {
@@ -16,6 +17,7 @@ class Vehicle {
     this.wheels.forEach(w => this.chassis.mesh.add(w.mesh))
 
     this.controller = new VehicleController(this.chassis, this.wheels)
+    this.visuals = new VehicleVisuals(this.chassis)
     this.scene.add(this.chassis.mesh)
   }
 }

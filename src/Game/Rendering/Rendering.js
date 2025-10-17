@@ -95,7 +95,7 @@ class Rendering
         accumulator -= fixedDelta;
       }
 
-      this.game.updateAll();
+      this.game.updateAll(fixedDelta);
 
   
       frameCount++;

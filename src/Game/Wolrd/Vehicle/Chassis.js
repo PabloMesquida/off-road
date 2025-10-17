@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import Game from "../../Game.js"
 import PaintMaterial from '../../Materials/Vehicle/PaintMaterial.js'
-import SideLightMaterial from '../../Materials/Vehicle/SideLightMaterial.js'
+import LightMaterial from '../../Materials/Vehicle/LightMaterial.js'
 import MetalMaterial from '../../Materials/Vehicle/MetalMaterial.js'
 
 class Chassis {
@@ -22,15 +22,15 @@ class Chassis {
     this.materials = {
       carPaint: new PaintMaterial({ baseColor: 0x6aa0c4, rough: 0.6, metal: 0.2 }),
       metal: new MetalMaterial({ baseColor: 0xb0b0b0, rough: 0.4, metal: 0.5 }),
-      sideLight: new SideLightMaterial({ _color: 0x8f3e04, _intensity: 0 }),
-      brakeLight: new SideLightMaterial({ _color: 0x4f0000, _intensity: 0 }),
-      reverseLight: new SideLightMaterial({ _color: 0xbfbfb6, _intensity: 0 }),
+      sideLight: new LightMaterial({ color: 0xc95908, intensity: 0, maxIntensity: 5.0 }),
+      brakeLight: new LightMaterial({ color: 0xa10000, intensity: 0, maxIntensity: 15.0  }),
+      reverseLight: new LightMaterial({ color: 0xeddaab, intensity: 0, maxIntensity: 1.5 }),
+      frontLight: new LightMaterial({ color: 0xc2c2ac, intensity: 0, maxIntensity: 1.8 }),
     }
 
     this.applyMaterials()
 
     this.createPhysics(position)
-
   }
 
   applyMaterials() {
@@ -38,14 +38,14 @@ class Chassis {
       if (!child.isMesh) return
       child.castShadow = true
 
-      const { carPaint, metal, sideLight, brakeLight, reverseLight } = this.materials
+      const { carPaint, metal, sideLight, brakeLight, reverseLight, frontLight } = this.materials
 
       if (child.name.includes('Pintura')) child.material = carPaint
       else if (child.name.includes('PlasticoNaranja')) child.material = sideLight
       else if (child.name.includes('LucesFreno')) child.material = brakeLight
-      else if (child.name.includes('LucesReversa') || child.name.includes('VidrioLuces'))
-        child.material = reverseLight
+      else if (child.name.includes('LucesReversa')) child.material = reverseLight
       else if (child.name.includes('Metal')) child.material = metal
+      else if (child.name.includes('VidrioLuces')) child.material = frontLight
     })
   }
 
@@ -82,6 +82,6 @@ class Chassis {
 
 export default Chassis
    
-   // principalInertia: { x: 2, y: 2, z: 2 },
-   // inertiaFrame: { w: 1, x: 0, y: 0, z: 0 },
-        // collidersContribute: false       // evita que los colliders sumen masa
+  // principalInertia: { x: 2, y: 2, z: 2 },
+  // inertiaFrame: { w: 1, x: 0, y: 0, z: 0 },
+  // collidersContribute: false       // evita que los colliders sumen masa

@@ -26,7 +26,9 @@ class Game{
       { name: 'right', keys: ['ArrowRight', 'KeyD'] },
       { name: 'backward', keys: ['ArrowDown', 'KeyS'] },
       { name: 'left', keys: [ 'ArrowLeft', 'KeyA']},
-      { name: 'brake', keys: [ 'Space'] }
+      { name: 'brake', keys: [ 'Space'] },
+      { name: 'lights', keys: ['KeyL']},
+      { name: 'hazard', keys: ['KeyB'] }, 
     ])
 
     this.world = null
@@ -44,10 +46,10 @@ class Game{
     this.rendering = new Rendering()
   }
 
-  updateAll(){
+  updateAll(dt){
    // this.physicsDebug.update()
- 
     this.view.update()
+    this.world.vehicle.visuals.update(dt)
   }
 
   updatePhysics(dt) {
@@ -66,6 +68,8 @@ class Game{
 
     this.physics.syncEntities()
   }
+
+
 }
 
 export default Game
