@@ -2,7 +2,7 @@ import * as THREE from 'three/webgpu';
 import * as TSL from 'three/tsl';
 
 class LightMaterial extends THREE.MeshPhysicalNodeMaterial {
-  constructor({ color = 0xFFFFFF, intensity = 0, maxIntensity = 1 } = {}) {
+  constructor({ baseColor = 0xFFFFFF, intensity = 0, maxIntensity = 1 } = {}) {
     super()
 
     // Uniform que se puede actualizar dinámicamente
@@ -10,14 +10,14 @@ class LightMaterial extends THREE.MeshPhysicalNodeMaterial {
     this.maxIntensity = maxIntensity
 
     // Nodo de color base
-    this.colorNode = TSL.color(color)
+    this.colorNode = TSL.color(baseColor)
 
     // Nodo emisivo = color * intensidad
     this.emissiveNode = TSL.mul(this.colorNode, this.intensityNode)
 
     // Evita clamping
     this.toneMapped = false
-    this.roughness = 0.0
+    this.roughnessNode = TSL.float(0)
   }
 
   // Cambia la intensidad en vivo

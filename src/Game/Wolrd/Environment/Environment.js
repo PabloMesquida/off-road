@@ -39,8 +39,8 @@ class Environment {
     this.sunLight = light
 
     // 🔍 Debug visual
-    const helper = new THREE.CameraHelper(light.shadow.camera)
-    this.scene.add(helper)
+    // const helper = new THREE.CameraHelper(light.shadow.camera)
+    // this.scene.add(helper)
   }
 
   setEnvironmentMap() {

@@ -3,6 +3,7 @@ import Game from "../../Game.js"
 import PaintMaterial from '../../Materials/Vehicle/PaintMaterial.js'
 import LightMaterial from '../../Materials/Vehicle/LightMaterial.js'
 import MetalMaterial from '../../Materials/Vehicle/MetalMaterial.js'
+import GlassMaterial from '../../Materials/Vehicle/GlassMaterial.js'
 
 class Chassis {
   constructor(position = {x:0,y:3,z:0}) {
@@ -21,11 +22,14 @@ class Chassis {
 
     this.materials = {
       carPaint: new PaintMaterial({ baseColor: 0x6aa0c4, rough: 0.6, metal: 0.2 }),
-      metal: new MetalMaterial({ baseColor: 0xb0b0b0, rough: 0.4, metal: 0.5 }),
-      sideLight: new LightMaterial({ color: 0xc95908, intensity: 0, maxIntensity: 5.0 }),
-      brakeLight: new LightMaterial({ color: 0xa10000, intensity: 0, maxIntensity: 15.0  }),
-      reverseLight: new LightMaterial({ color: 0xeddaab, intensity: 0, maxIntensity: 1.5 }),
-      frontLight: new LightMaterial({ color: 0xc2c2ac, intensity: 0, maxIntensity: 1.8 }),
+      metal: new MetalMaterial({ baseColor: 0x8a8a8a, rough: 0.4, metal: 0.5 }),
+      sideLight: new LightMaterial({ baseColor: 0xc95908, intensity: 0, maxIntensity: 5.0 }),
+      brakeLight: new LightMaterial({ baseColor: 0xa10000, intensity: 0, maxIntensity: 15.0  }),
+      reverseLight: new LightMaterial({ baseColor: 0xeddaab, intensity: 0, maxIntensity: 1.5 }),
+      frontLight: new LightMaterial({ baseColor: 0xc2c2ac, intensity: 0, maxIntensity: 1.8 }),
+      chassis: new PaintMaterial({ baseColor: 0x232323, rough: 0.7, metal: 1.0 }),
+      glass: new GlassMaterial({ baseColor: 0x405a6b, rough: 0.4, transmission: 0.9, metal: 0}),
+      tire: new PaintMaterial({ baseColor: 0x181818, rough: 0.8, metal: 0 }),
     }
 
     this.applyMaterials()
@@ -38,7 +42,9 @@ class Chassis {
       if (!child.isMesh) return
       child.castShadow = true
 
-      const { carPaint, metal, sideLight, brakeLight, reverseLight, frontLight } = this.materials
+      const { carPaint, metal, sideLight, brakeLight, reverseLight, frontLight, chassis, glass, tire } = this.materials
+
+      console.log(child.name)
 
       if (child.name.includes('Pintura')) child.material = carPaint
       else if (child.name.includes('PlasticoNaranja')) child.material = sideLight
@@ -46,6 +52,9 @@ class Chassis {
       else if (child.name.includes('LucesReversa')) child.material = reverseLight
       else if (child.name.includes('Metal')) child.material = metal
       else if (child.name.includes('VidrioLuces')) child.material = frontLight
+      else if (child.name.includes('Cube005')) child.material = chassis
+      else if (child.name.includes('Vidrio')) child.material = glass
+      else if (child.name.includes('Goma')) child.material = tire
     })
   }
 
