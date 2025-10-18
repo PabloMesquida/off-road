@@ -7,7 +7,7 @@ import GlassMaterial from '../../Materials/Vehicle/GlassMaterial.js'
 import WoodMaterial from '../../Materials/Vehicle/WoodMaterial.js'
 
 class Chassis {
-  constructor(position = {x:0,y:3,z:0}) {
+  constructor(position = {x:0,y:2.5,z:0}) {
     this.game = new Game()
 
     this.resources = this.game.resources
@@ -45,8 +45,6 @@ class Chassis {
       child.castShadow = true
 
       const { carPaint, metal, sideLight, brakeLight, reverseLight, frontLight, chassis, glass, tire, wood } = this.materials
-
-      console.log(child.name)
 
       if (child.name.includes('Pintura')) child.material = carPaint
       else if (child.name.includes('PlasticoNaranja')) child.material = sideLight

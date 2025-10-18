@@ -6,7 +6,7 @@ class VehicleController {
   constructor(chassis, wheels) {
     this.game = new Game()
     this.physics = this.game.physics
-    this.inputs = this.game.inputs  
+    this.inputs = this.game.inputs
 
     this.chassis = chassis
     this.wheels = wheels
@@ -48,7 +48,7 @@ class VehicleController {
     })
 
     // parámetros de control
-    this.accelerateForce = 25.0
+    this.accelerateForce = 0 // 25.0
     this.brakeForce = 100.0
     this.steerAngleMax = Math.PI / 6
   }
@@ -78,7 +78,7 @@ class VehicleController {
     const forwardVec = localForward.applyQuaternion(chassisQuat).normalize();
 
     // velocidad a lo largo del forwardVec: positiva = en sentido "forwardVec"
-    const forwardSpeed = vel.dot(forwardVec); // en m/s (puede ser negativo dependiendo convención)
+    const forwardSpeed =  vel.dot(forwardVec); // en m/s (puede ser negativo dependiendo convención)
 
     // ---------- límites: comprobar si intentan acelerar más allá ----------
     // determinamos la intención de conducción: cuando throttle != 0 indica dirección deseada
@@ -181,16 +181,18 @@ class VehicleController {
 
   syncMeshes() {
     // chasis
-    const t = this.chassis.body.translation()
-    const r = this.chassis.body.rotation()
-    this.chassis.mesh.position.copy(new THREE.Vector3(t.x, t.y, t.z))
-    this.chassis.mesh.quaternion.copy(new THREE.Quaternion(r.x, r.y, r.z, r.w))
+     const t = this.chassis.body.translation()
+     const r = this.chassis.body.rotation()
+     this.chassis.mesh.position.copy(new THREE.Vector3(t.x, t.y, t.z))
+     this.chassis.mesh.quaternion.copy(new THREE.Quaternion(r.x, r.y, r.z, r.w))
 
     // ruedas
-    this.wheels.forEach((wheel, i) => {
+     this.wheels.forEach((wheel, i) => {
       wheel.update(this.controller, i)
     })
-  }
+   }
+
+
 }
 
 export default VehicleController

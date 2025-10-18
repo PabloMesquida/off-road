@@ -14,8 +14,6 @@ class Physics{
     const gravity = new RAPIER.Vector3(0.0, -9.81, 0.0)
     this.world = new RAPIER.World(gravity)
     this.game = new Game()
-
-   // this.game.time.events.on('tick', () => { this.update() }, 2)
   }
 
   syncEntities(){

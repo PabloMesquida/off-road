@@ -3,7 +3,7 @@ import Viewport from "./Utils/Viewport.js"
 import World from "./Wolrd/World.js"
 import Rendering from "./Rendering/Rendering.js"
 import Physics from "./Physics/Physics.js"
-import PhysicsDebug from "./Physics/PhysicsDebug.js"
+// import PhysicsDebug from "./Physics/PhysicsDebug.js"
 import Inputs from "./Inputs/Inputs.js"
 import sources from './sources.js'
 import Resources from "./Utils/Resources.js"
@@ -19,6 +19,22 @@ class Game{
     this.viewport = new Viewport(this.domElement)
     this.physics = new Physics()
     this.resources = new Resources(sources)
+
+    this.recording = false
+    this.mediaRecorder
+    this.recordedChunks = []
+    this.recordBtn = document.getElementById('recordBtn')
+
+    this.recordBtn.addEventListener('click', () => {
+    if (!this.recording) {
+      this.startRecording()
+      this.recordBtn.textContent = "🛑 Detener"
+    } else {
+      this.stopRecording()
+      this.recordBtn.textContent = "🎬 Grabar"
+    }
+    this.recording = !this.recording
+  }) 
 
     
     this.inputs = new Inputs([
@@ -68,6 +84,43 @@ class Game{
 
     this.physics.syncEntities()
   }
+
+  startRecording() {
+    const stream =  this.domElement.captureStream(60) // 🔹 60 FPS suaves
+    this.mediaRecorder = new MediaRecorder(stream, {
+      mimeType: 'video/webm;codecs=vp9', // buena calidad
+      videoBitsPerSecond: 12000000 // 8 Mbps, ajusta según tu GPU
+    })
+
+    this.recordedChunks = []
+    this.mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) this.recordedChunks.push(e.data)
+    }
+
+    this.mediaRecorder.onstop = () => {
+      const blob = new Blob(this.recordedChunks, { type: 'video/webm' })
+      const url = URL.createObjectURL(blob)
+
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'threejs_recording.webm'
+      a.click()
+
+      URL.revokeObjectURL(url)
+    }
+
+    this.mediaRecorder.start()
+    console.log("🎥 Grabación iniciada...")
+  }
+
+  // === DETENER GRABACIÓN ===
+ stopRecording() {
+  this.mediaRecorder.stop()
+  console.log("🛑 Grabación detenida.")
+}
+
+// === BOTÓN DE CONTROL ===
+
 
 
 }

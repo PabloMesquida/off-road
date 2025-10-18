@@ -63,6 +63,12 @@ h1 {
   color: #888;
 }
 
+.recordBtn{
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+}
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;
