@@ -24,7 +24,7 @@ class View{
   }
 
   update() {
-    updateCameraOrbit(this, this.camera, this.controls, {
+/*     updateCameraOrbit(this, this.camera, this.controls, {
       minSpeed: 0.002,
       maxSpeed: 0.04,
       lerpFactor: 0.08,
@@ -32,7 +32,7 @@ class View{
       slowFactor: 0.35,
       targetY: 0.5
     });
-      // Siempre mira al centro
+ */
       this.controls.target.set(0, 0.5, 0);
       this.controls.update();
   }
