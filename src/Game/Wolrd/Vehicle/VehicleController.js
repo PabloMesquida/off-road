@@ -41,11 +41,17 @@ class VehicleController {
       this.controller.setWheelSuspensionCompression(i, 3.0); // 4
       this.controller.setWheelSuspensionRelaxation(i, 3.0); // 2
       this.controller.setWheelMaxSuspensionForce(i, 20000); // 20000
-
-      // Fricción
-      this.controller.setWheelFrictionSlip(i, 8.0)           // tracción normal
-      this.controller.setWheelSideFrictionStiffness(i, 1)  // agarre lateral medio
     })
+
+    // Fricción 
+    this.controller.setWheelFrictionSlip(0, 4.5)  
+    this.controller.setWheelFrictionSlip(1, 4.5)   
+    this.controller.setWheelFrictionSlip(2, 3.5)   
+    this.controller.setWheelFrictionSlip(3, 3.5)            // tracción normal
+    this.controller.setWheelSideFrictionStiffness(0, 1.2)  // agarre lateral medio
+    this.controller.setWheelSideFrictionStiffness(1, 1.2)  
+    this.controller.setWheelSideFrictionStiffness(2, 0.85)  
+    this.controller.setWheelSideFrictionStiffness(3, 0.85)  
 
     // parámetros de control
     this.accelerateForce = 25 // 25.0
@@ -76,14 +82,12 @@ class VehicleController {
     // Asumimos que el eje local X del modelo es "adelante". Si tu modelo usa -X, usa ( -1,0,0 ).
     const localForward = new THREE.Vector3(-1, 0, 0)
     const forwardVec = localForward.applyQuaternion(chassisQuat).normalize()
-
     // velocidad a lo largo del forwardVec: positiva = en sentido "forwardVec"
     const forwardSpeed =  vel.dot(forwardVec) // en m/s (puede ser negativo dependiendo convención)
 
     // ---------- límites: comprobar si intentan acelerar más allá ----------
     // determinamos la intención de conducción: cuando throttle != 0 indica dirección deseada
     const desiredDir = Math.sign(throttle) // 1 => adelante, -1 => atrás, 0 => sin throttle
-
     // flags que indican si ya estamos por encima del limite en esa dirección
     const overForwardLimit = forwardSpeed > this.maxForwardSpeed
     const overReverseLimit = forwardSpeed < -this.maxReverseSpeed // note: reverse speed is negative along forwardVec
@@ -103,7 +107,7 @@ class VehicleController {
       }
     } else {
       // sin throttle o freno: desaceleración natural (freno motor suave) pero solo si velocidad apreciable
-      const eps = 0.05
+      const eps = 0.005
       if (Math.abs(forwardSpeed) > eps) {
         // desacelera proporcionalmente a la velocidad actual (constante de damping)
         engineTarget = -forwardSpeed * 5.0
@@ -129,7 +133,7 @@ class VehicleController {
 
     // ---------- freno (traseras) ----------
     // freno habitual (trasero derrapante)
-    let brakeFactor = wantBrake ? 1 : 0.0
+    let brakeFactor = wantBrake ? 1 : 0
     // reducir freno si vamos marcha atrás (según forwardSpeed signo)
     if (forwardSpeed < -0.01) brakeFactor *= 0.08 // ajusta según sensación
 
@@ -137,11 +141,6 @@ class VehicleController {
     // console.log(rearBrakeTorque)
 
     // fricción y aplicar freno trasero
-    this.controller.setWheelFrictionSlip(2, 1.5)
-    this.controller.setWheelFrictionSlip(3, 1.5)
-   //  this.controller.setWheelBrake(2, rearBrakeTorque);
-    // this.controller.setWheelBrake(3, rearBrakeTorque);
-    // console.log(this.controller.wheelBrake(2))
 
 
     this.currentBrake = this.currentBrake ?? 0
