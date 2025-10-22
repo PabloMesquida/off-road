@@ -1,9 +1,12 @@
 import * as TSL from 'three/tsl';
 import * as THREE from 'three/webgpu';
-import { voronoiCells, simplexNoise, marble, rust } from 'tsl-textures';
+import { voronoiCells, simplexNoise, marble, rust, stars } from 'tsl-textures';
 
 class PolishedConcreteMaterial extends THREE.MeshStandardNodeMaterial {
   constructor({
+    // color1 = new THREE.Color(0x7c8594),
+    // color2 = new THREE.Color(0x515357),
+    // color3 = new THREE.Color(0x272c36),
     color1 = new THREE.Color(0x484a4f),
     color2 = new THREE.Color(0x5f626b),
     color3 = new THREE.Color(0x121314),
@@ -15,16 +18,16 @@ class PolishedConcreteMaterial extends THREE.MeshStandardNodeMaterial {
     cracksOpacity = 1.0,     // opacidad máxima de las grietas
     cracksThreshold = 1.0,   // centro del rango de smoothstep (0..1)
     // control para rusty
-    rustyOpacity = 0.9,
+    rustyOpacity = 0.0,
   } = {}) {
     super();
 
     // --- Procedural maps ---
     // simplexNoise devuelve un nodo (vec3). Lo usaremos como color y como base para alpha.
     const simpleNoiseBase = simplexNoise({
-      scale: -10,
-      balance: 1,
-      contrast: 0.1,
+      scale: -2.5,
+      balance: 0.5,
+      contrast: 0.25,
       color:  color1,     // color base del ruido (si aplica)
       background: color2,// background del nodo
       seed: 0,
@@ -49,40 +52,37 @@ class PolishedConcreteMaterial extends THREE.MeshStandardNodeMaterial {
     });
 
     const rusty = rust({
-      scale: 2,
-      iterations: 8,
-      amount: -0.2,
+      scale: 0,
+      iterations: 4,
+      amount: -0.0,
       opacity: rustyOpacity,
-      noise: 1,
-      noiseScale: 0,
+      noise: 0,
+      noiseScale: 0.1,
       color: color3,
       background:color2,
       seed: 0,
     });
 
+
+    const starsNoise = stars ( {
+      scale: 0,
+      density: 3,
+      variation: 0.38,
+      color: color1,
+      background: color3,
+      seed: 0
+    } )
+
+
     // --- Main node: mezclamos el ruido base (simpleNoiseBase) con el color de grietas
     // --- pero SOLO donde simpleNoiseMix controla la máscara (smoothstep)
     const main = TSL.Fn(() => {
-      // vector color base (convertimos el nodo de ruido a vec3)
-      const noiseColor = TSL.vec3(simpleNoiseBase);
-
-      // color de las grietas (puede venir del nodo `cracks`)
-      const cracksColor = TSL.vec3(cracks);
-
-      // calculamos una máscara a partir de la componente R de simpleNoiseMix
-      // usamos smoothstep alrededor de cracksThreshold con un ancho cracksThickness
-      const lower = TSL.float(cracksThreshold - (cracksScale * 0.5));
-      const upper = TSL.float(cracksThreshold + (cracksScale * 0.5));
-      const sample = TSL.float(simpleNoiseMix.r);
-
-      const mask = TSL.smoothstep(0.1, 0.0, sample); // 0..1
-      const maskAlpha = TSL.mul(mask, TSL.float(cracksOpacity));
-
-      // mezclamos: donde maskAlpha==1 se ve la grieta; donde es 0 se ve noiseColor
-      const mixedColor = TSL.mix(noiseColor, cracksColor,sample);
+  
+      const mixedColor =TSL.vec3(simpleNoiseBase);
 
       const rustyColor = TSL.vec3(rusty)
-      mixedColor.assign(TSL.mix(noiseColor, rustyColor, TSL.float(0.1)))
+      mixedColor.assign(TSL.mix( mixedColor, rustyColor, TSL.float(0.05)))
+      mixedColor.assign(TSL.mix( mixedColor, starsNoise, TSL.float(0.2)))
       // devolvemos vec4 (RGB + alfa). Aquí ponemos alfa a 1.0 por defecto.
       // Si prefieres que la geometría sea realmente transparente fuera de la máscara,
       // activa material.transparent = true y asigna this.opacityNode = maskAlpha (ver abajo).

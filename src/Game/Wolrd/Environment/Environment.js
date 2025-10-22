@@ -17,20 +17,20 @@ class Environment {
 
     // Tamaño del área donde se proyectan sombras
     light.shadow.camera.near = 0.5
-    light.shadow.camera.far = 30
-    light.shadow.camera.left = -10
-    light.shadow.camera.right = 10
-    light.shadow.camera.top = 10
-    light.shadow.camera.bottom = -10
+    light.shadow.camera.far = 1000
+    light.shadow.camera.left = -100
+    light.shadow.camera.right = 100
+    light.shadow.camera.top = 100
+    light.shadow.camera.bottom = -100
 
     // Resolución de la sombra
-    light.shadow.mapSize.set(512, 512)
+    light.shadow.mapSize.set(2048, 2048)
 
     // Ajuste fino de artefactos
-    light.shadow.normalBias = 0.05
+    light.shadow.normalBias = 0.5
 
     // Posición y dirección
-    light.position.set(-10, 15, 10)
+    light.position.set(-100, 150, 100)
     light.target.position.set(0, 0, 0)
     this.scene.add(light.target)
 
@@ -38,7 +38,7 @@ class Environment {
     this.scene.add(light)
     this.sunLight = light
 
-    // 🔍 Debug visual
+    // Debug visual
     // const helper = new THREE.CameraHelper(light.shadow.camera)
     // this.scene.add(helper)
   }

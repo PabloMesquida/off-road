@@ -133,7 +133,7 @@ class VehicleController {
     // reducir freno si vamos marcha atrás (según forwardSpeed signo)
     if (forwardSpeed < -0.01) brakeFactor *= 0.08 // ajusta según sensación
 
-    const rearBrakeTorque = this.brakeForce * brakeFactor
+    // const rearBrakeTorque = this.brakeForce * brakeFactor
     // console.log(rearBrakeTorque)
 
     // fricción y aplicar freno trasero
@@ -146,7 +146,7 @@ class VehicleController {
 
     this.currentBrake = this.currentBrake ?? 0
     const targetBrake = wantBrake ? this.brakeForce * brakeFactor : 0
-    const brakeSmooth = forwardSpeed < -0.01 ?  5 : 0.6 
+    const brakeSmooth = forwardSpeed < -0.01 ?  5 : 0.1 
     this.currentBrake = THREE.MathUtils.lerp(this.currentBrake, targetBrake, 1 - Math.exp(-brakeSmooth * dt))
 
     this.controller.setWheelBrake(2, this.currentBrake)
@@ -185,12 +185,12 @@ class VehicleController {
     this.controller.updateVehicle(dt)
 
     // ---------- DEBUG (opcional) ----------
-      if (this.debugCounter === undefined) this.debugCounter = 0
-      if ((this.debugCounter++ % 30) === 0) {
-        console.log(
-         `fwdSpeed=${forwardSpeed.toFixed(2)}m/s  maxF=${this.maxForwardSpeed}  maxR=${this.maxReverseSpeed}  engine=${this.currentForce.toFixed(1)}  rearBrake=${rearBrakeTorque.toFixed(1)}`
-        );
-      }
+      // if (this.debugCounter === undefined) this.debugCounter = 0
+      // if ((this.debugCounter++ % 30) === 0) {
+      //   console.log(
+      //    `fwdSpeed=${forwardSpeed.toFixed(2)}m/s  maxF=${this.maxForwardSpeed}  maxR=${this.maxReverseSpeed}  engine=${this.currentForce.toFixed(1)}  rearBrake=${rearBrakeTorque.toFixed(1)}`
+      //   );
+      // }
   }
 
   syncMeshes() {
