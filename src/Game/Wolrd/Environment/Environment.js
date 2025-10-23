@@ -7,36 +7,37 @@ class Environment {
     this.resources = this.game.resources
     this.scene = scene
 
-     this.setSunLight()
+    this.setSunLight()
      this.setEnvironmentMap()
+     this.setAmbientLight()
   }
 
   setSunLight() {
-    const light = new THREE.DirectionalLight('#ffe9cf', 0.5)
+    const light = new THREE.DirectionalLight('#ffe9cf', 0.25)
     light.castShadow = true
 
     // Tamaño del área donde se proyectan sombras
     light.shadow.camera.near = 0.5
     light.shadow.camera.far = 1000
-    light.shadow.camera.left = -100
-    light.shadow.camera.right = 100
-    light.shadow.camera.top = 100
-    light.shadow.camera.bottom = -100
+    light.shadow.camera.left = -10
+    light.shadow.camera.right = 10
+    light.shadow.camera.top = 10
+    light.shadow.camera.bottom = -10
 
     // Resolución de la sombra
-    light.shadow.mapSize.set(2048, 2048)
+    light.shadow.mapSize.set(1024, 1024)
 
     // Ajuste fino de artefactos
-    light.shadow.normalBias = 0.5
+    light.shadow.normalBias = 0.05
 
     // Posición y dirección
-    light.position.set(-100, 150, 100)
-    light.target.position.set(0, 0, 0)
+    light.position.set(0, 5, 0)
+    light.target.position.set(5, 0,-5)
     this.scene.add(light.target)
 
     // Añadir la luz
     this.scene.add(light)
-    this.sunLight = light
+     this.sunLight = light
 
     // Debug visual
     // const helper = new THREE.CameraHelper(light.shadow.camera)
@@ -44,12 +45,31 @@ class Environment {
   }
 
   setEnvironmentMap() {
-    this.environmentMap = {}
+    this.environmentMap = {};
 
-    this.environmentMap.texture = this.resources.items.environmentMapTexture
-    this.environmentMap.texture.colorSpace = THREE.SRGBColorSpace
+    this.environmentMap.texture = this.resources.items.environmentMapTexture;
+    this.environmentMap.texture.colorSpace = THREE.SRGBColorSpace;
 
-    this.scene.environment = this.environmentMap.texture
+    this.scene.environment = this.environmentMap.texture;
+  // this.scene.background = this.environmentMap.texture; // opcional, si quieres que se vea de fondo
+
+    // Intensidad global del environment map
+   const intensity = 10; // ajusta entre 0 (sin reflejo) y 2 (muy fuerte)
+
+/*     this.scene.traverse((child) => {
+      if (child.isMesh && child.material) {
+        const mat = child.material;
+        if ('envMapIntensity' in mat) {
+          mat.envMapIntensity = intensity;
+          mat.needsUpdate = true;
+        }
+      }
+    }); */
+  }
+
+  setAmbientLight(){
+    const ambientLight = new THREE.AmbientLight('#f6ffcf',0.2)
+    this.scene.add(ambientLight)
 
   }
 }

@@ -41,7 +41,7 @@ class Wheel {
     this.applyMaterials()
 
     this.mesh.position.copy(position)
-     this.initialZOffset = Math.random() * Math.PI * 2;
+    this.initialZOffset = Math.random() * Math.PI * 2;
   }
 
   update(controller, index) {

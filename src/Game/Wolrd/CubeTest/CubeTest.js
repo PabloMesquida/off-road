@@ -7,7 +7,7 @@ class CubeTest{
 
     this.box = new THREE.Mesh(
       new THREE.SphereGeometry(2, 16, 32),
-      new PolishedConcreteMaterial()
+      new THREE.MeshStandardMaterial({color: 'white', roughness: 1})
     )
     this.box.position.set(0,1,5)
      this.box.castShadow = true;

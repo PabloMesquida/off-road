@@ -15,8 +15,8 @@ class WoodMaterial extends THREE.MeshStandardNodeMaterial {
         angle: 0,
         fibers: 0.15,
         fibersDensity: 10,
-        color: new THREE.Color(0x73400d),
-        background: new THREE.Color(0x542111),
+        color: new THREE.Color(0x8a5016), // 0x73400d
+        background: new THREE.Color(0x6e2c17), // 542111
         seed: 0
       });
   }

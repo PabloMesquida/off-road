@@ -15,7 +15,7 @@ class Floor{
     const { x, y, z } = this.size
     const geometry = new THREE.BoxGeometry(x, y, z)
 
-    const material = new PolishedConcreteMaterial()
+    const material = new THREE.MeshStandardNodeMaterial({ color: '#9b9e89' })  // PolishedConcreteMaterial()
     const floorMesh = new THREE.Mesh(geometry, material)
 
     const subHeight = 0.5

@@ -22,13 +22,13 @@ class Chassis {
     this.mesh.add(this.model)
 
     this.materials = {
-      carPaint: new PaintMaterial({ baseColor: 0x6aa0c4, rough: 1.0, metal: 0.0 }),
-      metal: new MetalMaterial({ baseColor: 0x8a8a8a, rough: 0.3, metal: 0.6 }),
+      carPaint: new PaintMaterial({ baseColor: 0x6aa0c4, rough: 0.9, metal: 0.0 }), // 0x6aa0c4
+      metal: new MetalMaterial({ baseColor: 0xcfcfcf, rough: 0.3, metal: 0.6 }), // 0x8a8a8a   
       sideLight: new LightMaterial({ baseColor: 0xc95908, intensity: 0, maxIntensity: 5.0 }),
       brakeLight: new LightMaterial({ baseColor: 0xa10000, intensity: 0, maxIntensity: 15.0  }),
       reverseLight: new LightMaterial({ baseColor: 0xeddaab, intensity: 0, maxIntensity: 1.5 }),
       frontLight: new LightMaterial({ baseColor: 0xc2c2ac, intensity: 0, maxIntensity: 1.8 }),
-      chassis: new PaintMaterial({ baseColor: 0x232323, rough: 0.7, metal: 1.0 }),
+      chassis: new PaintMaterial({ baseColor: 0x383838, rough: 0.9, metal: 0.4 }),
       glass: new GlassMaterial({ baseColor: 0x405a6b, rough: 0.25, transmission: 0.95, metal: 0}),
       tire: new PaintMaterial({ baseColor: 0x181818, rough: 0.8, metal: 0 }),
       wood: new WoodMaterial()
@@ -44,24 +44,18 @@ class Chassis {
     if (!child.isMesh) return;
     child.castShadow = true;
 
-    // Asegúrate de que la geometría tiene uv2 (necesario para aoMap)
     const geom = child.geometry;
     if (geom && geom.attributes && geom.attributes.uv && !geom.attributes.uv2) {
-      // clona el array de uv -> uv2
       geom.setAttribute('uv2', new THREE.BufferAttribute(geom.attributes.uv.array, 2));
-      console.log('ok')
     }
 
     const { carPaint, metal, sideLight, brakeLight, reverseLight, frontLight, chassis, glass, tire, wood } = this.materials;
-
-    // guarda referencia al material original (si existe)
     const srcMat = child.material;
-    console.log(srcMat)
 
-    // Helper: copy common PBR maps from original si existen
-  // Helper: copy common PBR maps from original si existen
     const copyPBRMaps = (dst, src) => {
       if (!src || !dst) return;
+
+      dst.name = src.name
 
       // --- Caso 1: el material original usa un ORM combinado (AO+Roughness+Metalness en el map)
       const hasORMinMap =
@@ -107,41 +101,45 @@ class Chassis {
     };
 
 
-    // Asignación por nombre como antes, pero copiando mapas del material original
     if (child.name.includes('Pintura')) {
-      // ejemplo: queremos color plano + mantener AO
-      copyPBRMaps(carPaint, srcMat);          // copia AO + normal, etc.
-      // si carPaint es NodeMaterial y defines colorNode, ten en cuenta:
-      // si has copiado `map` y además pones colorNode, puede que necesites combinar
-      // la muestra del map con el color (ver nota abajo).
-      child.material = carPaint;
+      copyPBRMaps(carPaint, srcMat)   
+      child.material = carPaint
     }
     else if (child.name.includes('PlasticoNaranja')) {
-      copyPBRMaps(sideLight, srcMat); child.material = sideLight;
+      copyPBRMaps(sideLight, srcMat)
+      child.material = sideLight
     }
     else if (child.name.includes('LucesFreno')) {
-      copyPBRMaps(brakeLight, srcMat); child.material = brakeLight;
+      copyPBRMaps(brakeLight, srcMat)
+      child.material = brakeLight
     }
     else if (child.name.includes('LucesReversa')) {
-      copyPBRMaps(reverseLight, srcMat); child.material = reverseLight;
+      copyPBRMaps(reverseLight, srcMat)
+       child.material = reverseLight
     }
     else if (child.name.includes('Metal')) {
-      copyPBRMaps(metal, srcMat); child.material = metal;
+      copyPBRMaps(metal, srcMat)
+      child.material = metal
     }
     else if (child.name.includes('VidrioLuces')) {
-      copyPBRMaps(frontLight, srcMat); child.material = frontLight;
+      copyPBRMaps(frontLight, srcMat)
+      child.material = frontLight
     }
-    else if (child.name.includes('Cube005')) {
-      copyPBRMaps(chassis, srcMat); child.material = chassis;
+    else if (child.name.includes('Cube007')) {
+      copyPBRMaps(chassis, srcMat)
+      child.material = chassis;
     }
     else if (child.name.includes('Vidrio')) {
-      copyPBRMaps(glass, srcMat); child.material = glass;
+      copyPBRMaps(glass, srcMat)
+      child.material = glass;
     }
     else if (child.name.includes('Goma')) {
-      copyPBRMaps(tire, srcMat); child.material = tire;
+      copyPBRMaps(tire, srcMat)
+       child.material = tire
     }
     else if (child.name.includes('Madera')) {
-      copyPBRMaps(wood, srcMat); child.material = wood;
+      copyPBRMaps(wood, srcMat)
+      child.material = wood;
     }
 
     // fuerza re-compilación si es necesario
