@@ -13,7 +13,7 @@ class Environment {
   }
 
   setSunLight() {
-    const light = new THREE.DirectionalLight('#ffe9cf', 0.25)
+    const light = new THREE.DirectionalLight('#ffe9cf', 1)
     light.castShadow = true
 
     // Tamaño del área donde se proyectan sombras
@@ -27,12 +27,14 @@ class Environment {
     // Resolución de la sombra
     light.shadow.mapSize.set(1024, 1024)
 
+    light.shadow.radius = 8.0
+
     // Ajuste fino de artefactos
     light.shadow.normalBias = 0.05
 
     // Posición y dirección
-    light.position.set(0, 5, 0)
-    light.target.position.set(5, 0,-5)
+    light.position.set(-10, 10, 15)
+    light.target.position.set(0, 0,0)
     this.scene.add(light.target)
 
     // Añadir la luz

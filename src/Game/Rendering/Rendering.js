@@ -61,9 +61,9 @@ class Rendering
     document.body.appendChild(this.stats.dom)
 
     this.instance.toneMapping = THREE.CineonToneMapping
-    this.instance.toneMappingExposure = 1.2 // 1.75
+    this.instance.toneMappingExposure = 1 // 1.75
     this.instance.shadowMap.enabled = true
-    this.instance.shadowMap.type = THREE.PCFSoftShadowMap
+    this.instance.shadowMap.type = THREE.VSMShadowMap          
  
     
     this.instance.setClearColor('#FFFFFF') // 141414
