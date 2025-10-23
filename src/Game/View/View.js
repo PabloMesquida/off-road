@@ -13,7 +13,7 @@ class View{
 
     this.controls = new OrbitControls(this.camera, this.game.domElement)
     this.controls.enableDamping = true
-    this.controls.enabled = false 
+    this.controls.enabled = true 
 
     this.offset = new THREE.Vector3(20, 10, 20)
     this.lerpSpeed = 3.5
@@ -30,15 +30,16 @@ class View{
   const vehicle = this.game.world.vehicle;
   if (!vehicle || !vehicle.chassis) return;
 
-  const body = vehicle.chassis.body;
-  const pos = body.translation();
-  const carPos = new THREE.Vector3(pos.x, pos.y, pos.z);
+  // const body = vehicle.chassis.body;
+  // const pos = body.translation();
+  // const carPos = new THREE.Vector3(pos.x, pos.y, pos.z);
 
-  const desiredCamPos = carPos.clone().add(this.offset);
-  this.camera.position.lerp(desiredCamPos, 1 - Math.exp(-this.lerpSpeed * dt));
+  // const desiredCamPos = carPos.clone().add(this.offset);
+  // this.camera.position.lerp(desiredCamPos, 1 - Math.exp(-this.lerpSpeed * dt));
 
-  const lookAtPos = carPos.clone().add(new THREE.Vector3(0, 1.0, 0));
-  this.camera.lookAt(lookAtPos);
+  // const lookAtPos = carPos.clone().add(new THREE.Vector3(0, 1.0, 0));
+  // this.camera.lookAt(lookAtPos);
+  this.controls.update(dt)
 }
 }
 

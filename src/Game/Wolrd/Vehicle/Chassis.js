@@ -22,7 +22,7 @@ class Chassis {
     this.mesh.add(this.model)
 
     this.materials = {
-      carPaint: new PaintMaterial({ baseColor: 0x6aa0c4, rough: 0.6, metal: 0.2 }),
+      carPaint: new PaintMaterial({ baseColor: 0x6aa0c4, rough: 1.0, metal: 0.0 }),
       metal: new MetalMaterial({ baseColor: 0x8a8a8a, rough: 0.3, metal: 0.6 }),
       sideLight: new LightMaterial({ baseColor: 0xc95908, intensity: 0, maxIntensity: 5.0 }),
       brakeLight: new LightMaterial({ baseColor: 0xa10000, intensity: 0, maxIntensity: 15.0  }),
@@ -40,24 +40,135 @@ class Chassis {
   }
 
   applyMaterials() {
-    this.model.traverse((child) => {
-      if (!child.isMesh) return
-      child.castShadow = true
+  this.model.traverse((child) => {
+    if (!child.isMesh) return;
+    child.castShadow = true;
 
-      const { carPaint, metal, sideLight, brakeLight, reverseLight, frontLight, chassis, glass, tire, wood } = this.materials
+    // Asegúrate de que la geometría tiene uv2 (necesario para aoMap)
+    const geom = child.geometry;
+    if (geom && geom.attributes && geom.attributes.uv && !geom.attributes.uv2) {
+      // clona el array de uv -> uv2
+      geom.setAttribute('uv2', new THREE.BufferAttribute(geom.attributes.uv.array, 2));
+      console.log('ok')
+    }
 
-      if (child.name.includes('Pintura')) child.material = carPaint
-      else if (child.name.includes('PlasticoNaranja')) child.material = sideLight
-      else if (child.name.includes('LucesFreno')) child.material = brakeLight
-      else if (child.name.includes('LucesReversa')) child.material = reverseLight
-      else if (child.name.includes('Metal')) child.material = metal
-      else if (child.name.includes('VidrioLuces')) child.material = frontLight
-      else if (child.name.includes('Cube005')) child.material = chassis
-      else if (child.name.includes('Vidrio')) child.material = glass
-      else if (child.name.includes('Goma')) child.material = tire
-      else if (child.name.includes('Madera')) child.material = wood
-    })
-  }
+    const { carPaint, metal, sideLight, brakeLight, reverseLight, frontLight, chassis, glass, tire, wood } = this.materials;
+
+    // guarda referencia al material original (si existe)
+    const srcMat = child.material;
+    console.log(srcMat)
+
+    // Helper: copy common PBR maps from original si existen
+  // Helper: copy common PBR maps from original si existen
+    const copyPBRMaps = (dst, src) => {
+      if (!src || !dst) return;
+
+      // --- Caso 1: el material original usa un ORM combinado (AO+Roughness+Metalness en el map)
+      const hasORMinMap =
+        src.map &&
+        !src.aoMap &&
+        !src.roughnessMap &&
+        !src.metalnessMap;
+
+      if (hasORMinMap) {
+        dst.map = src.map;
+        dst.aoMap = src.map;
+        dst.roughnessMap = src.map;
+        dst.metalnessMap = src.map;
+
+        dst.aoMapIntensity = src.aoMapIntensity ?? 1.0;
+        dst.roughness = src.roughness ?? 1.0;
+        dst.metalness = src.metalness ?? 1.0;
+
+        // importante: todas las texturas se marcan para update
+        dst.map.needsUpdate = true;
+        dst.aoMap.needsUpdate = true;
+        dst.roughnessMap.needsUpdate = true;
+        dst.metalnessMap.needsUpdate = true;
+
+        // aseguramos UV2 para el AO
+        if (src.map && !src.geometry?.attributes?.uv2 && dst.geometry?.attributes?.uv) {
+          dst.geometry.setAttribute('uv2', dst.geometry.attributes.uv);
+        }
+
+        return; // salimos aquí porque ya asignamos todo
+      }
+
+      // --- Caso 2: material con mapas separados normales ---
+      if (src.map) { dst.map = src.map; dst.map.needsUpdate = true; }
+      if (src.normalMap) { dst.normalMap = src.normalMap; dst.normalMap.needsUpdate = true; }
+      if (src.roughnessMap) { dst.roughnessMap = src.roughnessMap; dst.roughnessMap.needsUpdate = true; }
+      if (src.metalnessMap) { dst.metalnessMap = src.metalnessMap; dst.metalnessMap.needsUpdate = true; }
+      if (src.aoMap) {
+        dst.aoMap = src.aoMap;
+        dst.aoMapIntensity = src.aoMapIntensity ?? 1.0;
+        dst.aoMap.needsUpdate = true;
+      }
+    };
+
+
+    // Asignación por nombre como antes, pero copiando mapas del material original
+    if (child.name.includes('Pintura')) {
+      // ejemplo: queremos color plano + mantener AO
+      copyPBRMaps(carPaint, srcMat);          // copia AO + normal, etc.
+      // si carPaint es NodeMaterial y defines colorNode, ten en cuenta:
+      // si has copiado `map` y además pones colorNode, puede que necesites combinar
+      // la muestra del map con el color (ver nota abajo).
+      child.material = carPaint;
+    }
+    else if (child.name.includes('PlasticoNaranja')) {
+      copyPBRMaps(sideLight, srcMat); child.material = sideLight;
+    }
+    else if (child.name.includes('LucesFreno')) {
+      copyPBRMaps(brakeLight, srcMat); child.material = brakeLight;
+    }
+    else if (child.name.includes('LucesReversa')) {
+      copyPBRMaps(reverseLight, srcMat); child.material = reverseLight;
+    }
+    else if (child.name.includes('Metal')) {
+      copyPBRMaps(metal, srcMat); child.material = metal;
+    }
+    else if (child.name.includes('VidrioLuces')) {
+      copyPBRMaps(frontLight, srcMat); child.material = frontLight;
+    }
+    else if (child.name.includes('Cube005')) {
+      copyPBRMaps(chassis, srcMat); child.material = chassis;
+    }
+    else if (child.name.includes('Vidrio')) {
+      copyPBRMaps(glass, srcMat); child.material = glass;
+    }
+    else if (child.name.includes('Goma')) {
+      copyPBRMaps(tire, srcMat); child.material = tire;
+    }
+    else if (child.name.includes('Madera')) {
+      copyPBRMaps(wood, srcMat); child.material = wood;
+    }
+
+    // fuerza re-compilación si es necesario
+    if (child.material) child.material.needsUpdate = true;
+  });
+}
+
+
+  // applyMaterials() {
+  //   this.model.traverse((child) => {
+  //     if (!child.isMesh) return
+  //     child.castShadow = true
+
+  //     const { carPaint, metal, sideLight, brakeLight, reverseLight, frontLight, chassis, glass, tire, wood } = this.materials
+
+  //     if (child.name.includes('Pintura')) child.material = carPaint
+  //     else if (child.name.includes('PlasticoNaranja')) child.material = sideLight
+  //     else if (child.name.includes('LucesFreno')) child.material = brakeLight
+  //     else if (child.name.includes('LucesReversa')) child.material = reverseLight
+  //     else if (child.name.includes('Metal')) child.material = metal
+  //     else if (child.name.includes('VidrioLuces')) child.material = frontLight
+  //     else if (child.name.includes('Cube005')) child.material = chassis
+  //     else if (child.name.includes('Vidrio')) child.material = glass
+  //     else if (child.name.includes('Goma')) child.material = tire
+  //     else if (child.name.includes('Madera')) child.material = wood
+  //   })
+  // }
 
   createPhysics(position) {
     this.sizes = { x: 4.5, y: 1.25, z: 2 }

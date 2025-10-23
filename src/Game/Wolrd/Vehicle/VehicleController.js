@@ -141,8 +141,6 @@ class VehicleController {
     // console.log(rearBrakeTorque)
 
     // fricción y aplicar freno trasero
-
-
     this.currentBrake = this.currentBrake ?? 0
     const targetBrake = wantBrake ? this.brakeForce * brakeFactor : 0
     const brakeSmooth = forwardSpeed < -0.01 ?  5 : 0.1 

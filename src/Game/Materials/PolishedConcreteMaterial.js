@@ -1,22 +1,16 @@
 import * as TSL from 'three/tsl';
 import * as THREE from 'three/webgpu';
-import { voronoiCells, simplexNoise, marble, rust, stars } from 'tsl-textures';
+import { simplexNoise, rust, stars  } from 'tsl-textures';
 
 class PolishedConcreteMaterial extends THREE.MeshStandardNodeMaterial {
   constructor({
     // color1 = new THREE.Color(0x7c8594),
     // color2 = new THREE.Color(0x515357),
     // color3 = new THREE.Color(0x272c36),
-    color1 = new THREE.Color(0x484a4f),
-    color2 = new THREE.Color(0x5f626b),
-    color3 = new THREE.Color(0x121314),
-    roughness = 1.0,
-    // controles de grietas / máscara
-    cracksScale = 3.0,
-    cracksDarkness = 1.0,
-    cracksThickness = 30.0,   // controla ancho del rango smoothstep
-    cracksOpacity = 1.0,     // opacidad máxima de las grietas
-    cracksThreshold = 1.0,   // centro del rango de smoothstep (0..1)
+    color1 = new THREE.Color(0x30363B),
+    color2 = new THREE.Color(0x313438),
+    color3 = new THREE.Color(0x16181B),
+    roughness = 0.5,
     // control para rusty
     rustyOpacity = 0.0,
   } = {}) {
@@ -25,53 +19,30 @@ class PolishedConcreteMaterial extends THREE.MeshStandardNodeMaterial {
     // --- Procedural maps ---
     // simplexNoise devuelve un nodo (vec3). Lo usaremos como color y como base para alpha.
     const simpleNoiseBase = simplexNoise({
-      scale: -2.5,
-      balance: 0.5,
-      contrast: 0.25,
-      color:  color1,     // color base del ruido (si aplica)
-      background: color2,// background del nodo
+      scale: -3.5,
+      balance: 0.25,
+      contrast: -0.5,
+      color:  color1,     // color base del ruido (si aplica) 46515D
+      background: color3, // background del nodo
       seed: 0,
     });
 
-    const simpleNoiseMix = simplexNoise({
-      scale: -2.5,
-      balance: 0,
-      contrast: 0,
-      color: new THREE.Color(0xFFFFFF),     // color base del ruido (si aplica)
-      background: new THREE.Color(0x000000),// background del nodo
-      seed: 12,
-    });
 
-    const cracks = marble({
-      scale: -2,
-      thinness: cracksThickness,
-      noise: 1,
-      color: color3,
-      background: color2,
-      seed: 2,
-    });
 
     const rusty = rust({
       scale: 0,
-      iterations: 4,
-      amount: -0.0,
+      iterations: 8,
+      amount: -0.05,
       opacity: rustyOpacity,
-      noise: 0,
+      noise: 0.1,
       noiseScale: 0.1,
-      color: color3,
-      background:color2,
+      color: color2,
+      background:color3,
       seed: 0,
     });
 
 
-    const starsNoise = stars ( {
-      scale: 0,
-      density: 3,
-      variation: 0.38,
-      color: color1,
-      background: color3,
-      seed: 0
-    } )
+
 
 
     // --- Main node: mezclamos el ruido base (simpleNoiseBase) con el color de grietas
@@ -81,8 +52,9 @@ class PolishedConcreteMaterial extends THREE.MeshStandardNodeMaterial {
       const mixedColor =TSL.vec3(simpleNoiseBase);
 
       const rustyColor = TSL.vec3(rusty)
-      mixedColor.assign(TSL.mix( mixedColor, rustyColor, TSL.float(0.05)))
-      mixedColor.assign(TSL.mix( mixedColor, starsNoise, TSL.float(0.2)))
+      // mixedColor.assign(TSL.mix( mixedColor, starsNoise, TSL.float(0.5)))
+      mixedColor.assign(TSL.mix( mixedColor, rustyColor, TSL.float(0.1)))
+   
       // devolvemos vec4 (RGB + alfa). Aquí ponemos alfa a 1.0 por defecto.
       // Si prefieres que la geometría sea realmente transparente fuera de la máscara,
       // activa material.transparent = true y asigna this.opacityNode = maskAlpha (ver abajo).
@@ -93,9 +65,20 @@ class PolishedConcreteMaterial extends THREE.MeshStandardNodeMaterial {
 
     // --- Asignaciones al material ---
     this.colorNode = main();
-    this.roughnessNode = TSL.float(roughness);
-    this.metalness = 0.0;
-  
+    this.roughnessNode = TSL.float(1);
+    this.metalnessNode = 0.0;
+  /*    this.normalNode =  rust.opacity ( {
+      scale: 0.2,
+      iterations: 2,
+      amount: 0.05,
+      opacity: 0.1,
+      noise: 0.5,
+      noiseScale: 0.1,
+      color: new THREE.Color(0xFFFFFF),
+      background: new THREE.Color(0x000000),
+      seed: 56,
+    } ); */
+       
 
 
 
@@ -189,3 +172,6 @@ model.material.opacityNode = rust.opacity ( {
 	seed: 0
 } );
  */
+
+
+
