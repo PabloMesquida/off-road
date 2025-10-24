@@ -1,13 +1,13 @@
 // src/utils/cameraMovement.js
-export default function updateCameraOrbit(state, camera, controls, opts = {}) {
+export default function updateCameraOrbit(state = { angle: 0.2, radius: 20, speed: 0.2, targetSpeed: 0.5, height: 20}, camera, controls, opts = {}) {
   const TWO_PI = Math.PI * 2;
 
   // --- valores por defecto en caso de que no estén inicializados en el state ---
   state.angle = (typeof state.angle === 'number') ? state.angle : 0;
-  state.radius = (typeof state.radius === 'number') ? state.radius : 14;
+  state.radius = (typeof state.radius === 'number') ? state.radius : 12;
   state.speed = (typeof state.speed === 'number') ? state.speed : 0.001;
   state.targetSpeed = (typeof state.targetSpeed === 'number') ? state.targetSpeed : 0.01;
-  state.height = (typeof state.height === 'number') ? state.height : 2;
+  state.height = (typeof state.height === 'number') ? state.height : 8;
 
   // opciones por defecto (puedes sobreescribirlas al llamar)
   const {

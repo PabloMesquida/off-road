@@ -116,6 +116,14 @@ export const GridPresets = {
     cellSizeC: 1.0,  lineWidthC: 0.03, colorC: '#00ffff', segmentLen: 0.9,
     bgColor: '#2a002a'
   },
+
+    // 8. TEST 
+  funky: {
+    cellSizeA: 8.0,  lineWidthA: 0.06, colorA: '#ffff00',
+    cellSizeB: 1.0,  lineWidthB: 0.02, colorB: '#ff00ff',
+    cellSizeC: 1.0,  lineWidthC: 0.03, colorC: '#00ffff', segmentLen: 0.9,
+    bgColor: '#2a002a'
+  },
 }; 
 
 export const GridStyles = Object.keys(GridPresets);

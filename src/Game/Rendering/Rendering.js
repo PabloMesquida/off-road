@@ -61,7 +61,7 @@ class Rendering
     document.body.appendChild(this.stats.dom)
 
     this.instance.toneMapping = THREE.CineonToneMapping
-    this.instance.toneMappingExposure = 1 // 1.75
+    this.instance.toneMappingExposure = 1.2 // 1.75
     this.instance.shadowMap.enabled = true
     this.instance.shadowMap.type = THREE.VSMShadowMap          
  
@@ -71,9 +71,31 @@ class Rendering
     this.instance.setPixelRatio(this.ratio)
   }
 
-  resize(){
-    this.instance.setSize(this.sizes.width, this.sizes.height)
-    this.instance.setPixelRatio(this.ratio)
+  resize() {
+    const width = Math.floor(this.sizes.width * this.ratio);
+    const height = Math.floor(this.sizes.height * this.ratio);
+
+    this.instance.setSize(width, height);
+    this.instance.setPixelRatio(this.ratio);
+
+    // 🔄 Reconstruir nodos post-procesado
+    if (this.postProcessing) {
+      this.postProcessing.dispose();
+
+      // Volver a crear el pipeline
+      this.postProcessing = new THREE.PostProcessing(this.instance);
+
+      const scenePass = TSL.pass(this.scene, this.camera);
+      const scenePassColor = scenePass.getTextureNode();
+
+      const bloomPass = bloom(scenePassColor);
+      bloomPass.strength.value = 1.2;
+      bloomPass.radius.value = 0.6;
+      bloomPass.threshold.value = 1.0;
+
+      const finalImage = scenePassColor.add(bloomPass);
+      this.postProcessing.outputNode = finalImage;
+    }
   }
 
 
@@ -100,7 +122,6 @@ class Rendering
   
       frameCount++;
 
-      // Llamamos renderAsync siempre, pero solo await cada N frames
       try {
         const renderPromise = this.instance.renderAsync(this.scene, this.camera);
           this.postProcessing.render()

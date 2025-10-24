@@ -19,10 +19,10 @@ class Environment {
     // Tamaño del área donde se proyectan sombras
     light.shadow.camera.near = 0.5
     light.shadow.camera.far = 1000
-    light.shadow.camera.left = -10
-    light.shadow.camera.right = 10
-    light.shadow.camera.top = 10
-    light.shadow.camera.bottom = -10
+    light.shadow.camera.left = -20
+    light.shadow.camera.right = 20
+    light.shadow.camera.top = 20
+    light.shadow.camera.bottom = -20
 
     // Resolución de la sombra
     light.shadow.mapSize.set(1024, 1024)
@@ -30,7 +30,7 @@ class Environment {
     light.shadow.radius = 8.0
 
     // Ajuste fino de artefactos
-    light.shadow.normalBias = 0.05
+    light.shadow.normalBias = 0.02
 
     // Posición y dirección
     light.position.set(-10, 10, 15)
