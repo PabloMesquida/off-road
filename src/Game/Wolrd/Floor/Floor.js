@@ -17,17 +17,19 @@ class Floor{
     const { x, y, z } = this.size
     const geometry = new THREE.BoxGeometry(x, y, z)
 
-    // const material = new FloorMaterial({ color: '#9b9e89' })  // PolishedConcreteMaterial()
-    const material = GridNodeMaterial.fromPreset('blueprint')
+    const material = new PolishedConcreteMaterial() // new FloorMaterial({ color: '#9b9e89' })  // 
+    // const gridMaterial = GridNodeMaterial.fromPreset('blueprint')
     const floorMesh = new THREE.Mesh(geometry, material)
 
-    const subHeight = 0.5
-    const subFloorGeometry = new THREE.BoxGeometry(x, subHeight, z)
-    const subFloorMaterial = new THREE.MeshStandardNodeMaterial({ color: '#3c3d40' })
-    const subFloorMesh = new THREE.Mesh(subFloorGeometry, subFloorMaterial)
-    subFloorMesh.position.set(0, -(y / 2) - (subHeight / 2), 0)
- 
 
+    const subFloorGeometry = new THREE.PlaneGeometry(x, z)
+    const subFloorMaterial =  GridNodeMaterial.fromPreset('dark')
+    const subFloorMesh = new THREE.Mesh(subFloorGeometry, subFloorMaterial)
+    subFloorGeometry.rotateX(-Math.PI / 2)
+    subFloorMaterial.opacity = 0.05
+    subFloorMesh.position.set(0, 0.11, 0)
+    
+ 
     this.floorGroup = new THREE.Object3D()
     floorMesh.position.set(0, 0, 0)
     floorMesh.castShadow = true;

@@ -118,7 +118,7 @@ export const GridPresets = {
   },
 
     // 8. TEST 
-  funky: {
+  test: {
     cellSizeA: 8.0,  lineWidthA: 0.06, colorA: '#ffff00',
     cellSizeB: 1.0,  lineWidthB: 0.02, colorB: '#ff00ff',
     cellSizeC: 1.0,  lineWidthC: 0.03, colorC: '#00ffff', segmentLen: 0.9,
@@ -158,6 +158,7 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
     this._segmentLen = TSL.uniform(finalParams.segmentLen);
 
     this._bgColor = TSL.uniform(new THREE.Color(finalParams.bgColor));
+    this._opacity = TSL.uniform(1.0);
 
     // Fragment node
     const uv = TSL.positionWorld.xz;
@@ -200,7 +201,8 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
       );
 
     this.colorNode = out;
-    this.alphaNode = TSL.float(1.0);
+    this.alphaNode = this._opacity;
+    this.transparent = true;
   }
 
   // Getters/setters estilo property
@@ -282,6 +284,7 @@ export class GridTriplanarNodeMaterial extends THREE.NodeMaterial {
     this._segmentLen = TSL.uniform(finalParams.segmentLen);
 
     this._bgColor = TSL.uniform(new THREE.Color(finalParams.bgColor));
+    this._opacity = TSL.uniform(1.0);
 
     this._uvScaleX = TSL.uniform(new THREE.Vector2(1.0, 1.0));
     this._uvScaleY = TSL.uniform(new THREE.Vector2(1.0, 1.0)); 
@@ -359,7 +362,8 @@ export class GridTriplanarNodeMaterial extends THREE.NodeMaterial {
     );
 
     this.colorNode = out;
-    this.alphaNode = TSL.float(1.0);
+    this.alphaNode = this._opacity;
+    this.transparent = true
   }
 
   // --- Getters / Setters ---
@@ -407,6 +411,9 @@ export class GridTriplanarNodeMaterial extends THREE.NodeMaterial {
     if (typeof v === 'string' || typeof v === 'number') this._bgColor.value.set(v);
     else this._bgColor.value.copy(v);
   }
+
+  get opacity() { return this._opacity.value; }
+  set opacity(v) { this._opacity.value = v; }
 
   // --- Factory estática ---
   static fromPreset(style = 'default', overrides = {}) {
