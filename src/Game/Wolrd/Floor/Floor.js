@@ -1,10 +1,10 @@
 import * as THREE from 'three/webgpu'
 import PolishedConcreteMaterial from '../../Materials/PolishedConcreteMaterial.js'
-import FloorMaterial from '../../Materials/FloorMaterial.js'
+// import FloorMaterial from '../../Materials/FloorMaterial.js'
 import { GridNodeMaterial } from '../../Materials/GridNodeMaterial.js'
 
 class Floor{
-  constructor(scene, physics, { x = 20, y = 20, z = 0.2 } = {}) {
+  constructor(scene, physics, { x = 20, y = 0.2, z = 20 } = {}) {
     this.scene = scene
     this.physics = physics
     this.size = { x, y, z }
@@ -17,13 +17,18 @@ class Floor{
     const { x, y, z } = this.size
     const geometry = new THREE.BoxGeometry(x, y, z)
 
-    const material = new PolishedConcreteMaterial() // new FloorMaterial({ color: '#9b9e89' })  // 
+    const material = new PolishedConcreteMaterial()// new FloorMaterial({ color: '#9b9e89' })  // 
+  
+
     // const gridMaterial = GridNodeMaterial.fromPreset('blueprint')
     const floorMesh = new THREE.Mesh(geometry, material)
 
 
     const subFloorGeometry = new THREE.PlaneGeometry(x, z)
     const subFloorMaterial =  GridNodeMaterial.fromPreset('dark')
+    subFloorMaterial.gridSize = new THREE.Vector2(x, z)
+    subFloorMaterial.borderColor = new THREE.Color('#ffff00')
+    subFloorMaterial.borderWidth = 20
     const subFloorMesh = new THREE.Mesh(subFloorGeometry, subFloorMaterial)
     subFloorGeometry.rotateX(-Math.PI / 2)
     subFloorMaterial.opacity = 0.05

@@ -49,32 +49,6 @@ const computePlusMask = TSL.Fn(({ uv, lineWidth, cellSize, segmentLen, uvDeriv }
   return plusMask;
 });
 
-const computeWorldBorder = TSL.Fn(({ position, planeSize, borderWidth }) => {
-  // posición en XZ (world space)
-  const pos = position.xz; // pos.x = world X, pos.y = world Z
-
-  // mitad del tamaño real del plano (en unidades del mundo)
-  const half = planeSize.mul(TSL.float(0.5));
-
-  // distancia desde el fragmento hasta el interior (half - abs(pos))
-  const distX = half.x.sub(pos.x.abs());
-  const distZ = half.y.sub(pos.y.abs());
-
-  // borderWidth es en unidades del mundo
-  const bw =   borderWidth;
-
-  const one = TSL.float(1.0);
-
-  // máscara nítida: 1 cuando estamos dentro de 'bw' del borde, 0 fuera
-  // (usamos 1 - step(bw, dist) para que sea 1 cuando dist < bw)
-  const maskX = one.sub(distX.step(bw));
-  const maskZ = one.sub(distZ.step(bw));
-
-  // unión de ejes: si cualquiera de los ejes está dentro del borde, fuerza 1
-  const strength = TSL.max(maskX, maskZ);
-
-  return strength;
-});
 // -------------------------
 // Presets
 // -------------------------
@@ -141,7 +115,15 @@ export const GridPresets = {
     cellSizeB: 1.0,  lineWidthB: 0.02, colorB: '#ff00ff',
     cellSizeC: 1.0,  lineWidthC: 0.03, colorC: '#00ffff', segmentLen: 0.9,
     bgColor: '#2a002a'
-  }
+  },
+
+    // 8. TEST 
+  test: {
+    cellSizeA: 8.0,  lineWidthA: 0.06, colorA: '#ffff00',
+    cellSizeB: 1.0,  lineWidthB: 0.02, colorB: '#ff00ff',
+    cellSizeC: 1.0,  lineWidthC: 0.03, colorC: '#00ffff', segmentLen: 0.9,
+    bgColor: '#2a002a'
+  },
 }; 
 
 export const GridStyles = Object.keys(GridPresets);
@@ -153,30 +135,15 @@ export const GridStyles = Object.keys(GridPresets);
 export class GridNodeMaterial extends THREE.NodeMaterial {
 
   static get type() { return 'GridNodeMaterial'; }
-  
+
   constructor(params = {}) {
     super();
     this.isGridNodeMaterial = true;
 
-
-
     // Merge con preset default
     const finalParams = { ...GridPresets.default, ...params };
 
-    const defaultSize = new THREE.Vector2(100, 100);
-    if (params.planeSize instanceof THREE.Vector2) {
-      this._planeSize = TSL.uniform(params.planeSize.clone());
-    } else if (Array.isArray(params.planeSize)) {
-      this._planeSize = TSL.uniform(new THREE.Vector2(params.planeSize[0], params.planeSize[1]));
-    } else if (typeof params.planeSizeX === 'number' && typeof params.planeSizeZ === 'number') {
-      this._planeSize = TSL.uniform(new THREE.Vector2(params.planeSizeX, params.planeSizeZ));
-    } else {
-      this._planeSize = TSL.uniform(defaultSize);
-    }
-    this._borderWidth = TSL.uniform(typeof finalParams.borderWidth === 'number' ? finalParams.borderWidth : 0.2);
-    this._borderColor = TSL.uniform(new THREE.Color(finalParams.borderColor || '#ffffff'));
-
-    // Definimos uniforms internos (privados) para las grillas
+    // Definimos uniforms internos (privados)
     this._cellSizeA = TSL.uniform(finalParams.cellSizeA);
     this._lineWidthA = TSL.uniform(finalParams.lineWidthA);
     this._colorA = TSL.uniform(new THREE.Color(finalParams.colorA));
@@ -193,7 +160,7 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
     this._bgColor = TSL.uniform(new THREE.Color(finalParams.bgColor));
     this._opacity = TSL.uniform(1.0);
 
-    // --- Fragment node: calcular UVs/world derivs para AA de grilla ---
+    // Fragment node
     const uv = TSL.positionWorld.xz;
     const ddxUV = TSL.dFdx(uv);
     const ddyUV = TSL.dFdy(uv);
@@ -202,7 +169,6 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
       TSL.length(TSL.vec2(ddxUV.y, ddyUV.y))
     );
 
-    // máscaras de grilla (usar tus funciones existentes)
     const maskA = computeMask({ uv, lineWidth: this._lineWidthA, cellSize: this._cellSizeA, uvDeriv });
     const maskB = computeMask({ uv, lineWidth: this._lineWidthB, cellSize: this._cellSizeB, uvDeriv });
     const maskC = computePlusMask({ uv, lineWidth: this._lineWidthC, cellSize: this._cellSizeC, segmentLen: this._segmentLen, uvDeriv });
@@ -214,48 +180,33 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
     const mB = TSL.saturate(maskB);
     const mC = TSL.saturate(maskC);
 
-    // reglas de prioridad entre capas
+    // máscara B solo donde no hay A
     const mB_eff = TSL.saturate( mB.mul( one.sub(mA) ) );
+
+    // máscara C solo donde no hay A ni B_eff
     const mC_eff = TSL.saturate( mC.mul( one.sub(mA) ).mul( one.sub(mB_eff) ) );
 
     // fondo solo donde ninguna máscara cubre
     const total = mA.add(mB_eff).add(mC_eff);
     const bgWeight = TSL.saturate( one.sub(total) );
 
-    // --- Borde fijo en unidades del mundo (usa computeWorldBorder definido arriba) ---
-    const borderMask = computeWorldBorder({
-      position: TSL.positionWorld,
-      planeSize: this._planeSize,
-      borderWidth: this._borderWidth
-    });
-
-    // convertimos máscara a vec3
-    const maskVec = TSL.vec3(borderMask);
-    const invMaskVec = TSL.vec3(one.sub(borderMask));
-
-    // composición base de las capas
+    // combinación sin mezcla entre capas
     const out = TSL.clamp(
-      this._bgColor.mul(bgWeight)
-        .add( this._colorA.mul(mA) )
-        .add( this._colorB.mul(mB_eff) )
-        .add( this._colorC.mul(mC_eff) ),
-      TSL.vec3(0.0),
-      TSL.vec3(1.0)
-    );
+    this._bgColor.mul(bgWeight)
+      .add( this._colorA.mul(mA) )
+      .add( this._colorB.mul(mB_eff) )
+      .add( this._colorC.mul(mC_eff) ),
+        TSL.vec3(0.0),
+        TSL.vec3(1.0)
+      );
 
-    // color del borde (multiplicado por la máscara) y mezcla nítida:
-    const borderColMasked = this._borderColor.mul(maskVec);
-    // final: donde mask=1 -> borderCol, donde mask=0 -> out
-    const finalColor = out.mul(invMaskVec).add(borderColMasked);
-
-    this.colorNode = finalColor;
+    this.colorNode = out;
     this.alphaNode = this._opacity;
     this.transparent = true;
   }
 
-  // ------------------------
-  // Getters / Setters
-  // ------------------------
+  // Getters/setters estilo property
+
   get cellSizeA() { return this._cellSizeA.value; }
   set cellSizeA(v) { this._cellSizeA.value = v; }
 
@@ -301,96 +252,12 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
     else this._bgColor.value.copy(v);
   }
 
-  // Reemplaza el getter/setter actuales de 'opacity' por esta versión defensiva
-  get opacity() {
-    if (!this._opacity) {
-      // valor por defecto si aún no fue creado (evita el error cuando Material() asigna opacity)
-      this._opacity = TSL.uniform(1.0);
-    }
-    return this._opacity.value;
-  }
-  set opacity(v) {
-    if (!this._opacity) {
-      this._opacity = TSL.uniform(1.0);
-    }
-    this._opacity.value = v;
-  }
-
-
-  get gridSize() {
-  return this._planeSize?.value ?? new THREE.Vector2(1, 1);
-}
-
-set gridSize(v) {
-  if (!this._planeSize) this._planeSize = TSL.uniform(new THREE.Vector2(1, 1));
-
-  if (v instanceof THREE.Vector2) {
-    this._planeSize.value.copy(v);
-  } else if (Array.isArray(v)) {
-    this._planeSize.value.set(v[0], v[1]);
-  } else if (typeof v === 'object') {
-    this._planeSize.value.set(v.x ?? v[0], v.y ?? v[1]);
-  } else {
-    throw new Error('gridSize: valor no válido');
-  }
-
-  console.log('✅ gridSize set', this._planeSize.value);
-  this.needsUpdate = true;
-}
-
-  get borderWidth() {
-    if (!this._borderWidth) this._borderWidth = TSL.uniform(0.2);
-    return this._borderWidth.value;
-  }
-  set borderWidth(v) {
-    if (!this._borderWidth) this._borderWidth = TSL.uniform(0.2);
-    this._borderWidth.value = v;
-  }
-
-  get borderColor() {
-    if (!this._borderColor) this._borderColor = TSL.uniform(new THREE.Color('#ffffff'));
-    return this._borderColor.value;
-  }
-  set borderColor(v) {
-    if (!this._borderColor) this._borderColor = TSL.uniform(new THREE.Color('#ffffff'));
-    if (typeof v === 'string' || typeof v === 'number') this._borderColor.value.set(v);
-    else this._borderColor.value.copy(v);
-  }
-
-  // ------------------------
-  // Helpers runtime
-  // ------------------------
-  setPlaneSize(x, z) {
-    if (!this._planeSize) this._planeSize = TSL.uniform(new THREE.Vector2(x, z));
-    else this._planeSize.value.set(x, z);
-  }
-
-  setMesh(mesh) {
-    if (!mesh || !mesh.geometry) return;
-    const geom = mesh.geometry;
-    if (!geom.boundingBox) geom.computeBoundingBox();
-
-    const size = new THREE.Vector3();
-    geom.boundingBox.getSize(size); // size en espacio local
-
-    const worldScale = new THREE.Vector3();
-    mesh.getWorldScale(worldScale);
-
-    size.multiply(worldScale); // tamaño en unidades del mundo
-
-    // suponiendo plano en XZ
-    if (!this._planeSize) this._planeSize = TSL.uniform(new THREE.Vector2(size.x, size.z));
-    else this._planeSize.value.set(size.x, size.z);
-  }
-
   // Factory estática estilo WoodNodeMaterial
   static fromPreset(style = 'default', overrides = {}) {
     const preset = GridPresets[style] || GridPresets.default;
     return new GridNodeMaterial({ ...preset, ...overrides });
   }
 }
-
-
 
 export class GridTriplanarNodeMaterial extends THREE.NodeMaterial {
 

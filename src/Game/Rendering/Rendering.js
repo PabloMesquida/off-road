@@ -66,7 +66,7 @@ class Rendering
     this.instance.shadowMap.type = THREE.VSMShadowMap          
  
     
-    this.instance.setClearColor('#FFFFFF') // 141414
+    this.instance.setClearColor('#222') // 141414
     this.instance.setSize(this.sizes.width, this.sizes.height)
     this.instance.setPixelRatio(this.ratio)
   }
