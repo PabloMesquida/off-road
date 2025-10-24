@@ -33,7 +33,7 @@ class Environment {
     light.shadow.normalBias = 0.05
 
     // Posición y dirección
-    light.position.set(0, 15, 1)
+    light.position.set(0, 15, 0.5)
     light.target.position.set(0, 0,0)
     this.scene.add(light.target)
 
@@ -42,8 +42,8 @@ class Environment {
      this.sunLight = light
 
     // Debug visual
-     const helper = new THREE.CameraHelper(light.shadow.camera)
-     this.scene.add(helper)
+    // const helper = new THREE.CameraHelper(light.shadow.camera)
+    // this.scene.add(helper)
   }
 
   setEnvironmentMap() {

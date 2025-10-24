@@ -12,7 +12,7 @@ class VehicleController {
     this.wheels = wheels
 
     // constructor
-    this.maxForwardSpeed = 20.0   
+    this.maxForwardSpeed = 15.0   
     this.maxReverseSpeed = 6.0  
     this.speedLimitBrake = 100.0 // torque de freno suave para reducir si ya superaste el límite
 
@@ -127,7 +127,11 @@ class VehicleController {
     const steerDir = Number(left) - Number(right)
     const currentSteer = this.controller.wheelSteering(0) || 0
     const targetSteer = this.steerAngleMax * steerDir
-    const smoothSteer = THREE.MathUtils.lerp(currentSteer, targetSteer, 0.1)
+    
+    let lerpFactor = 0.08
+    if (steerDir === 0) lerpFactor = 0.04
+
+    const smoothSteer = THREE.MathUtils.lerp(currentSteer, targetSteer, lerpFactor)
     this.controller.setWheelSteering(0, smoothSteer)
     this.controller.setWheelSteering(1, smoothSteer)
 
