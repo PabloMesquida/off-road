@@ -49,32 +49,65 @@ const computePlusMask = TSL.Fn(({ uv, lineWidth, cellSize, segmentLen, uvDeriv }
   return plusMask;
 });
 
-const computeWorldBorder = TSL.Fn(({ position, planeSize, borderWidth }) => {
-  // posición en XZ (world space)
-  const pos = position.xz; // pos.x = world X, pos.y = world Z
-
-  // mitad del tamaño real del plano (en unidades del mundo)
-  const half = planeSize.mul(TSL.float(0.5));
-
-  // distancia desde el fragmento hasta el interior (half - abs(pos))
-  const distX = half.x.sub(pos.x.abs());
-  const distZ = half.y.sub(pos.y.abs());
-
-  // borderWidth es en unidades del mundo
-  const bw =   borderWidth;
+const computeWorldBorder = TSL.Fn(({ position, planeSize, borderWidth, borderOffset, stripeSize  }) => {
+  const pos = position.xz;            // pos.x = world X, pos.y = world Z
+  const half = planeSize.mul(0.5);    // mitad del plano
 
   const one = TSL.float(1.0);
+  const zero = TSL.float(0.0);
 
-  // máscara nítida: 1 cuando estamos dentro de 'bw' del borde, 0 fuera
-  // (usamos 1 - step(bw, dist) para que sea 1 cuando dist < bw)
-  const maskX = one.sub(distX.step(bw));
-  const maskZ = one.sub(distZ.step(bw));
+  // distancia hasta el interior desde cada eje
+  const distX = half.x.sub(pos.x.abs()); // >=0 dentro del plano en X
+  const distZ = half.y.sub(pos.y.abs()); // >=0 dentro del plano en Z
 
-  // unión de ejes: si cualquiera de los ejes está dentro del borde, fuerza 1
-  const strength = TSL.max(maskX, maskZ);
+  // distancia hasta el borde real: el mínimo de las dos
+  const distToEdge = TSL.min(distX, distZ);
 
-  return strength;
+  // máscara "inside" (1 cuando estamos dentro del rectángulo, 0 fuera)
+  // step(edge, x) -> 1 si x >= edge
+  const insideMask = distToEdge.step(zero); // 1 cuando distToEdge >= 0
+
+  // Umbrales del anillo: start = offset, end = offset + borderWidth
+  const start = borderOffset;
+  const end = borderOffset.add(borderWidth);
+
+  // maskStart = 1 si dist >= start
+  // maskEnd   = 1 si dist >= end
+  const maskStart = distToEdge.step(start);
+  const maskEnd   = distToEdge.step(end);
+
+  // borderMask = 1 cuando dist está en [start, end)
+  // (maskStart = 1 y maskEnd = 0) -> maskStart - maskEnd = 1
+  const borderMask = maskStart.sub(maskEnd).mul(insideMask);
+
+  // emptyMask = 1 cuando dist >= end (está más adentro que el borde)
+  const emptyMask = maskEnd.mul(insideMask);
+
+  // outsideMask = 1 cuando no estamos dentro del plano
+  const outsideMask = one.sub(insideMask);
+
+  // const sSize = stripeSize ?? TSL.float(1.0);
+  const sSize = stripeSize ?? one;
+  const angle = TSL.float(45.0); 
+
+  // convertimos a radianes
+  const rad = angle.mul(Math.PI / 180.0);
+
+  // rotamos las coordenadas (x,z)
+  const rotX = pos.x.mul(TSL.cos(rad)).sub(pos.y.mul(TSL.sin(rad)));
+  const stripeCoord = rotX.div(sSize);
+
+  const stripePattern = TSL.mod(TSL.floor(stripeCoord), TSL.float(2.0));
+  const stripes = one.sub(stripePattern);
+
+  // aplicamos el patrón al borde
+  const stripedBorder = borderMask.mul(stripes);
+
+  // devolvemos las tres máscaras (valores 0 o 1)
+  return TSL.vec3(emptyMask, stripedBorder, outsideMask);
 });
+
+
 // -------------------------
 // Presets
 // -------------------------
@@ -174,6 +207,7 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
       this._planeSize = TSL.uniform(defaultSize);
     }
     this._borderWidth = TSL.uniform(typeof finalParams.borderWidth === 'number' ? finalParams.borderWidth : 0.2);
+    this._borderOffset = TSL.uniform(typeof finalParams.borderOffset === 'number' ? finalParams.borderOffset : 0.2);
     this._borderColor = TSL.uniform(new THREE.Color(finalParams.borderColor || '#ffffff'));
 
     // Definimos uniforms internos (privados) para las grillas
@@ -226,29 +260,32 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
     const borderMask = computeWorldBorder({
       position: TSL.positionWorld,
       planeSize: this._planeSize,
-      borderWidth: this._borderWidth
+      borderWidth:this._borderWidth,
+      borderOffset: this._borderOffset,
+      stripeSize: TSL.float(2)
     });
 
     // convertimos máscara a vec3
     const maskVec = TSL.vec3(borderMask);
-    const invMaskVec = TSL.vec3(one.sub(borderMask));
+    // const invMaskVec = TSL.vec3(one.sub(borderMask));
 
     // composición base de las capas
     const out = TSL.clamp(
       this._bgColor.mul(bgWeight)
         .add( this._colorA.mul(mA) )
         .add( this._colorB.mul(mB_eff) )
-        .add( this._colorC.mul(mC_eff) ),
+        .add( this._colorC.mul(mC_eff) )
+        .add( this._borderColor.mul(maskVec.y) ),
       TSL.vec3(0.0),
       TSL.vec3(1.0)
     );
 
     // color del borde (multiplicado por la máscara) y mezcla nítida:
-    const borderColMasked = this._borderColor.mul(maskVec);
+    // const borderColMasked = this._borderColor.mul(maskVec);
     // final: donde mask=1 -> borderCol, donde mask=0 -> out
-    const finalColor = out.mul(invMaskVec).add(borderColMasked);
+    // const finalColor = out.mul(invMaskVec).add(borderColMasked);
 
-    this.colorNode = finalColor;
+    this.colorNode = out;
     this.alphaNode = this._opacity;
     this.transparent = true;
   }
@@ -334,7 +371,7 @@ set gridSize(v) {
     throw new Error('gridSize: valor no válido');
   }
 
-  console.log('✅ gridSize set', this._planeSize.value);
+
   this.needsUpdate = true;
 }
 
@@ -345,6 +382,15 @@ set gridSize(v) {
   set borderWidth(v) {
     if (!this._borderWidth) this._borderWidth = TSL.uniform(0.2);
     this._borderWidth.value = v;
+  }
+
+  get borderOffset() {
+    if (!this._borderOffset) this._borderOffset = TSL.uniform(0.2);
+    return this._borderOffset.value;
+  }
+  set borderOffset(v) {
+    if (!this._borderOffset) this._borderOffset = TSL.uniform(0.2);
+    this._borderOffset.value = v;
   }
 
   get borderColor() {

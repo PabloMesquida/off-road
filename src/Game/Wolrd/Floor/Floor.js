@@ -27,12 +27,13 @@ class Floor{
     const subFloorGeometry = new THREE.PlaneGeometry(x, z)
     const subFloorMaterial =  GridNodeMaterial.fromPreset('dark')
     subFloorMaterial.gridSize = new THREE.Vector2(x, z)
-    subFloorMaterial.borderColor = new THREE.Color('#ffff00')
+    subFloorMaterial.borderColor = new THREE.Color('#FFFF00')
     subFloorMaterial.borderWidth = 20
+    subFloorMaterial.borderOffset = 10
     const subFloorMesh = new THREE.Mesh(subFloorGeometry, subFloorMaterial)
     subFloorGeometry.rotateX(-Math.PI / 2)
-    subFloorMaterial.opacity = 0.05
-    subFloorMesh.position.set(0, 0.11, 0)
+    subFloorMaterial.opacity = 0.04
+    subFloorMesh.position.set(0, 0.12, 0)
     
  
     this.floorGroup = new THREE.Object3D()

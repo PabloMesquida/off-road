@@ -14,7 +14,7 @@ class World{
   
     this.resources = this.game.resources
   
-    this.floor = new Floor(this.scene, this.game.physics, { x: 150 , y: 0.2, z: 150}) 
+    this.floor = new Floor(this.scene, this.game.physics, { x: 120 , y: 0.2, z: 120}) 
 
     this.resources.events.on('ready', () => {
      
