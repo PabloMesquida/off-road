@@ -50,49 +50,35 @@ const computePlusMask = TSL.Fn(({ uv, lineWidth, cellSize, segmentLen, uvDeriv }
 });
 
 const computeWorldBorder = TSL.Fn(({ position, planeSize, borderWidth, borderOffset, stripeSize  }) => {
-  const pos = position.xz;            // pos.x = world X, pos.y = world Z
-  const half = planeSize.mul(0.5);    // mitad del plano
+  const pos = position.xz;            
+  const half = planeSize.mul(0.5);    
 
   const one = TSL.float(1.0);
   const zero = TSL.float(0.0);
 
   // distancia hasta el interior desde cada eje
-  const distX = half.x.sub(pos.x.abs()); // >=0 dentro del plano en X
-  const distZ = half.y.sub(pos.y.abs()); // >=0 dentro del plano en Z
+  const distX = half.x.sub(pos.x.abs());
+  const distZ = half.y.sub(pos.y.abs());
 
   // distancia hasta el borde real: el mínimo de las dos
   const distToEdge = TSL.min(distX, distZ);
 
   // máscara "inside" (1 cuando estamos dentro del rectángulo, 0 fuera)
-  // step(edge, x) -> 1 si x >= edge
-  const insideMask = distToEdge.step(zero); // 1 cuando distToEdge >= 0
+  const insideMask = distToEdge.step(zero);
 
-  // Umbrales del anillo: start = offset, end = offset + borderWidth
-   const start = borderOffset;
-   const end = borderOffset.add(borderWidth);
+  // Umbrales del anillo
+  const start = borderOffset;
+  const end = borderOffset.add(borderWidth);
 
-  const edgeSmooth = TSL.float(0.1); // control del suavizado (ajustable)
+  const edgeSmooth = TSL.float(0.025);
   const maskStart = TSL.smoothstep(start.sub(edgeSmooth), start.add(edgeSmooth), distToEdge);
   const maskEnd   = TSL.smoothstep(end.sub(edgeSmooth), end.add(edgeSmooth), distToEdge);
 
-
-  // maskStart = 1 si dist >= start
-  // maskEnd   = 1 si dist >= end
-  // const maskStart = distToEdge.step(start);
-  // const maskEnd   = distToEdge.step(end);
-
-  // borderMask = 1 cuando dist está en [start, end)
-  // (maskStart = 1 y maskEnd = 0) -> maskStart - maskEnd = 1
   const borderMask = maskStart.sub(maskEnd).mul(insideMask);
-
-  // emptyMask = 1 cuando dist >= end (está más adentro que el borde)
   const emptyMask = maskEnd.mul(insideMask);
-
-  // outsideMask = 1 cuando no estamos dentro del plano
   const outsideMask = one.sub(insideMask);
 
-  // const sSize = stripeSize ?? TSL.float(1.0);
-  const sSize = stripeSize ?? one;
+  const sSize = stripeSize ?? TSL.float(0.5);
   const angle = TSL.float(45.0); 
 
   // convertimos a radianes
@@ -102,14 +88,31 @@ const computeWorldBorder = TSL.Fn(({ position, planeSize, borderWidth, borderOff
   const rotX = pos.x.mul(TSL.cos(rad)).sub(pos.y.mul(TSL.sin(rad)));
   const stripeCoord = rotX.div(sSize);
 
+  // MANTENEMOS EL PATRÓN ORIGINAL PERO CON SUAVIZADO
   const stripePattern = TSL.mod(TSL.floor(stripeCoord), TSL.float(2.0));
-
-  const stripes = stripePattern.add(TSL.float(0)).mul(1.0); // convertir de [-1,1] a [0,1]
+  
+  // Suavizado de los bordes de las barras
+  const stripeSmooth = TSL.float(0.025); // control del suavizado (ajustable)
+  const periodic = TSL.fract(stripeCoord);
+  
+  // Aplicamos smoothstep en los bordes de transición
+  const smoothTransition = TSL.smoothstep(
+    TSL.float(0.0), 
+    stripeSmooth, 
+    periodic
+  ).sub(TSL.smoothstep(
+    TSL.float(1.0).sub(stripeSmooth), 
+    TSL.float(1.0), 
+    periodic
+  ));
+  
+  // Combinamos el patrón original con el suavizado
+  const stripes = stripePattern.mul(smoothTransition);
 
   // aplicamos el patrón al borde
   const stripedBorder = borderMask.mul(stripes);
 
-  // devolvemos las tres máscaras (valores 0 o 1)
+  // devolvemos las tres máscaras
   return TSL.vec3(emptyMask, stripedBorder, outsideMask);
 });
 
@@ -268,7 +271,7 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
       planeSize: this._planeSize,
       borderWidth:this._borderWidth,
       borderOffset: this._borderOffset,
-      stripeSize: TSL.float(2)
+      stripeSize: TSL.float(1.5)
     });
 
     // convertimos máscara a vec3
@@ -606,5 +609,4 @@ export class GridTriplanarNodeMaterial extends THREE.NodeMaterial {
     return new GridTriplanarNodeMaterial({ ...preset, ...overrides });
   }
 }
-
 
