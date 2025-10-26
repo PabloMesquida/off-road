@@ -30,6 +30,7 @@ class Floor{
     subFloorMaterial.borderColor = new THREE.Color('#FFFF00')
     subFloorMaterial.borderWidth = 20
     subFloorMaterial.borderOffset = 30
+    subFloorMaterial.stripeSize = 1.5
     const subFloorMesh = new THREE.Mesh(subFloorGeometry, subFloorMaterial)
     subFloorGeometry.rotateX(-Math.PI / 2)
     subFloorMaterial.opacity = 0.04

@@ -218,6 +218,7 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
     this._borderWidth = TSL.uniform(typeof finalParams.borderWidth === 'number' ? finalParams.borderWidth : 0.2);
     this._borderOffset = TSL.uniform(typeof finalParams.borderOffset === 'number' ? finalParams.borderOffset : 0.2);
     this._borderColor = TSL.uniform(new THREE.Color(finalParams.borderColor || '#ffffff'));
+    this._stripeSize = TSL.uniform(typeof finalParams.stripeSize === 'number' ? finalParams.stripeSize : 0.2);
 
     // Definimos uniforms internos (privados) para las grillas
     this._cellSizeA = TSL.uniform(finalParams.cellSizeA);
@@ -271,7 +272,7 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
       planeSize: this._planeSize,
       borderWidth:this._borderWidth,
       borderOffset: this._borderOffset,
-      stripeSize: TSL.float(1.5)
+      stripeSize: this._stripeSize
     });
 
     // convertimos máscara a vec3
@@ -385,21 +386,30 @@ set gridSize(v) {
 }
 
   get borderWidth() {
-    if (!this._borderWidth) this._borderWidth = TSL.uniform(0.2);
+    if (!this._borderWidth) this._borderWidth = TSL.uniform(20.0);
     return this._borderWidth.value;
   }
   set borderWidth(v) {
-    if (!this._borderWidth) this._borderWidth = TSL.uniform(0.2);
+    if (!this._borderWidth) this._borderWidth = TSL.uniform(20.0);
     this._borderWidth.value = v;
   }
 
   get borderOffset() {
-    if (!this._borderOffset) this._borderOffset = TSL.uniform(0.2);
+    if (!this._borderOffset) this._borderOffset = TSL.uniform(10.0);
     return this._borderOffset.value;
   }
   set borderOffset(v) {
-    if (!this._borderOffset) this._borderOffset = TSL.uniform(0.2);
+    if (!this._borderOffset) this._borderOffset = TSL.uniform(10.0);
     this._borderOffset.value = v;
+  }
+
+  get stripeSize() {
+    if (!this._stripeSize) this._stripeSize = TSL.uniform(1.5);
+    return this._stripeSize.value;
+  }
+  set stripeSize(v) {
+    if (!this._stripeSize) this._stripeSize = TSL.uniform(1.5);
+    this._stripeSize.value = v;
   }
 
   get borderColor() {
