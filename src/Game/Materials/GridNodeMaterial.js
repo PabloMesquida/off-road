@@ -68,13 +68,18 @@ const computeWorldBorder = TSL.Fn(({ position, planeSize, borderWidth, borderOff
   const insideMask = distToEdge.step(zero); // 1 cuando distToEdge >= 0
 
   // Umbrales del anillo: start = offset, end = offset + borderWidth
-  const start = borderOffset;
-  const end = borderOffset.add(borderWidth);
+   const start = borderOffset;
+   const end = borderOffset.add(borderWidth);
+
+  const edgeSmooth = TSL.float(0.1); // control del suavizado (ajustable)
+  const maskStart = TSL.smoothstep(start.sub(edgeSmooth), start.add(edgeSmooth), distToEdge);
+  const maskEnd   = TSL.smoothstep(end.sub(edgeSmooth), end.add(edgeSmooth), distToEdge);
+
 
   // maskStart = 1 si dist >= start
   // maskEnd   = 1 si dist >= end
-  const maskStart = distToEdge.step(start);
-  const maskEnd   = distToEdge.step(end);
+  // const maskStart = distToEdge.step(start);
+  // const maskEnd   = distToEdge.step(end);
 
   // borderMask = 1 cuando dist está en [start, end)
   // (maskStart = 1 y maskEnd = 0) -> maskStart - maskEnd = 1
@@ -98,7 +103,8 @@ const computeWorldBorder = TSL.Fn(({ position, planeSize, borderWidth, borderOff
   const stripeCoord = rotX.div(sSize);
 
   const stripePattern = TSL.mod(TSL.floor(stripeCoord), TSL.float(2.0));
-  const stripes = one.sub(stripePattern);
+
+  const stripes = stripePattern.add(TSL.float(0)).mul(1.0); // convertir de [-1,1] a [0,1]
 
   // aplicamos el patrón al borde
   const stripedBorder = borderMask.mul(stripes);
