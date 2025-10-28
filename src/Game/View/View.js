@@ -16,7 +16,7 @@ class View{
     this.controls.enableDamping = true
     this.controls.enabled = false 
 
-    this.offset = new THREE.Vector3(25, 20, 25)
+    this.offset = new THREE.Vector3(20, 28, 20)
     this.lerpSpeed = 3.5
 
     this.game.viewport.events.on('change', () => { this.resize() })

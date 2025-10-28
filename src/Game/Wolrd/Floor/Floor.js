@@ -1,13 +1,88 @@
 import * as THREE from 'three/webgpu'
 import PolishedConcreteMaterial from '../../Materials/PolishedConcreteMaterial.js'
-// import FloorMaterial from '../../Materials/FloorMaterial.js'
 import { GridNodeMaterial } from '../../Materials/GridNodeMaterial.js'
+import { Pane } from 'tweakpane'
 
 class Floor{
   constructor(scene, physics, { x = 20, y = 0.2, z = 20 } = {}) {
     this.scene = scene
     this.physics = physics
     this.size = { x, y, z }
+
+    this.PARAMS = {
+      preset: 'dark',
+      opacity: 0.04,
+      width: 20,
+      offset: 10,
+      stripeSize: 1.5
+    }
+
+    this.pane = new Pane();
+
+    const tweak1 = this.pane.addFolder({
+      title: 'Grid',
+      expanded: true,
+    })
+    
+    tweak1.addBinding(
+      this.PARAMS, 'preset',
+        { 
+        options: {
+          Dark: 'dark', 
+          Contrast: 'contrast', 
+          Default: 'default', 
+          Blueprint: 'blueprint',
+          Retro: 'retro',
+          Neon: 'neon',
+          Funky: 'funky'
+        }
+      }
+    )
+    tweak1.addBinding(
+      this.PARAMS, 'opacity',
+       {
+        step: 0.01,
+        min: 0,
+        max: 0.1
+      } 
+    )
+
+    const tweak2 = this.pane.addFolder({
+      title: 'Limits',
+      expanded: true,
+    })
+
+    tweak2.addBinding(
+      this.PARAMS, 'width', {
+        step: 1,
+        min: 0,
+        max: 50
+      }
+    )
+
+    tweak2.addBinding(
+      this.PARAMS, 'offset', {
+        step: 1,
+        min: 0,
+        max: 50
+      }
+    )
+
+    tweak2.addBinding(
+      this.PARAMS, 'stripeSize', {
+        step: 0.1,
+        min: 0.5,
+        max: 2.5
+      }
+    )
+
+    tweak1.on('change', (ev) => {
+      this.updateGridPreset(ev.value);
+    })
+
+    tweak2.on('change', (ev) => {
+      this.updateGridPreset(ev.value);
+    })
 
     this.setModel()
     this.setPhysics()
@@ -19,24 +94,23 @@ class Floor{
 
     const material = new PolishedConcreteMaterial()// new FloorMaterial({ color: '#9b9e89' })  // 
   
-
     // const gridMaterial = GridNodeMaterial.fromPreset('blueprint')
     const floorMesh = new THREE.Mesh(geometry, material)
 
+    const subFloorGeometry = new THREE.PlaneGeometry(x, z);
 
-    const subFloorGeometry = new THREE.PlaneGeometry(x, z)
-    const subFloorMaterial =  GridNodeMaterial.fromPreset('dark')
-    subFloorMaterial.gridSize = new THREE.Vector2(x, z)
-    subFloorMaterial.borderColor = new THREE.Color('#FFFF00')
-    subFloorMaterial.borderWidth = 20
-    subFloorMaterial.borderOffset = 30
-    subFloorMaterial.stripeSize = 1.5
-    const subFloorMesh = new THREE.Mesh(subFloorGeometry, subFloorMaterial)
+    this.subFloorMaterial = GridNodeMaterial.fromPreset(this.PARAMS.preset);
+    this.subFloorMaterial.gridSize = new THREE.Vector2(x, z)
+    this.subFloorMaterial.borderColor = new THREE.Color('#ffff00')
+    this.subFloorMaterial.borderWidth = this.PARAMS.width
+    this.subFloorMaterial.borderOffset = this.PARAMS.offset
+    this.subFloorMaterial.stripeSize = this.PARAMS.stripeSize
+    this.subFloorMaterial.opacity = this.PARAMS.opacity
+
+    const subFloorMesh = new THREE.Mesh(subFloorGeometry, this.subFloorMaterial)
     subFloorGeometry.rotateX(-Math.PI / 2)
-    subFloorMaterial.opacity = 0.04
     subFloorMesh.position.set(0, 0.12, 0)
     
- 
     this.floorGroup = new THREE.Object3D()
     floorMesh.position.set(0, 0, 0)
     floorMesh.castShadow = true;
@@ -59,6 +133,32 @@ class Floor{
         friction: 0.5
       }]
     }, this.floorGroup)   
+  }
+
+  updateGridPreset() {
+    // Crear un nuevo material basado en el nuevo preset
+    const newMaterial = GridNodeMaterial.fromPreset(this.PARAMS.preset)
+
+    // Conservar algunas propiedades personalizadas
+    newMaterial.gridSize = this.subFloorMaterial.gridSize
+    newMaterial.borderColor = this.subFloorMaterial.borderColor
+    newMaterial.borderWidth = this.PARAMS.width
+    newMaterial.borderOffset = this.PARAMS.offset
+    newMaterial.stripeSize = this.PARAMS.stripeSize
+    newMaterial.opacity =  this.PARAMS.opacity
+    
+
+    // Reemplazar el material en la malla
+    const subFloorMesh = this.floorGroup.children.find(m => m.material === this.subFloorMaterial)
+    if (subFloorMesh) subFloorMesh.material = newMaterial
+
+    // Liberar el material anterior
+    this.subFloorMaterial.dispose()
+
+    // Actualizar referencia
+    this.subFloorMaterial = newMaterial
+
+   
   }
 
  
