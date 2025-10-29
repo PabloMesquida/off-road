@@ -117,6 +117,52 @@ const computeWorldBorder = TSL.Fn(({ position, planeSize, borderWidth, borderOff
   return TSL.vec3(emptyMask, stripedBorder, outsideMask);
 });
 
+const computeStartBorder = TSL.Fn(({ position, planeSize, borderWidth, borderOffset }) => {
+  const pos = position.xz;
+  const half = planeSize.mul(0.5);
+
+  const one = TSL.float(1.0);
+  const zero = TSL.float(0.0);
+
+  // --- Calcular la relación de aspecto (para compensar grosor) ---
+  const aspect = planeSize.x.div(planeSize.y.mul(0.75)); // si x > y, aspect > 1
+  const borderWidthZ = borderWidth.mul(aspect); // duplicar borde en Z cuando el plano es más angosto
+
+  // --- Distancias internas ---
+  const distX = half.x.sub(pos.x.abs());
+  const distZ = half.y.sub(pos.y.abs().mul(1.5));
+
+  // --- Umbrales del borde ---
+  const start = borderOffset;
+  
+  // 👉 aplicar compensación en el eje Z
+  const endX = borderOffset.add(borderWidth);
+  const endZ = borderOffset.add(borderWidthZ);
+
+  // --- Calcular máscara por eje ---
+  const edgeSmooth = TSL.float(0.025);
+
+  const maskStartX = TSL.smoothstep(start.sub(edgeSmooth), start.add(edgeSmooth), distX);
+  const maskEndX   = TSL.smoothstep(endX.sub(edgeSmooth), endX.add(edgeSmooth), distX);
+  
+  const maskStartZ = TSL.smoothstep(start.sub(edgeSmooth), start.add(edgeSmooth), distZ);
+  const maskEndZ   = TSL.smoothstep(endZ.sub(edgeSmooth), endZ.add(edgeSmooth), distZ);
+
+  // --- Combinar ejes para borde uniforme ---
+  const maskStart = TSL.min(maskStartX, maskStartZ);
+  const maskEnd   = TSL.min(maskEndX, maskEndZ);
+
+  const insideMask = TSL.min(distX, distZ).step(zero);
+
+  const borderMask = maskStart.sub(maskEnd).mul(insideMask);
+  const emptyMask = maskEnd.mul(insideMask);
+  const outsideMask = one.sub(insideMask);
+
+  return TSL.vec3(emptyMask, borderMask, outsideMask);
+});
+
+
+
 
 // -------------------------
 // Presets
@@ -276,9 +322,14 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
       stripeSize: this._stripeSize
     });
 
+    const startBorderMask = computeStartBorder({   position: TSL.positionWorld,
+      planeSize: this._planeSize,
+      borderWidth: TSL.float(0.25),
+      borderOffset: TSL.float(76.5)})
+
     // convertimos máscara a vec3
-    const maskVec = TSL.vec3(borderMask);
-    // const invMaskVec = TSL.vec3(one.sub(borderMask));
+    const maskVec = TSL.vec3(borderMask)
+    const maskVecStart = TSL.vec3(startBorderMask)
 
     // composición base de las capas
     const out = TSL.clamp(
@@ -286,7 +337,8 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
         .add( this._colorA.mul(mA) )
         .add( this._colorB.mul(mB_eff) )
         .add( this._colorC.mul(mC_eff) )
-        .add( this._borderColor.mul(maskVec.y) ),
+        .add( this._borderColor.mul(maskVec.y) )
+        .add( this._borderColor.mul(maskVecStart.y)),
       TSL.vec3(0.0),
       TSL.vec3(1.0)
     );

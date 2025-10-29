@@ -49,7 +49,7 @@ class VehicleVisuals {
     // --- Balizas (intermitentes) ---
     if (this.hazardOn) {
       this.hazardTimer += dt
-      const blink = Math.floor(this.hazardTimer * 1) % 2 === 0 // alterna cada 0.5s
+      const blink = Math.floor(this.hazardTimer * 2) % 2 === 0 
 
       if (blink !== this.hazardBlink) {
     

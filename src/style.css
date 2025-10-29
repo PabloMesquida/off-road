@@ -18,8 +18,7 @@
   --radius: 10px;
   --pad-vertical: 0.55rem;
   --pad-horizontal: 0.8rem;
-  --small-size: 13px; /* buen tamaño pequeño y legible */
-}
+  --small-size: 13px; 
 
 a {
   font-weight: 500;
