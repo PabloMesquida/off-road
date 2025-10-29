@@ -11,6 +11,14 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+   --bg: #000000;
+  --fg: #d0d0d0;
+  --muted: rgba(255,255,255,0.08);
+  --radius: 10px;
+  --pad-vertical: 0.55rem;
+  --pad-horizontal: 0.8rem;
+  --small-size: 13px; /* buen tamaño pequeño y legible */
 }
 
 a {
@@ -69,6 +77,8 @@ h1 {
   left: 10px;
 }
 
+
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -99,4 +109,95 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+
+/* Contenedor (la "cajita") */
+.drive-menu{
+  position: absolute;
+  left: 3px;
+  top:50px;
+  display: inline-block;
+  background: #111111DD;
+  color: var(--fg);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-size: var(--small-size);
+  line-height: 1.25;
+  padding: var(--pad-vertical) var(--pad-horizontal);
+  border: 1px solid var(--fg);
+
+  
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  min-width: 150px;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Título */
+.drive-menu h4{
+  margin: 0 0 0.45rem 0;
+  font-weight: 600;
+  font-size: 0.92em;
+  letter-spacing: 0.02em;
+}
+
+/* Lista limpia */
+.drive-menu ul{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Cada fila: tecla + acción */
+.drive-menu li{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.14rem 0;
+  white-space: nowrap;
+}
+
+/* Apariencia de la "tecla" */
+.drive-menu .key{
+  display: inline-block;
+  min-width: 2.4rem;
+  padding: 0.08rem 0.45rem;
+  text-align: center;
+  border-radius: 6px;
+  background: var(--muted);
+  color: var(--fg);
+  font-weight: 700;
+  font-size: 0.86em;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+}
+
+/* Acción (texto a la derecha) */
+.drive-menu .action{
+  opacity: 0.95;
+  font-weight: 400;
+  font-size: 0.95em;
+  margin-left: 0.4rem;
+}
+
+/* Accesibilidad: foco visible en teclas (por si son focusables) */
+.drive-menu .key:focus,
+.drive-menu .key:focus-visible{
+  outline: 3px solid rgba(255,255,255,0.12);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.03);
+}
+
+/* Variante más compacta (si la quieres aún más pequeña) */
+.drive-menu.compact{
+  font-size: 12px;
+  padding: 0.4rem 0.6rem;
+  min-width: 160px;
+  border-radius: 8px;
+}
+
+@media (max-width:420px){
+  /* asegurar que no se salga en móvil */
+  .drive-menu{ transform: scale(0.95); transform-origin: left top; }
 }
