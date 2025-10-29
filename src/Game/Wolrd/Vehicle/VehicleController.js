@@ -16,6 +16,8 @@ class VehicleController {
     this.maxReverseSpeed = 6.0  
     this.speedLimitBrake = 100.0 // torque de freno suave para reducir si ya superaste el límite
 
+    this.isOutsideLimit = false
+
     this.controller = this.physics.world.createVehicleController(chassis.body)
 
     // parámetros de rueda
@@ -67,7 +69,7 @@ class VehicleController {
     const back = !!this.inputs.keys['backward']
     const left = !!this.inputs.keys['left']
     const right = !!this.inputs.keys['right']
-    const brk = !!this.inputs.keys['brake']
+    const brk = !!this.inputs.keys['brake'] || this.isOutsideLimit
 
     const throttle = Number(fwd) - Number(back) // 1, 0 ó -1
     const wantBrake = brk

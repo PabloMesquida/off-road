@@ -11,6 +11,8 @@ class VehicleVisuals {
     this.hazardTimer = 0
     this.hazardBlink = false
 
+    this.isOutsideLimit = false
+
     this.setupInputs()
   }
 
@@ -59,7 +61,7 @@ class VehicleVisuals {
     }
 
     // --- Freno ---
-    const braking = !!this.inputs.keys['brake']
+    const braking = !!this.inputs.keys['brake'] || this.isOutsideLimit
     const brakeLight = this.chassis.materials.brakeLight
     braking ? brakeLight.turnOn() : brakeLight.turnOff()
 

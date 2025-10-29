@@ -71,6 +71,7 @@ class Game{
   updatePhysics(dt) {
     if (this.world.vehicle.visuals) {
       this.world.vehicle.visuals.update(dt)
+      this.world.update()
     }
     const safeDt = Math.min(dt, 1 / 60)
     this.physics.world.timestep = safeDt

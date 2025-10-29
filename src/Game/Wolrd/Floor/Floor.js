@@ -145,8 +145,7 @@ class Floor{
     newMaterial.borderWidth = this.PARAMS.width
     newMaterial.borderOffset = this.PARAMS.offset
     newMaterial.stripeSize = this.PARAMS.stripeSize
-    newMaterial.opacity =  this.PARAMS.opacity
-    
+    newMaterial.opacity =  this.PARAMS.opacity   
 
     // Reemplazar el material en la malla
     const subFloorMesh = this.floorGroup.children.find(m => m.material === this.subFloorMaterial)
@@ -157,8 +156,12 @@ class Floor{
 
     // Actualizar referencia
     this.subFloorMaterial = newMaterial
+  }
 
-   
+  getLimit() {
+    const halfSize = this.size.x * 0.5;
+    // Calcula el límite interior según tus parámetros visuales
+    return halfSize - this.PARAMS.offset - this.PARAMS.width;
   }
 
  

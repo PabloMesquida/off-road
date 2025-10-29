@@ -50,43 +50,44 @@ const computePlusMask = TSL.Fn(({ uv, lineWidth, cellSize, segmentLen, uvDeriv }
 });
 
 const computeWorldBorder = TSL.Fn(({ position, planeSize, borderWidth, borderOffset, stripeSize  }) => {
-  const pos = position.xz;            
-  const half = planeSize.mul(0.5);    
+  const pos = position.xz
+        
+  const half = planeSize.mul(0.5)  
 
-  const one = TSL.float(1.0);
-  const zero = TSL.float(0.0);
+  const one = TSL.float(1.0)
+  const zero = TSL.float(0.0)
 
   // distancia hasta el interior desde cada eje
-  const distX = half.x.sub(pos.x.abs());
-  const distZ = half.y.sub(pos.y.abs());
+  const distX = half.x.sub(pos.x.abs())
+  const distZ = half.y.sub(pos.y.abs())
 
   // distancia hasta el borde real: el mínimo de las dos
-  const distToEdge = TSL.min(distX, distZ);
+  const distToEdge = TSL.min(distX, distZ)
 
   // máscara "inside" (1 cuando estamos dentro del rectángulo, 0 fuera)
-  const insideMask = distToEdge.step(zero);
+  const insideMask = distToEdge.step(zero)
 
   // Umbrales del anillo
-  const start = borderOffset;
-  const end = borderOffset.add(borderWidth);
+  const start = borderOffset
+  const end = borderOffset.add(borderWidth)
 
-  const edgeSmooth = TSL.float(0.025);
-  const maskStart = TSL.smoothstep(start.sub(edgeSmooth), start.add(edgeSmooth), distToEdge);
-  const maskEnd   = TSL.smoothstep(end.sub(edgeSmooth), end.add(edgeSmooth), distToEdge);
+  const edgeSmooth = TSL.float(0.025)
+  const maskStart = TSL.smoothstep(start.sub(edgeSmooth), start.add(edgeSmooth), distToEdge)
+  const maskEnd   = TSL.smoothstep(end.sub(edgeSmooth), end.add(edgeSmooth), distToEdge)
 
-  const borderMask = maskStart.sub(maskEnd).mul(insideMask);
-  const emptyMask = maskEnd.mul(insideMask);
-  const outsideMask = one.sub(insideMask);
+  const borderMask = maskStart.sub(maskEnd).mul(insideMask)
+  const emptyMask = maskEnd.mul(insideMask)
+  const outsideMask = one.sub(insideMask)
 
-  const sSize = stripeSize ?? TSL.float(0.5);
-  const angle = TSL.float(45.0); 
+  const sSize = stripeSize ?? TSL.float(0.5)
+  const angle = TSL.float(45.0);
 
   // convertimos a radianes
-  const rad = angle.mul(Math.PI / 180.0);
+  const rad = angle.mul(Math.PI / 180.0)
 
   // rotamos las coordenadas (x,z)
-  const rotX = pos.x.mul(TSL.cos(rad)).sub(pos.y.mul(TSL.sin(rad)));
-  const stripeCoord = rotX.div(sSize);
+  const rotX = pos.x.mul(TSL.cos(rad)).sub(pos.y.mul(TSL.sin(rad)))
+  const stripeCoord = rotX.div(sSize)
 
   // MANTENEMOS EL PATRÓN ORIGINAL PERO CON SUAVIZADO
   const stripePattern = TSL.mod(TSL.floor(stripeCoord), TSL.float(2.0));
@@ -97,12 +98,12 @@ const computeWorldBorder = TSL.Fn(({ position, planeSize, borderWidth, borderOff
   
   // Aplicamos smoothstep en los bordes de transición
   const smoothTransition = TSL.smoothstep(
-    TSL.float(0.0), 
+    zero, 
     stripeSmooth, 
     periodic
   ).sub(TSL.smoothstep(
-    TSL.float(1.0).sub(stripeSmooth), 
-    TSL.float(1.0), 
+    one.sub(stripeSmooth), 
+    one, 
     periodic
   ));
   
@@ -365,11 +366,11 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
 
 
   get gridSize() {
-  return this._planeSize?.value ?? new THREE.Vector2(1, 1);
+  return this._planeSize?.value ?? new THREE.Vector2(100, 100);
 }
 
 set gridSize(v) {
-  if (!this._planeSize) this._planeSize = TSL.uniform(new THREE.Vector2(1, 1));
+  if (!this._planeSize) this._planeSize = TSL.uniform(new THREE.Vector2(100, 100));
 
   if (v instanceof THREE.Vector2) {
     this._planeSize.value.copy(v);
