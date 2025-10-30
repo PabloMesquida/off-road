@@ -17,20 +17,41 @@ class PhysicsDebug{
     // this.game.time.events.on('tick', () => { this.update() }, 3)
   }
 
-  update(){
-    if (!this.game.physics.world) return
-    
-    const {vertices, colors} = this.game.physics.world.debugRender()
-    
+update() {
+  if (!this.game.physics.world) return;
 
-    this.geometry.attributes.position.array = vertices
-    this.geometry.attributes.position.count = vertices.length / 3
-    this.geometry.attributes.position.needsUpdate = true
+  const { vertices, colors } = this.game.physics.world.debugRender();
 
-    this.geometry.attributes.color.array = colors
-    this.geometry.attributes.color.count = colors.length / 4
-    this.geometry.attributes.color.needsUpdate = true 
+  // Verifica si el tamaño cambió
+  const posAttr = this.geometry.getAttribute('position');
+  const colAttr = this.geometry.getAttribute('color');
+
+  const needNewPosition = !posAttr || posAttr.array.length !== vertices.length;
+  const needNewColor = !colAttr || colAttr.array.length !== colors.length;
+
+  if (needNewPosition) {
+    this.geometry.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(vertices, 3)
+    );
+  } else {
+    posAttr.array.set(vertices);
+    posAttr.needsUpdate = true;
   }
+
+  if (needNewColor) {
+    this.geometry.setAttribute(
+      'color',
+      new THREE.Float32BufferAttribute(colors, 4)
+    );
+  } else {
+    colAttr.array.set(colors);
+    colAttr.needsUpdate = true;
+  }
+
+  this.geometry.computeBoundingSphere();
+}
+
 } 
 
 export default PhysicsDebug

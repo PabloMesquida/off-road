@@ -2,19 +2,23 @@ import * as THREE from "three";
 import Game from "../../../Game";
 
 class Cone {
-  constructor(scene) {
-    this.game = new Game();
-    this.scene = scene;
+  constructor(scene, position = {x:-3,y:0.1,z:1.5}) {
+    this.game = new Game()
+    this.physics = this.game.physics
+    this.scene = scene
 
-    this.resources = this.game.resources;
-    this.resource = this.resources.items.coneModel.scene;
+    this.resources = this.game.resources
+    this.resource = this.resources.items.coneModel.scene
 
-    this.model = this.resource;
-    this.model.position.set(-3, 0.1, 1.5);
-    this.scene.add(this.model);
+    this.model = this.resource
 
-    this.createMaterials();
-    this.applyMaterials();
+    this.group = new THREE.Group()
+    this.group.add(this.model)
+    this.scene.add(this.group)
+
+    this.createMaterials()
+    this.applyMaterials()
+    this.createPhysics(position)
   }
 
   createMaterials() {
@@ -42,30 +46,53 @@ class Cone {
 
   applyMaterials() {
     this.model.traverse((child) => {
-      if (!child.isMesh) return;
+      if (!child.isMesh) return
 
-      let mat;
+      let mat
       switch (child.name) {
         case "Base":
-          mat = this.materials.base;
-          break;
+          mat = this.materials.base
+          break
         case "Cono":
-          mat = this.materials.cone;
-          break;
+          mat = this.materials.cone
+          break
         case "ConoFranja":
-          mat = this.materials.stripe;
-          break;
+          mat = this.materials.stripe
+          break
         default:
-          mat = this.materials.default;
+          mat = this.materials.default
       }
 
-      // ✅ Reutiliza materiales (no creas nuevos cada vez)
-      child.material = mat;
+      child.material = mat
 
-      // ✅ Sombra solo si es necesario
-      child.castShadow = true;
-      child.receiveShadow = true;
+      child.castShadow = true
+      child.receiveShadow = true
     });
+  }
+
+   createPhysics(position) {
+    const box = new THREE.Box3().setFromObject(this.model)
+    const size = new THREE.Vector3()
+    box.getSize(size)
+
+    this.entity = this.physics.addEntity({
+      type: 'dynamic',
+      position,
+      massProperties: {
+        useAdditionalMassProperties: true,
+        massValue: 1,
+        com: { x: 0, y: -size.y / 2, z: 0 },
+      },
+      colliders: [
+        {
+          shape: 'cuboid',
+          parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5],
+          friction: 0.8,
+        },
+      ],
+    }, this.group)
+
+    this.model.position.y -= size.y / 2;
   }
 }
 

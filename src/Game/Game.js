@@ -3,7 +3,7 @@ import Viewport from "./Utils/Viewport.js"
 import World from "./Wolrd/World.js"
 import Rendering from "./Rendering/Rendering.js"
 import Physics from "./Physics/Physics.js"
-// import PhysicsDebug from "./Physics/PhysicsDebug.js"
+import PhysicsDebug from "./Physics/PhysicsDebug.js"
 import Inputs from "./Inputs/Inputs.js"
 import sources from './sources.js'
 import Resources from "./Utils/Resources.js"
@@ -45,7 +45,7 @@ class Game{
   async start() {
     await this.physics.ready
     this.world = new World()         
-   // this.physicsDebug = new PhysicsDebug()
+    // this.physicsDebug = new PhysicsDebug()
     this.view = new View()
     this.rendering = new Rendering()
   }

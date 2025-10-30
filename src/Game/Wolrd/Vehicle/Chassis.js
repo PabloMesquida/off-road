@@ -170,7 +170,7 @@ class Chassis {
   // }
 
   createPhysics(position) {
-    this.sizes = { x: 4.5, y: 1.25, z: 2 }
+    this.sizes = { x: 4.5, y: 1.4, z: 2 }
 
     this.entity = this.physics.addEntity({
       type: 'dynamic',
