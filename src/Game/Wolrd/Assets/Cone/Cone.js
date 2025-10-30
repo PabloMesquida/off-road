@@ -1,63 +1,72 @@
-import * as THREE from 'three'
-import Game from "../../../Game"
+import * as THREE from "three";
+import Game from "../../../Game";
 
-class Cone{
-  constructor(scene){
-    this.game = new Game()
-    this.scene = scene
+class Cone {
+  constructor(scene) {
+    this.game = new Game();
+    this.scene = scene;
 
-    this.resources = this.game.resources
-    this.resource = this.resources.items.coneModel.scene
+    this.resources = this.game.resources;
+    this.resource = this.resources.items.coneModel.scene;
 
-    this.model = this.resource
-    this.model.position.set(0,0.1,5)
-    this.scene.add(this.model)
+    this.model = this.resource;
+    this.model.position.set(-3, 0.1, 1.5);
+    this.scene.add(this.model);
 
-    this.applyMaterials()
+    this.createMaterials();
+    this.applyMaterials();
   }
 
-   applyMaterials() {
+  createMaterials() {
+    this.materials = {
+      base: new THREE.MeshStandardMaterial({
+        color: 0xad4800,
+        metalness: 0,
+        roughness: 0.9,
+      }),
+      cone: new THREE.MeshStandardMaterial({
+        color: 0xad4800,
+        metalness: 0,
+        roughness: 0.9,
+      }),
+      stripe: new THREE.MeshStandardMaterial({
+        color: 0xf5e8df,
+        metalness: 0,
+        roughness: 0.9,
+      }),
+      default: new THREE.MeshStandardMaterial({
+        color: 0xaaaaaa,
+      }),
+    };
+  }
+
+  applyMaterials() {
     this.model.traverse((child) => {
-      console.log(child)
-         if (child.isMesh) {
-        switch (child.name) {
-          case "Base":
-            child.material = new THREE.MeshStandardMaterial({
-              color: 0xad4800,
-              metalness: 0,
-              roughness: 0.9,
-            });
-            break;
+      if (!child.isMesh) return;
 
-          case "Cono":
-            child.material = new THREE.MeshStandardMaterial({
-              color: 0xad4800, 
-              metalness: 0,
-              roughness: 0.9,
-            });
-            break;
-
-                case "ConoFranja":
-            child.material = new THREE.MeshStandardMaterial({
-              color: 0xffffff, 
-              metalness: 0,
-              roughness: 0.9,
-            });
-            break;
-
-          default:
-            child.material = new THREE.MeshStandardMaterial({
-              color: 0xaaaaaa, // gris por defecto
-            });
-            break;
-        }
-
-        child.castShadow = true;
-        child.receiveShadow = true;
+      let mat;
+      switch (child.name) {
+        case "Base":
+          mat = this.materials.base;
+          break;
+        case "Cono":
+          mat = this.materials.cone;
+          break;
+        case "ConoFranja":
+          mat = this.materials.stripe;
+          break;
+        default:
+          mat = this.materials.default;
       }
-    });
 
-   }
+      // ✅ Reutiliza materiales (no creas nuevos cada vez)
+      child.material = mat;
+
+      // ✅ Sombra solo si es necesario
+      child.castShadow = true;
+      child.receiveShadow = true;
+    });
+  }
 }
 
-export default Cone
+export default Cone;
