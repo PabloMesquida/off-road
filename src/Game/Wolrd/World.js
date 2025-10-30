@@ -22,7 +22,7 @@ class World{
       this.environment = new Environment(this.scene)
      // this.cone = new Cone(this.scene)
       this.cones = new ConeManager( this.scene, { resourcePathName: "coneModel" });
-      this.cones.spawnGrid({ rows: 4, cols: 15, spacingX: 2.0, spacingZ: 5.0, origin: { x: -30, y: 0.1, z: -2 } });
+      this.cones.spawnGrid({ rows: 4, cols: 15, spacingX: 2.0, spacingZ: 5.0, origin: { x: -33, y: 0.1, z: -2 } });
     })
 
 

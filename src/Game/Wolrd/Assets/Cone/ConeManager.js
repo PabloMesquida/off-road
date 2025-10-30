@@ -140,7 +140,7 @@ class ConeManager {
             shape: "cuboid",
             // Rapier espera los semi-ejes (half extents)
             parameters: [this._size.x * 0.5, this._size.y * 0.5, this._size.z * 0.5],
-            friction: 0.2,
+            friction: 0.6,
           },
         ],
       };

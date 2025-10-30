@@ -12,7 +12,7 @@ export default [
     {
         name: 'coneModel',
         type: 'gltfModel',
-        path: 'models/Assets/Cone/cono_01.glb'
+        path: 'models/Assets/Cone/cono_02.glb'
     },
     {
         name: 'environmentMapTexture',
