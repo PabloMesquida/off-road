@@ -96,4 +96,4 @@ class Cone {
   }
 }
 
-export default Cone;
+export default Cone

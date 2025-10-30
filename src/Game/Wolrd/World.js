@@ -5,6 +5,7 @@ import Vehicle from './Vehicle/Vehicle.js'
 import Events from '../Utils/Events.js'
 import Environment from './Environment/Environment.js'
 import Cone from './Assets/Cone/Cone.js'
+import ConeManager from './Assets/Cone/ConeManager.js'
 
 class World{
   constructor(){
@@ -19,7 +20,9 @@ class World{
     this.resources.events.on('ready', () => {
       this.vehicle = new Vehicle(this.scene, this.game.physics)
       this.environment = new Environment(this.scene)
-      this.cone = new Cone(this.scene)
+     // this.cone = new Cone(this.scene)
+      this.cones = new ConeManager( this.scene, { resourcePathName: "coneModel" });
+      this.cones.spawnGrid({ rows: 4, cols: 15, spacingX: 2.0, spacingZ: 5.0, origin: { x: -30, y: 0.1, z: -2 } });
     })
 
 
@@ -50,6 +53,8 @@ class World{
     // Actualiza el flags
     this.vehicle.controller.isOutsideLimit = shouldBrake
     this.vehicle.visuals.isOutsideLimit = shouldBrake
+
+      // this.cones.update();
   }
 
 }
