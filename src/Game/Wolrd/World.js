@@ -4,6 +4,7 @@ import Floor from './Floor/Floor.js'
 import Vehicle from './Vehicle/Vehicle.js'
 import Events from '../Utils/Events.js'
 import Environment from './Environment/Environment.js'
+import Cone from './Assets/Cone/Cone.js'
 
 class World{
   constructor(){
@@ -18,7 +19,10 @@ class World{
     this.resources.events.on('ready', () => {
       this.vehicle = new Vehicle(this.scene, this.game.physics)
       this.environment = new Environment(this.scene)
+      this.cone = new Cone(this.scene)
     })
+
+
 
    }
 

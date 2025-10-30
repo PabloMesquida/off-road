@@ -325,7 +325,7 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
     const startBorderMask = computeStartBorder({   position: TSL.positionWorld,
       planeSize: this._planeSize,
       borderWidth: TSL.float(0.25),
-      borderOffset: TSL.float(76.5)})
+      borderOffset: TSL.float(76)})
 
     // convertimos máscara a vec3
     const maskVec = TSL.vec3(borderMask)

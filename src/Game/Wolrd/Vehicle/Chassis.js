@@ -56,7 +56,7 @@ class Chassis {
       if (!src || !dst) return;
 
       dst.name = src.name
-
+    
       // --- Caso 1: el material original usa un ORM combinado (AO+Roughness+Metalness en el map)
       const hasORMinMap =
         src.map &&
@@ -65,6 +65,7 @@ class Chassis {
         !src.metalnessMap;
 
       if (hasORMinMap) {
+     
         dst.map = src.map;
         dst.aoMap = src.map;
         dst.roughnessMap = src.map;

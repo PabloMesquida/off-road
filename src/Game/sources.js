@@ -10,6 +10,11 @@ export default [
         path: 'models/Car/Wheel/glTF/Wheel02.glb'
     },
     {
+        name: 'coneModel',
+        type: 'gltfModel',
+        path: 'models/Assets/Cone/cono_01.glb'
+    },
+    {
         name: 'environmentMapTexture',
         type: 'cubeTexture',
         path:
