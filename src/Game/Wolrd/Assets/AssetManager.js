@@ -58,7 +58,7 @@ class AssetManager {
   }
 
   /**
-   * Clona el modelo original pero **comparte** geometrías y materiales (no duplica géometrias).
+   * Clona el modelo original pero comparte geometrías y materiales.
    * Devuelve un THREE.Group preparado para añadirse a la escena.
    */
   cloneModelShared() {
@@ -184,46 +184,10 @@ class AssetManager {
     return list;
   }
 
-  /**
-   * Opcional: limpiar todas las instancias (escena + físicas)
-   */
-  disposeAll() {
-    this.instances.forEach((inst) => {
-      // remover física
-      if (inst.physical) {
-        // No conozco la API de eliminación de cuerpos en tu wrapper, pero asumo que
-        // tienes algún método para borrar. Si no, agrega uno en Physics (p.ej. removeEntity(key) o similar).
-        // Por ahora: intentar eliminar colliders y body directamente en Rapier si está expuesto:
-        try {
-          const phys = inst.physical;
-          if (phys && phys.physical && this.physics && this.physics.world) {
-            // Si tu wrapper expone world, puedes: world.removeRigidBody(phys.physical.body) ...
-            // Aquí lo dejamos como comentario para que lo adaptes a tu wrapper.
-            // this.physics.world.removeRigidBody(phys.physical.body)
-          }
-        } catch (e) {
-          // noop
-        }
-      }
-
-      // remover visual
-      if (inst.group) {
-        this.scene.remove(inst.group);
-        inst.group.traverse((c) => {
-          if (c.isMesh) {
-            // no dispose geometry/material porque son compartidos
-            c.geometry = null;
-            c.material = null;
-          }
-        });
-      }
-    });
-
-    this.instances = [];
-  }
+ 
 
     /**
-   * Crea (y devuelve) un "preview" del modelo: grupo visual transparente
+   * Crea (y devuelve) un preview del modelo: grupo visual transparente
    * no interactúa con física y no lanza sombras.
    * El preview comparte geometrías y materiales base, pero crea materiales
    * clonados para poder hacerlos transparentes sin afectar al resto.

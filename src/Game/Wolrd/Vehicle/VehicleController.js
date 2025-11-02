@@ -7,6 +7,7 @@ class VehicleController {
     this.game = new Game()
     this.physics = this.game.physics
     this.inputs = this.game.inputs
+  
 
     this.chassis = chassis
     this.wheels = wheels
@@ -62,7 +63,9 @@ class VehicleController {
   }
 
   update(dt) {
-    if (!this.controller) return;
+    if (!this.controller) return
+
+    //console.log(this.isEditing)
 
     // ---------- inputs ----------
     const fwd = !!this.inputs.keys['forward']
@@ -73,6 +76,11 @@ class VehicleController {
 
     const throttle = Number(fwd) - Number(back) // 1, 0 ó -1
     const wantBrake = brk
+
+    // Si estamos en modo edición, anular todo el input
+    const effectiveThrottle = this.isEditing ? 0 : throttle
+    const effectiveBrake =  this.isEditing ? true : wantBrake
+    const effectiveSteer =  this.isEditing ? 0 : (Number(left) - Number(right))
 
     // ---------- obtener velocidad en mundo ----------
     const lin = this.chassis.body.linvel()
@@ -89,14 +97,14 @@ class VehicleController {
 
     // ---------- límites: comprobar si intentan acelerar más allá ----------
     // determinamos la intención de conducción: cuando throttle != 0 indica dirección deseada
-    const desiredDir = Math.sign(throttle) // 1 => adelante, -1 => atrás, 0 => sin throttle
+    const desiredDir = Math.sign(effectiveThrottle) // 1 => adelante, -1 => atrás, 0 => sin throttle
     // flags que indican si ya estamos por encima del limite en esa dirección
     const overForwardLimit = forwardSpeed > this.maxForwardSpeed
     const overReverseLimit = forwardSpeed < -this.maxReverseSpeed // note: reverse speed is negative along forwardVec
 
     // ---------- motor: calcular engineTarget (sin aplicarlo todavía) ----------
     let engineTarget = 0
-    if (throttle !== 0 && !wantBrake) {
+    if (effectiveThrottle !== 0 && !wantBrake) {
       // Si están pidiendo acelerar:
       // - si quieren ir adelante y ya pasaron el limite -> no dar más motor
       if (desiredDir > 0 && overForwardLimit) {
@@ -105,7 +113,7 @@ class VehicleController {
       } else if (desiredDir < 0 && overReverseLimit) {
         engineTarget = 0
       } else {
-        engineTarget = throttle * this.accelerateForce;
+        engineTarget = effectiveThrottle * this.accelerateForce;
       }
     } else {
       // sin throttle o freno: desaceleración natural (freno motor suave) pero solo si velocidad apreciable
@@ -126,12 +134,12 @@ class VehicleController {
     this.chassis.body.wakeUp()
 
     // ---------- direccion ----------
-    const steerDir = Number(left) - Number(right)
+   // const steerDir = Number(left) - Number(right)
     const currentSteer = this.controller.wheelSteering(0) || 0
-    const targetSteer = this.steerAngleMax * steerDir
+    const targetSteer = this.steerAngleMax * effectiveSteer
     
     let lerpFactor = 0.08
-    if (steerDir === 0) lerpFactor = 0.04
+    if (effectiveSteer === 0) lerpFactor = 0.04
 
     const smoothSteer = THREE.MathUtils.lerp(currentSteer, targetSteer, lerpFactor)
     this.controller.setWheelSteering(0, smoothSteer)
@@ -175,7 +183,7 @@ class VehicleController {
 
     // ---------- APLICAR engineForce FINAL (siempre al final para evitar re-aplicaciones) ----------
     // Si frenas, motor 0; si no, aplicamos this.currentForce (que respetó el límite más arriba).
-    if (wantBrake) {
+    if (effectiveBrake) {
       this.controller.setWheelEngineForce(2, 0)
       this.controller.setWheelEngineForce(3, 0)
       this.currentForce = 0;
@@ -209,6 +217,9 @@ class VehicleController {
     })
    }
 
+   get isEditing() {
+    return this.game.world?.isEditing === true;
+  }
 
 }
 

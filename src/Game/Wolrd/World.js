@@ -16,7 +16,9 @@ class World {
     this.resources = this.game.resources
     this.floor = new Floor(this.scene, this.game.physics, { x: 160, y: 0.2, z: 160 })
 
-    console.log(this.floor.scene)
+    this.isEditing = false
+    this.initialVehiclePosition = new THREE.Vector3(0, 2, 0) 
+    this.initialVehicleRotation = new THREE.Quaternion()
 
     this.raycaster = new THREE.Raycaster()
     this.pointer = new THREE.Vector2()
@@ -30,6 +32,10 @@ class World {
 
     this.resources.events.on('ready', () => {
       this.vehicle = new Vehicle(this.scene, this.game.physics)
+      if (this.vehicle && this.vehicle.chassis && this.vehicle.chassis.mesh) {
+   
+        this.initialVehicleRotation.copy(this.vehicle.chassis.mesh.quaternion)
+      }
       this.environment = new Environment(this.scene)
       this.cones = new AssetManager(this.scene, { resourcePathName: "coneModel" })
         
@@ -42,11 +48,59 @@ class World {
   initTweakpane() {
     try {
       this.pane = new Pane()
+
+      this.editParam = { editMode: false }
+      this.pane.addBinding(this.editParam, 'editMode', { label: 'EDIT' })
+        .on('change', (ev) => {
+          this.toggleEditMode(ev.value)
+        })
+
+
       this.placingButton = this.pane.addButton({ title: 'Cono' })
       this.placingButton.on('click', () => this.togglePlacingCone())
       this.pane.addMonitor({ get: () => this.isPlacingCone ? 'ON' : 'OFF' }, 'value', { label: 'Placing' })
     } catch (e) {
       console.warn('[World] Tweakpane no está disponible o falló la inicialización:', e)
+    }
+  }
+
+  toggleEditMode(isEditing) {
+    this.isEditing = isEditing
+
+    if (isEditing) {
+      console.log('🧰 Edit mode ON')
+      
+      // guardar posición inicial del vehículo
+
+     
+      // resetear vehículo a la posición original
+      if (this.vehicle && this.vehicle.chassis && this.vehicle.chassis.body) {
+        const pos = this.initialVehiclePosition
+        const rot = this.initialVehicleRotation
+        this.vehicle.chassis.body.setTranslation( this.initialVehiclePosition , true)
+        this.vehicle.chassis.body.setRotation(rot, true)
+        this.vehicle.chassis.body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+        this.vehicle.chassis.body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+      }
+
+      // desactivar control del vehículo
+      if (this.game.inputs) {
+        this.game.inputs.enabled = false
+      }
+
+      // activar tweakpane u otras herramientas
+      this.pane.hidden = false
+
+    } else {
+      console.log('🕹️ Edit mode OFF')
+
+      // reactivar controles
+      if (this.game.inputs) {
+        this.game.inputs.enabled = true
+      }
+
+      // cerrar o minimizar tweakpane si quieres
+      // this.pane.hidden = true
     }
   }
 
