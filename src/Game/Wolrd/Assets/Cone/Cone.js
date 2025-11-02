@@ -92,7 +92,7 @@ class Cone {
       ],
     }, this.group)
 
-    this.model.position.y -= size.y / 2;
+    this.model.position.y -= size.y / 2
   }
 }
 

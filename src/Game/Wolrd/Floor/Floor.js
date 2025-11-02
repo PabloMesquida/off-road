@@ -8,6 +8,7 @@ class Floor{
     this.scene = scene
     this.physics = physics
     this.size = { x, y, z }
+    
 
     this.PARAMS = {
       preset: 'dark',
@@ -96,6 +97,8 @@ class Floor{
   
     // const gridMaterial = GridNodeMaterial.fromPreset('blueprint')
     const floorMesh = new THREE.Mesh(geometry, material)
+
+    this.mesh = floorMesh
 
     const subFloorGeometry = new THREE.PlaneGeometry(x, z);
 

@@ -1,40 +1,141 @@
 import * as THREE from 'three/webgpu'
+import { Pane } from 'tweakpane'
 import Game from "../Game.js"
 import Floor from './Floor/Floor.js'
 import Vehicle from './Vehicle/Vehicle.js'
 import Events from '../Utils/Events.js'
 import Environment from './Environment/Environment.js'
-import Cone from './Assets/Cone/Cone.js'
-import ConeManager from './Assets/Cone/ConeManager.js'
+import AssetManager from './Assets/AssetManager.js'
 
-class World{
-  constructor(){
+class World {
+  constructor() {
     this.game = new Game()
     this.scene = new THREE.Scene()
     this.events = new Events()
-  
+
     this.resources = this.game.resources
-  
-    this.floor = new Floor(this.scene, this.game.physics, { x: 160 , y: 0.2, z: 160}) 
+    this.floor = new Floor(this.scene, this.game.physics, { x: 160, y: 0.2, z: 160 })
+
+    console.log(this.floor.scene)
+
+    this.raycaster = new THREE.Raycaster()
+    this.pointer = new THREE.Vector2()
+    this.isPlacingCone = false
+    this.placingButton = null
+
+    this.domElement = this.game.domElement
+    this.camera = null
+    // Tweakpane
+    this.initTweakpane()
 
     this.resources.events.on('ready', () => {
       this.vehicle = new Vehicle(this.scene, this.game.physics)
       this.environment = new Environment(this.scene)
-     // this.cone = new Cone(this.scene)
-      this.cones = new ConeManager( this.scene, { resourcePathName: "coneModel" });
-      this.cones.spawnGrid({ rows: 4, cols: 15, spacingX: 2.0, spacingZ: 5.0, origin: { x: -33, y: 0.1, z: -2 } });
+      this.cones = new AssetManager(this.scene, { resourcePathName: "coneModel" })
+        
     })
 
+    this.findCameraAttempted = false
+  }
 
 
-   }
+  initTweakpane() {
+    try {
+      this.pane = new Pane()
+      this.placingButton = this.pane.addButton({ title: 'Cono' })
+      this.placingButton.on('click', () => this.togglePlacingCone())
+      this.pane.addMonitor({ get: () => this.isPlacingCone ? 'ON' : 'OFF' }, 'value', { label: 'Placing' })
+    } catch (e) {
+      console.warn('[World] Tweakpane no está disponible o falló la inicialización:', e)
+    }
+  }
+
+  togglePlacingCone() {
+    if (!this.cones) {
+      this.isPlacingCone = !this.isPlacingCone
+    } else {
+      this.isPlacingCone = !this.isPlacingCone
+      if (this.isPlacingCone) this.enablePlacing()
+      else this.disablePlacing()
+    }
+  }
+
+  enablePlacing() {
+    if (this.cones) this.cones.createPreview()
+    this.domElement.addEventListener('pointermove', this.onPointerMove)
+    this.domElement.addEventListener('pointerdown', this.onPointerDown)
+  }
+
+  disablePlacing() {
+    if (this.cones) this.cones.disposePreview()
+    this.domElement.removeEventListener('pointermove', this.onPointerMove)
+    this.domElement.removeEventListener('pointerdown', this.onPointerDown)
+  }
+
+  onPointerMove = (e) => {
+   
+    const camera =  this.game.view.camera
+    if (!camera) return
+
+    const rect = (this.domElement && this.domElement.getBoundingClientRect)
+      ? this.domElement.getBoundingClientRect()
+      : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
+
+    this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+    this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+
+    this.raycaster.setFromCamera(this.pointer, camera)
+
+    let floorMesh =  this.floor?.mesh || null; 
+
+    let intersects = floorMesh
+      ? this.raycaster.intersectObject(floorMesh, true)
+      : this.raycaster.intersectObjects(this.scene.children, true).filter(it => it.face && Math.abs(it.face.normal.y) > 0.6)
+
+    const hit = intersects.length ? intersects[0] : null
+    const yOffset = 0.1
+
+    if (hit) {
+      const pos = { x: hit.point.x, y: hit.point.y + yOffset, z: hit.point.z }
+      this.cones?.updatePreviewPosition(pos)
+    } else {
+      this.cones?.updatePreviewPosition(null)
+    }
+  }
+
+  onPointerDown = (e) => {
+    if (e.button !== 0 || !this.isPlacingCone) return
+ 
+    const camera =  this.game.view.camera
+    if (!camera) return
+
+    const rect = (this.domElement && this.domElement.getBoundingClientRect)
+      ? this.domElement.getBoundingClientRect()
+      : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
+
+    this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+    this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+
+    this.raycaster.setFromCamera(this.pointer, camera)
+
+    let floorMesh =  this.floor?.mesh || null; 
+
+    let intersects = floorMesh
+      ? this.raycaster.intersectObject(floorMesh, true)
+      : this.raycaster.intersectObjects(this.scene.children, true).filter(it => it.face && Math.abs(it.face.normal.y) > 0.6)
+
+    const hit = intersects.length ? intersects[0] : null
+    if (hit && this.cones?.spawn) {
+      const yOffset = 0.5
+      const spawnPos = { x: hit.point.x, y: hit.point.y + yOffset, z: hit.point.z }
+      this.cones.spawn(spawnPos)
+    }
+  }
 
   update() {
     if (!this.vehicle) return
-
     const pos = this.vehicle.chassis.mesh.position
     const limit = this.floor.getLimit()
-
     const vel = this.vehicle.chassis.body.linvel()
 
     const isOutsideX = Math.abs(pos.x) > limit
@@ -43,20 +144,24 @@ class World{
     const dirX = Math.sign(pos.x)
     const dirZ = Math.sign(pos.z)
 
-    // Movimiento hacia afuera (si la velocidad tiene el mismo signo que la posición)
     const movingOutwardX = Math.sign(vel.x) === dirX && isOutsideX
     const movingOutwardZ = Math.sign(vel.z) === dirZ && isOutsideZ
-
-    // El freno solo se activa si está fuera y moviéndose hacia afuera en alguno de los ejes
     const shouldBrake = movingOutwardX || movingOutwardZ
 
-    // Actualiza el flags
     this.vehicle.controller.isOutsideLimit = shouldBrake
     this.vehicle.visuals.isOutsideLimit = shouldBrake
 
-      // this.cones.update();
+    if (this.isPlacingCone && this.cones?.preview) {
+      if (!this.cones.preview.group.visible) {
+        const cam = this.findCamera()
+        if (cam) {
+          const forward = new THREE.Vector3(0, -0.2, -1).applyQuaternion(cam.quaternion)
+          const pos = cam.position.clone().add(forward.multiplyScalar(3))
+          this.cones.updatePreviewPosition({ x: pos.x, y: pos.y, z: pos.z })
+        }
+      }
+    }
   }
-
 }
 
 export default World
