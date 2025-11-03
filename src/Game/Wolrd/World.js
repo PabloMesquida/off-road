@@ -122,6 +122,12 @@ class World {
     } else {
       console.log('Edit mode OFF')
 
+      if (this.isPlacingCone) {
+        this.isPlacingCone = false
+        this.disablePlacing()
+        if (this.placingBlade) this.placingBlade.value = 'OFF'
+      }
+
       // reactivar controles
       if (this.game.inputs) {
         this.game.inputs.enabled = true
