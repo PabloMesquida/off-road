@@ -15,7 +15,6 @@ class World {
     this.resources = this.game.resources
     this.floor = new Floor(this.scene, this.game.physics, { x: 160, y: 0.2, z: 160 })
 
-    this.isEditing = false
     this.initialVehiclePosition = new THREE.Vector3(0, 2, 0) 
     this.initialVehicleRotation = new THREE.Quaternion()
 
@@ -41,70 +40,60 @@ class World {
     })
 
     this.findCameraAttempted = false
+
+    this.isEditing = false
+    this.toggleEditMode(this.isEditing)
   }
 
 
   initTweakpane() {
     try {
       this.pane = this.game.pane; 
+      this.assetsfolder = this.pane.addFolder({ title: 'Assets', expanded: false })
+        // --- [ EDIT MODE toggle ] ---
+      this.editParam = { editMode: false };
+       this.pane.addBinding(this.editParam, 'editMode', { label: 'EDIT MODE' })
+        .on('change', (ev) => {
+          this.toggleEditMode(ev.value);
+        });
 
-      // --- [ EDIT MODE toggle ] ---
-    this.editParam = { editMode: false };
-    this.editModeBinding = this.pane.addBinding(this.editParam, 'editMode', { label: 'EDIT MODE' })
-      .on('change', (ev) => {
-        this.toggleEditMode(ev.value);
-      });
+        // --- [ CONE placing button ] ---
+        this.placingButton =  this.assetsfolder.addButton({ title: 'Cone' });
+        this.placingButton.on('click', () => this.togglePlacingCone());
 
-      // --- [ CONE placing button ] ---
-      this.placingButton = this.pane.addButton({ title: 'Cono' });
-      this.placingButton.on('click', () => this.togglePlacingCone());
+        // // --- [ Dynamic text blade for "Placing" status ] ---
+        // this.placingBlade = this.pane.addBlade({
+        //   view: 'text',
+        //   label: 'Placing',
+        //   parse: (v) => v,
+        //   value: 'OFF', // valor inicial
+        // });
 
-      // --- [ Dynamic text blade for "Placing" status ] ---
-      this.placingBlade = this.pane.addBlade({
-        view: 'text',
-        label: 'Placing',
-        parse: (v) => v,
-        value: 'OFF', // valor inicial
-      });
+        this.updateTweakpaneState(false)
 
-      this.updateTweakpaneState(false)
-
-    } catch (e) {
-      console.warn('[World] Tweakpane no está disponible o falló la inicialización:', e)
+      } catch (e) {
+        console.warn('[World] Tweakpane no está disponible o falló la inicialización:', e)
+      }
     }
-  }
 
   updateTweakpaneState(isEditing) {
     // --- el switch de "EDIT MODE" siempre debe estar activo ---
-    const editModeEl = this.editModeBinding?.controller?.view?.element || this.editModeBinding?.element;
+    const editModeEl = this.assetsfolder?.element
+
     if (editModeEl) {
-      editModeEl.removeAttribute('disabled');
-    }
-
-    const disabled = !isEditing;
-
-    // --- Botón "Cono" ---
-    const coneButtonEl = this.placingButton?.controller?.view?.element || this.placingButton?.element;
-    if (coneButtonEl) {
-      coneButtonEl.toggleAttribute('disabled', disabled);
-      coneButtonEl.style.opacity = disabled ? '0.5' : '1';
-      coneButtonEl.style.pointerEvents = disabled ? 'none' : 'auto';
-    }
-
-    // --- Texto "Placing" ---
-    const placingTextEl = this.placingBlade?.controller?.view?.element || this.placingBlade?.element;
-    if (placingTextEl) {
-      placingTextEl.style.opacity = disabled ? '0.5' : '1';
-      placingTextEl.style.pointerEvents = disabled ? 'none' : 'auto';
+      editModeEl.style.opacity = isEditing ? '1' : '0.5'
+      editModeEl.style.pointerEvents = isEditing ? 'auto' : 'none'
     }
   }
-
-
 
   toggleEditMode(isEditing) {
     this.isEditing = isEditing
 
     this.updateTweakpaneState(isEditing);
+
+    if (this.floor && typeof this.floor.setEditableState === 'function') {
+      this.floor.setEditableState(isEditing)
+    }
 
     if (isEditing) {
       console.log('Edit mode ON')

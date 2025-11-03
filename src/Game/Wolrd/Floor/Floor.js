@@ -20,7 +20,7 @@ class Floor{
     }
 
     this.pane = this.game.pane
-    
+
     this.setModel()
     this.setPhysics()
 
@@ -30,7 +30,6 @@ class Floor{
   initTweakpane() {
     if (!this.pane) return
 
-    // Creamos una carpeta dentro del panel global
     this.folder = this.pane.addFolder({ title: 'Floor', expanded: false })
 
     const gridFolder = this.folder.addFolder({ title: 'Grid' })
@@ -57,6 +56,16 @@ class Floor{
     this.folder.on('change', () => {
       this.updateGridPreset()
     })
+  }
+
+  setEditableState(isEditing) {
+    if (!this.folder) return
+
+    const folderEl = this.folder.element
+    if (folderEl) {
+      folderEl.style.opacity = isEditing ? '1' : '0.5'
+      folderEl.style.pointerEvents = isEditing ? 'auto' : 'none'
+    }
   }
 
   setModel(){
