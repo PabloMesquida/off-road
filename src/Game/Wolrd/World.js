@@ -46,23 +46,33 @@ class World {
 
 
   initTweakpane() {
-    try {
-      this.pane = new Pane()
+  try {
+    this.pane = new Pane();
 
-      this.editParam = { editMode: false }
-      this.pane.addBinding(this.editParam, 'editMode', { label: 'EDIT' })
-        .on('change', (ev) => {
-          this.toggleEditMode(ev.value)
-        })
+    // --- [ EDIT MODE toggle ] ---
+    this.editParam = { editMode: false };
+    this.pane.addBinding(this.editParam, 'editMode', { label: 'EDIT MODE' })
+      .on('change', (ev) => {
+        this.toggleEditMode(ev.value);
+      });
 
+    // --- [ CONE placing button ] ---
+    this.placingButton = this.pane.addButton({ title: 'Cono' });
+    this.placingButton.on('click', () => this.togglePlacingCone());
 
-      this.placingButton = this.pane.addButton({ title: 'Cono' })
-      this.placingButton.on('click', () => this.togglePlacingCone())
-      this.pane.addMonitor({ get: () => this.isPlacingCone ? 'ON' : 'OFF' }, 'value', { label: 'Placing' })
-    } catch (e) {
-      console.warn('[World] Tweakpane no está disponible o falló la inicialización:', e)
-    }
+    // --- [ Dynamic text blade for "Placing" status ] ---
+    this.placingBlade = this.pane.addBlade({
+      view: 'text',
+      label: 'Placing',
+      parse: (v) => v,
+      value: 'OFF', // valor inicial
+    });
+
+  } catch (e) {
+    console.warn('[World] Tweakpane no está disponible o falló la inicialización:', e);
   }
+}
+
 
   toggleEditMode(isEditing) {
     this.isEditing = isEditing
@@ -112,6 +122,10 @@ class World {
       if (this.isPlacingCone) this.enablePlacing()
       else this.disablePlacing()
     }
+
+     if (this.placingBlade) {
+    this.placingBlade.value = this.isPlacingCone ? 'ON' : 'OFF';
+  }
   }
 
   enablePlacing() {
