@@ -8,6 +8,7 @@ import Inputs from "./Inputs/Inputs.js"
 import sources from './sources.js'
 import Resources from "./Utils/Resources.js"
 import Recorder from "./Utils/Recorder.js"
+import { Pane } from "tweakpane"
  
 class Game{
   constructor(){
@@ -25,6 +26,8 @@ class Game{
     this.mediaRecorder
     this.recordedChunks = []
     this.recorder = new Recorder(this.domElement, '#recordBtn')
+
+    this.pane = new Pane({ title: 'Edit Panel' });
     
     this.inputs = new Inputs([
       { name: 'forward', keys: ['ArrowUp', 'KeyW'] },

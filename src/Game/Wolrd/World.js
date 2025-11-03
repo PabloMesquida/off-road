@@ -1,5 +1,4 @@
 import * as THREE from 'three/webgpu'
-import { Pane } from 'tweakpane'
 import Game from "../Game.js"
 import Floor from './Floor/Floor.js'
 import Vehicle from './Vehicle/Vehicle.js'
@@ -46,39 +45,69 @@ class World {
 
 
   initTweakpane() {
-  try {
-    this.pane = new Pane();
+    try {
+      this.pane = this.game.pane; 
 
-    // --- [ EDIT MODE toggle ] ---
+      // --- [ EDIT MODE toggle ] ---
     this.editParam = { editMode: false };
-    this.pane.addBinding(this.editParam, 'editMode', { label: 'EDIT MODE' })
+    this.editModeBinding = this.pane.addBinding(this.editParam, 'editMode', { label: 'EDIT MODE' })
       .on('change', (ev) => {
         this.toggleEditMode(ev.value);
       });
 
-    // --- [ CONE placing button ] ---
-    this.placingButton = this.pane.addButton({ title: 'Cono' });
-    this.placingButton.on('click', () => this.togglePlacingCone());
+      // --- [ CONE placing button ] ---
+      this.placingButton = this.pane.addButton({ title: 'Cono' });
+      this.placingButton.on('click', () => this.togglePlacingCone());
 
-    // --- [ Dynamic text blade for "Placing" status ] ---
-    this.placingBlade = this.pane.addBlade({
-      view: 'text',
-      label: 'Placing',
-      parse: (v) => v,
-      value: 'OFF', // valor inicial
-    });
+      // --- [ Dynamic text blade for "Placing" status ] ---
+      this.placingBlade = this.pane.addBlade({
+        view: 'text',
+        label: 'Placing',
+        parse: (v) => v,
+        value: 'OFF', // valor inicial
+      });
 
-  } catch (e) {
-    console.warn('[World] Tweakpane no está disponible o falló la inicialización:', e);
+      this.updateTweakpaneState(false)
+
+    } catch (e) {
+      console.warn('[World] Tweakpane no está disponible o falló la inicialización:', e)
+    }
   }
-}
+
+  updateTweakpaneState(isEditing) {
+    // --- el switch de "EDIT MODE" siempre debe estar activo ---
+    const editModeEl = this.editModeBinding?.controller?.view?.element || this.editModeBinding?.element;
+    if (editModeEl) {
+      editModeEl.removeAttribute('disabled');
+    }
+
+    const disabled = !isEditing;
+
+    // --- Botón "Cono" ---
+    const coneButtonEl = this.placingButton?.controller?.view?.element || this.placingButton?.element;
+    if (coneButtonEl) {
+      coneButtonEl.toggleAttribute('disabled', disabled);
+      coneButtonEl.style.opacity = disabled ? '0.5' : '1';
+      coneButtonEl.style.pointerEvents = disabled ? 'none' : 'auto';
+    }
+
+    // --- Texto "Placing" ---
+    const placingTextEl = this.placingBlade?.controller?.view?.element || this.placingBlade?.element;
+    if (placingTextEl) {
+      placingTextEl.style.opacity = disabled ? '0.5' : '1';
+      placingTextEl.style.pointerEvents = disabled ? 'none' : 'auto';
+    }
+  }
+
 
 
   toggleEditMode(isEditing) {
     this.isEditing = isEditing
 
+    this.updateTweakpaneState(isEditing);
+
     if (isEditing) {
-      console.log('🧰 Edit mode ON')
+      console.log('Edit mode ON')
       
       // guardar posición inicial del vehículo
 
@@ -102,7 +131,7 @@ class World {
       this.pane.hidden = false
 
     } else {
-      console.log('🕹️ Edit mode OFF')
+      console.log('Edit mode OFF')
 
       // reactivar controles
       if (this.game.inputs) {
@@ -114,21 +143,23 @@ class World {
     }
   }
 
-  togglePlacingCone() {
-    if (!this.cones) {
-      this.isPlacingCone = !this.isPlacingCone
-    } else {
-      this.isPlacingCone = !this.isPlacingCone
-      if (this.isPlacingCone) this.enablePlacing()
-      else this.disablePlacing()
-    }
+ togglePlacingCone() {
+  if (!this.isEditing) {
+    console.warn('No puedes colocar conos fuera del modo edición.');
+    return;
+  }
 
-     if (this.placingBlade) {
+  this.isPlacingCone = !this.isPlacingCone;
+  if (this.isPlacingCone) this.enablePlacing();
+  else this.disablePlacing();
+
+  if (this.placingBlade) {
     this.placingBlade.value = this.isPlacingCone ? 'ON' : 'OFF';
   }
-  }
+}
 
   enablePlacing() {
+    if (!this.isEditing) return
     if (this.cones) this.cones.createPreview()
     this.domElement.addEventListener('pointermove', this.onPointerMove)
     this.domElement.addEventListener('pointerdown', this.onPointerDown)
@@ -141,7 +172,6 @@ class World {
   }
 
   onPointerMove = (e) => {
-   
     const camera =  this.game.view.camera
     if (!camera) return
 

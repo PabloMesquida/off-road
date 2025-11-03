@@ -1,10 +1,11 @@
 import * as THREE from 'three/webgpu'
 import PolishedConcreteMaterial from '../../Materials/PolishedConcreteMaterial.js'
 import { GridNodeMaterial } from '../../Materials/GridNodeMaterial.js'
-import { Pane } from 'tweakpane'
+import Game from '../../Game.js'
 
 class Floor{
   constructor(scene, physics, { x = 20, y = 0.2, z = 20 } = {}) {
+    this.game = new Game()
     this.scene = scene
     this.physics = physics
     this.size = { x, y, z }
@@ -18,75 +19,44 @@ class Floor{
       stripeSize: 1.5
     }
 
-    this.pane = new Pane();
-
-    const tweak1 = this.pane.addFolder({
-      title: 'Grid',
-      expanded: true,
-    })
+    this.pane = this.game.pane
     
-    tweak1.addBinding(
-      this.PARAMS, 'preset',
-        { 
-        options: {
-          Dark: 'dark', 
-          Contrast: 'contrast', 
-          Default: 'default', 
-          Blueprint: 'blueprint',
-          Retro: 'retro',
-          Neon: 'neon',
-          Funky: 'funky'
-        }
-      }
-    )
-    tweak1.addBinding(
-      this.PARAMS, 'opacity',
-       {
-        step: 0.01,
-        min: 0,
-        max: 0.1
-      } 
-    )
-
-    const tweak2 = this.pane.addFolder({
-      title: 'Limits',
-      expanded: true,
-    })
-
-    tweak2.addBinding(
-      this.PARAMS, 'width', {
-        step: 1,
-        min: 0,
-        max: 50
-      }
-    )
-
-    tweak2.addBinding(
-      this.PARAMS, 'offset', {
-        step: 1,
-        min: 0,
-        max: 50
-      }
-    )
-
-    tweak2.addBinding(
-      this.PARAMS, 'stripeSize', {
-        step: 0.1,
-        min: 0.5,
-        max: 2.5
-      }
-    )
-
-    tweak1.on('change', (ev) => {
-      this.updateGridPreset(ev.value);
-    })
-
-    tweak2.on('change', (ev) => {
-      this.updateGridPreset(ev.value);
-    })
-
     this.setModel()
     this.setPhysics()
+
+    this.initTweakpane()
+  }
+
+  initTweakpane() {
+    if (!this.pane) return
+
+    // Creamos una carpeta dentro del panel global
+    this.folder = this.pane.addFolder({ title: 'Floor', expanded: false })
+
+    const gridFolder = this.folder.addFolder({ title: 'Grid' })
+    const limitsFolder = this.folder.addFolder({ title: 'Limits' })
+
+    gridFolder.addBinding(this.PARAMS, 'preset', {
+      options: {
+        Dark: 'dark',
+        Contrast: 'contrast',
+        Default: 'default',
+        Blueprint: 'blueprint',
+        Retro: 'retro',
+        Neon: 'neon',
+        Funky: 'funky'
+      }
+    })
+    gridFolder.addBinding(this.PARAMS, 'opacity', { step: 0.01, min: 0, max: 0.1 })
+
+    limitsFolder.addBinding(this.PARAMS, 'width', { step: 1, min: 0, max: 50 })
+    limitsFolder.addBinding(this.PARAMS, 'offset', { step: 1, min: 0, max: 50 })
+    limitsFolder.addBinding(this.PARAMS, 'stripeSize', { step: 0.1, min: 0.5, max: 2.5 })
+
+    // Escuchar cambios globalmente
+    this.folder.on('change', () => {
+      this.updateGridPreset()
+    })
   }
 
   setModel(){
