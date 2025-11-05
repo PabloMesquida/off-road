@@ -5,6 +5,7 @@ import Vehicle from './Vehicle/Vehicle.js'
 import Events from '../Utils/Events.js'
 import Environment from './Environment/Environment.js'
 import AssetManager from './Assets/AssetManager.js'
+import { TransformControls } from 'three/examples/jsm/Addons.js'
 
 class World {
   constructor() {
@@ -15,7 +16,7 @@ class World {
     this.resources = this.game.resources
     this.floor = new Floor(this.scene, this.game.physics, { x: 160, y: 0.2, z: 160 })
 
-    this.initialVehiclePosition = new THREE.Vector3(0, 2, 0) 
+    this.initialVehiclePosition = new THREE.Vector3(0, 2, 0)
     this.initialVehicleRotation = new THREE.Quaternion()
 
     this.raycaster = new THREE.Raycaster()
@@ -23,173 +24,308 @@ class World {
     this.isPlacingCone = false
     this.placingButton = null
 
+    this.selectedCone = null
+    this.hoveredCone = null
+    this.transformControls = null
+
     this.domElement = this.game.domElement
     this.camera = null
-    // Tweakpane
+
+    // tweakpane
     this.initTweakpane()
 
     this.resources.events.on('ready', () => {
       this.vehicle = new Vehicle(this.scene, this.game.physics)
-      if (this.vehicle && this.vehicle.chassis && this.vehicle.chassis.mesh) {
-   
+      if (this.vehicle?.chassis?.mesh) {
         this.initialVehicleRotation.copy(this.vehicle.chassis.mesh.quaternion)
       }
       this.environment = new Environment(this.scene)
       this.cones = new AssetManager(this.scene, { resourcePathName: "coneModel" })
-        
     })
-
-    this.findCameraAttempted = false
 
     this.isEditing = false
     this.toggleEditMode(this.isEditing)
   }
 
-
+  /* ─────────────────────────────────────────────
+   * Tweakpane
+   * ───────────────────────────────────────────── */
   initTweakpane() {
     try {
-      this.pane = this.game.pane; 
+      this.pane = this.game.pane
       this.assetsfolder = this.pane.addFolder({ title: 'Assets', expanded: false })
-        // --- [ EDIT MODE toggle ] ---
-      this.editParam = { editMode: false };
-       this.pane.addBinding(this.editParam, 'editMode', { label: 'EDIT MODE' })
-        .on('change', (ev) => {
-          this.toggleEditMode(ev.value);
-        });
+      this.editParam = { editMode: false }
 
-        // --- [ CONE placing button ] ---
-        this.placingButton =  this.assetsfolder.addButton({ title: 'Cone' });
-        this.placingButton.on('click', () => this.togglePlacingCone());
+      this.pane.addBinding(this.editParam, 'editMode', { label: 'EDIT MODE' })
+        .on('change', ev => this.toggleEditMode(ev.value))
 
-        // // --- [ Dynamic text blade for "Placing" status ] ---
-        // this.placingBlade = this.pane.addBlade({
-        //   view: 'text',
-        //   label: 'Placing',
-        //   parse: (v) => v,
-        //   value: 'OFF', // valor inicial
-        // });
+      this.placingButton = this.assetsfolder.addButton({ title: 'Cone' })
+      this.placingButton.on('click', () => this.togglePlacingCone())
 
-        this.updateTweakpaneState(false)
-
-      } catch (e) {
-        console.warn('[World] Tweakpane no está disponible o falló la inicialización:', e)
-      }
+      this.updateTweakpaneState(false)
+    } catch (e) {
+      console.warn('[World] Tweakpane no disponible:', e)
     }
+  }
 
   updateTweakpaneState(isEditing) {
-    // --- el switch de "EDIT MODE" siempre debe estar activo ---
-    const editModeEl = this.assetsfolder?.element
-
-    if (editModeEl) {
-      editModeEl.style.opacity = isEditing ? '1' : '0.5'
-      editModeEl.style.pointerEvents = isEditing ? 'auto' : 'none'
+    const el = this.assetsfolder?.element
+    if (el) {
+      el.style.opacity = isEditing ? '1' : '0.5'
+      el.style.pointerEvents = isEditing ? 'auto' : 'none'
     }
   }
 
+  /* ─────────────────────────────────────────────
+   * Edit Mode Toggle
+   * ───────────────────────────────────────────── */
   toggleEditMode(isEditing) {
-    this.isEditing = isEditing
-
+    this.isEditing = isEditing;
     this.updateTweakpaneState(isEditing);
 
-    if (this.floor && typeof this.floor.setEditableState === 'function') {
-      this.floor.setEditableState(isEditing)
-    }
+    // Actualizar estado de edición en el piso
+    if (this.floor?.setEditableState)
+      this.floor.setEditableState(isEditing);
 
     if (isEditing) {
-      console.log('Edit mode ON')
-      
-      // guardar posición inicial del vehículo
+      console.log('Edit mode ON');
 
-     
-      // resetear vehículo a la posición original
-      if (this.vehicle && this.vehicle.chassis && this.vehicle.chassis.body) {
-        const pos = this.initialVehiclePosition
-        const rot = this.initialVehicleRotation
-        this.vehicle.chassis.body.setTranslation( this.initialVehiclePosition , true)
-        this.vehicle.chassis.body.setRotation(rot, true)
-        this.vehicle.chassis.body.setLinvel({ x: 0, y: 0, z: 0 }, true)
-        this.vehicle.chassis.body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+      // Resetear vehículo a posición inicial
+      if (this.vehicle?.chassis?.body) {
+        const body = this.vehicle.chassis.body;
+        body.setTranslation(this.initialVehiclePosition, true);
+        body.setRotation(this.initialVehicleRotation, true);
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
       }
 
-      // desactivar control del vehículo
+      // Desactivar controles de conducción
       if (this.game.inputs) {
-        this.game.inputs.enabled = false
+        this.game.inputs.enabled = false;
+        this.game.inputs.enableMouseTracking?.(); // activa mouse tracking si existe
       }
 
-      // activar tweakpane u otras herramientas
-      this.pane.hidden = false
+      // Mostrar tweakpane
+      this.pane.hidden = false;
+
+      // Crear transform controls si no existen
+      if (!this.transformControls) {
+        const camera = this.game.view.camera;
+        const domElement = this.game.domElement;
+        this.transformControls = new TransformControls(camera, domElement);
+        this.scene.add(this.transformControls.getHelper());
+
+        // Cuando se arrastra un objeto
+        this.transformControls.addEventListener('dragging-changed', (e) => {
+          this.game.inputs.enabled = !e.value; // bloquear movimiento del vehículo
+
+          // 🧱 Manejo de física del cono mientras se arrastra
+          if (e.value && this.selectedCone) {
+            const coneData = this.cones.instances.find(c => c.group === this.selectedCone);
+            if (coneData?.physical?.body) {
+              coneData.physical.body.setEnabled(false);
+            }
+          }
+
+          if (!e.value && this.selectedCone) {
+            const coneData = this.cones.instances.find(c => c.group === this.selectedCone);
+            if (coneData?.physical?.body) {
+              const pos = this.selectedCone.position;
+              coneData.physical.body.setTranslation({ x: pos.x, y: pos.y, z: pos.z }, true);
+              coneData.physical.body.setEnabled(true);
+            }
+          }
+        });
+      }
+
+      // Activar listeners de escena solo en modo edición
+      this.domElement.addEventListener('pointermove', this.onPointerHoverAsset);
+      this.domElement.addEventListener('pointerdown', this.onPointerSelectAsset);
 
     } else {
-      console.log('Edit mode OFF')
+      console.log('Edit mode OFF');
 
+      // Desactivar colocación de conos si estaba activa
       if (this.isPlacingCone) {
-        this.isPlacingCone = false
-        this.disablePlacing()
-        if (this.placingBlade) this.placingBlade.value = 'OFF'
+        this.isPlacingCone = false;
+        this.disablePlacing();
       }
 
-      // reactivar controles
+      // Reactivar los controles del vehículo
       if (this.game.inputs) {
-        this.game.inputs.enabled = true
+        this.game.inputs.enabled = true;
+        this.game.inputs.disableMouseTracking?.(); // desactiva mouse tracking
       }
 
-      // cerrar o minimizar tweakpane si quieres
-      // this.pane.hidden = true
+      // Eliminar transform controls
+      if (this.transformControls) {
+        this.scene.remove(this.transformControls.getHelper());
+        this.transformControls.dispose();
+        this.transformControls = null;
+      }
+
+      // Limpiar selección
+      this.highlightAsset(this.selectedCone, false);
+      this.selectedCone = null;
+      this.hoveredCone = null;
+
+      // Quitar listeners de escena
+      this.domElement.removeEventListener('pointermove', this.onPointerHoverAsset);
+      this.domElement.removeEventListener('pointerdown', this.onPointerSelectAsset);
+      this.domElement.removeEventListener('pointermove', this.onPointerMove);
+      this.domElement.removeEventListener('pointerdown', this.onPointerDown);
     }
   }
 
- togglePlacingCone() {
-  if (!this.isEditing) {
-    console.warn('No puedes colocar conos fuera del modo edición.');
-    return;
-  }
 
-  this.isPlacingCone = !this.isPlacingCone;
-  if (this.isPlacingCone) this.enablePlacing();
-  else this.disablePlacing();
+  /* ─────────────────────────────────────────────
+   * Placing Mode
+   * ───────────────────────────────────────────── */
+  togglePlacingCone() {
+    if (!this.isEditing) {
+      console.warn('No puedes colocar conos fuera del modo edición.')
+      return
+    }
 
-  if (this.placingBlade) {
-    this.placingBlade.value = this.isPlacingCone ? 'ON' : 'OFF';
+    this.isPlacingCone = !this.isPlacingCone
+    if (this.isPlacingCone) this.enablePlacing()
+    else this.disablePlacing()
   }
-}
 
   enablePlacing() {
     if (!this.isEditing) return
-    if (this.cones) this.cones.createPreview()
+    this.cones?.createPreview()
     this.domElement.addEventListener('pointermove', this.onPointerMove)
     this.domElement.addEventListener('pointerdown', this.onPointerDown)
   }
 
   disablePlacing() {
-    if (this.cones) this.cones.disposePreview()
+    this.cones?.disposePreview()
     this.domElement.removeEventListener('pointermove', this.onPointerMove)
     this.domElement.removeEventListener('pointerdown', this.onPointerDown)
+    this.isPlacingCone = false
   }
 
-  onPointerMove = (e) => {
-    const camera =  this.game.view.camera
+  /* ─────────────────────────────────────────────
+   * Hover y Selección de Conos
+   * ───────────────────────────────────────────── */
+  findConeGroup(object) {
+    if (!this.cones?.instances) return null
+    let node = object
+    while (node) {
+      const found = this.cones.instances.find(c => c.group === node)
+      if (found) return node
+      node = node.parent
+    }
+    return null
+  }
+
+  highlightAsset(group, highlight = true) {
+    if (!group) return
+    group.traverse(c => {
+      if (c.isMesh) {
+        if (highlight) {
+          if (!c.userData.originalMaterial) {
+            c.userData.originalMaterial = c.material
+            c.material = c.material.clone()
+          }
+          c.material.emissive?.setHex(0x333333)
+        } else {
+          if (c.userData.originalMaterial) {
+            c.material.dispose()
+            c.material = c.userData.originalMaterial
+            delete c.userData.originalMaterial
+          }
+        }
+      }
+    })
+  }
+
+  onPointerHoverAsset = (e) => {
+    if (!this.isEditing || this.isPlacingCone) return
+    if (this.transformControls?.dragging) return
+
+    const camera = this.game.view.camera
     if (!camera) return
 
-    const rect = (this.domElement && this.domElement.getBoundingClientRect)
-      ? this.domElement.getBoundingClientRect()
-      : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
-
+    const rect = this.domElement.getBoundingClientRect()
     this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
     this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
 
     this.raycaster.setFromCamera(this.pointer, camera)
 
-    let floorMesh =  this.floor?.mesh || null; 
+    const validCones = (this.cones?.instances || []).map(c => c.group)
+    const intersects = this.raycaster.intersectObjects(validCones, true)
 
-    let intersects = floorMesh
+    if (intersects.length > 0) {
+      const hit = intersects[0]
+      const coneGroup = this.findConeGroup(hit.object)
+      if (coneGroup && coneGroup !== this.hoveredCone) {
+        this.highlightAsset(this.hoveredCone, false)
+        this.hoveredCone = coneGroup
+        this.highlightAsset(this.hoveredCone, true)
+        this.domElement.style.cursor = 'pointer'
+      }
+    } else {
+      this.highlightAsset(this.hoveredCone, false)
+      this.hoveredCone = null
+      this.domElement.style.cursor = 'default'
+    }
+  }
+
+  onPointerSelectAsset = (e) => {
+    if (!this.isEditing || this.isPlacingCone) return
+    if (e.button !== 0) return
+    if (this.transformControls?.dragging) return
+
+    const camera = this.game.view.camera
+    if (!camera) return
+
+    const rect = this.domElement.getBoundingClientRect()
+    this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+    this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+    this.raycaster.setFromCamera(this.pointer, camera)
+
+    const validCones = (this.cones?.instances || []).map(c => c.group)
+    const intersects = this.raycaster.intersectObjects(validCones, true)
+
+    if (intersects.length > 0) {
+      const hit = intersects[0]
+      const coneGroup = this.findConeGroup(hit.object)
+      if (coneGroup) {
+        if (this.selectedCone !== coneGroup) {
+          this.highlightAsset(this.selectedCone, false)
+          this.selectedCone = coneGroup
+          this.highlightAsset(this.selectedCone, true)
+          this.transformControls.attach(this.selectedCone)
+        }
+      }
+    } else {
+      // clic fuera: deseleccionar
+      this.highlightAsset(this.selectedCone, false)
+      this.selectedCone = null
+      this.transformControls.detach()
+    }
+  }
+
+  /* ─────────────────────────────────────────────
+   * Colocación de conos
+   * ───────────────────────────────────────────── */
+  onPointerMove = (e) => {
+    const camera = this.game.view.camera
+    if (!camera) return
+    const rect = this.domElement.getBoundingClientRect()
+    this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+    this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+    this.raycaster.setFromCamera(this.pointer, camera)
+
+    const floorMesh = this.floor?.mesh
+    const intersects = floorMesh
       ? this.raycaster.intersectObject(floorMesh, true)
-      : this.raycaster.intersectObjects(this.scene.children, true).filter(it => it.face && Math.abs(it.face.normal.y) > 0.6)
-
-    const hit = intersects.length ? intersects[0] : null
-    const yOffset = 0.1
-
+      : []
+    const hit = intersects[0]
     if (hit) {
-      const pos = { x: hit.point.x, y: hit.point.y + yOffset, z: hit.point.z }
+      const pos = { x: hit.point.x, y: hit.point.y + 0.1, z: hit.point.z }
       this.cones?.updatePreviewPosition(pos)
     } else {
       this.cones?.updatePreviewPosition(null)
@@ -197,34 +333,27 @@ class World {
   }
 
   onPointerDown = (e) => {
-    if (e.button !== 0 || !this.isPlacingCone) return
- 
-    const camera =  this.game.view.camera
+    if (e.button !== 0) return
+    const camera = this.game.view.camera
     if (!camera) return
 
-    const rect = (this.domElement && this.domElement.getBoundingClientRect)
-      ? this.domElement.getBoundingClientRect()
-      : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
-
+    const rect = this.domElement.getBoundingClientRect()
     this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
     this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
-
     this.raycaster.setFromCamera(this.pointer, camera)
 
-    let floorMesh =  this.floor?.mesh || null; 
-
-    let intersects = floorMesh
-      ? this.raycaster.intersectObject(floorMesh, true)
-      : this.raycaster.intersectObjects(this.scene.children, true).filter(it => it.face && Math.abs(it.face.normal.y) > 0.6)
-
-    const hit = intersects.length ? intersects[0] : null
+    const floorMesh = this.floor?.mesh
+    const intersects = this.raycaster.intersectObject(floorMesh, true)
+    const hit = intersects[0]
     if (hit && this.cones?.spawn) {
-      const yOffset = 0.5
-      const spawnPos = { x: hit.point.x, y: hit.point.y + yOffset, z: hit.point.z }
+      const spawnPos = { x: hit.point.x, y: hit.point.y + 0.5, z: hit.point.z }
       this.cones.spawn(spawnPos)
     }
   }
 
+  /* ─────────────────────────────────────────────
+   * Update Loop
+   * ───────────────────────────────────────────── */
   update() {
     if (!this.vehicle) return
     const pos = this.vehicle.chassis.mesh.position
@@ -233,28 +362,45 @@ class World {
 
     const isOutsideX = Math.abs(pos.x) > limit
     const isOutsideZ = Math.abs(pos.z) > limit
+    const movingOutwardX = Math.sign(vel.x) === Math.sign(pos.x) && isOutsideX
+    const movingOutwardZ = Math.sign(vel.z) === Math.sign(pos.z) && isOutsideZ
 
-    const dirX = Math.sign(pos.x)
-    const dirZ = Math.sign(pos.z)
-
-    const movingOutwardX = Math.sign(vel.x) === dirX && isOutsideX
-    const movingOutwardZ = Math.sign(vel.z) === dirZ && isOutsideZ
     const shouldBrake = movingOutwardX || movingOutwardZ
-
     this.vehicle.controller.isOutsideLimit = shouldBrake
     this.vehicle.visuals.isOutsideLimit = shouldBrake
-
-    if (this.isPlacingCone && this.cones?.preview) {
-      if (!this.cones.preview.group.visible) {
-        const cam = this.findCamera()
-        if (cam) {
-          const forward = new THREE.Vector3(0, -0.2, -1).applyQuaternion(cam.quaternion)
-          const pos = cam.position.clone().add(forward.multiplyScalar(3))
-          this.cones.updatePreviewPosition({ x: pos.x, y: pos.y, z: pos.z })
-        }
-      }
-    }
   }
 }
 
 export default World
+
+
+
+  // onPointerDown = (e) => {
+  //   if (e.button !== 0 || !this.isPlacingCone) return
+ 
+  //   const camera =  this.game.view.camera
+  //   if (!camera) return
+
+  //   const rect = (this.domElement && this.domElement.getBoundingClientRect)
+  //     ? this.domElement.getBoundingClientRect()
+  //     : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
+
+  //   this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+  //   this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+
+  //   this.raycaster.setFromCamera(this.pointer, camera)
+    
+
+  //   let floorMesh =  this.floor?.mesh || null; 
+
+  //   let intersects = floorMesh
+  //     ? this.raycaster.intersectObject(floorMesh, true)
+  //     : this.raycaster.intersectObjects(this.scene.children, true).filter(it => it.face && Math.abs(it.face.normal.y) > 0.6)
+
+  //   const hit = intersects.length ? intersects[0] : null
+  //   if (hit && this.cones?.spawn) {
+  //     const yOffset = 0.5
+  //     const spawnPos = { x: hit.point.x, y: hit.point.y + yOffset, z: hit.point.z }
+  //     this.cones.spawn(spawnPos)
+  //   }
+  // }
