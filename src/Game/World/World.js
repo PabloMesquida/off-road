@@ -11,6 +11,7 @@ import { TransformControls } from 'three/examples/jsm/Addons.js'
 class World {
   constructor() {
     this.game = new Game()
+    this.inputs = this.game.inputs
     this.scene = new THREE.Scene()
     this.events = new Events()
 
@@ -105,6 +106,46 @@ class World {
         const camera = this.game.view.camera
         const domElement = this.game.domElement
         this.transformControls = new TransformControls(camera, domElement)
+
+        this.transformControls.showX = true
+        this.transformControls.showY = false 
+        this.transformControls.showZ = true 
+
+        this.inputs.events.on('translateMode', (isDown) => {
+          if (isDown) {
+            this.transformControls.setMode('translate')
+            this.transformControls.showX = true
+            this.transformControls.showY = false 
+            this.transformControls.showZ = true 
+
+            console.log('🟦 Modo TRANSLATE activado')
+          }
+        })
+
+        this.inputs.events.on('rotateMode', (isDown) => {
+          if (isDown) {
+            this.transformControls.setMode('rotate')
+            this.transformControls.showX = false 
+            this.transformControls.showY = true 
+            this.transformControls.showZ = false 
+            console.log('🟨 Modo ROTATE ativado')
+          }
+        })
+
+       
+
+         // Personalización visual
+        this.transformControls.setColors(
+          0xFFFFFF50,  // X
+          0xFFFFFF,  // Y
+          0xFFFFFF50,  // Z
+          0xffff00   // activo
+        )
+
+        this.transformControls.setSize(0.5)   // aumenta el tamaño general del gizmo
+        this.transformControls.setSpace('world') // trabaja en coordenadas globales
+        this.transformControls.rotationSnap = THREE.MathUtils.degToRad(5) // pasos de 5º
+
         this.scene.add(this.transformControls.getHelper())
 
         // Cuando se arrastra un objeto
