@@ -1,6 +1,6 @@
 import View from "./View/View.js"
 import Viewport from "./Utils/Viewport.js"
-import World from "./Wolrd/World.js"
+import World from "./World/World.js"
 import Rendering from "./Rendering/Rendering.js"
 import Physics from "./Physics/Physics.js"
 import PhysicsDebug from "./Physics/PhysicsDebug.js"

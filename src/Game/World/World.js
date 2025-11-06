@@ -1,4 +1,5 @@
 import * as THREE from 'three/webgpu'
+import * as RAPIER from '@dimforge/rapier3d-compat'
 import Game from "../Game.js"
 import Floor from './Floor/Floor.js'
 import Vehicle from './Vehicle/Vehicle.js'
@@ -80,62 +81,55 @@ class World {
    * Edit Mode Toggle
    * ───────────────────────────────────────────── */
   toggleEditMode(isEditing) {
-    this.isEditing = isEditing;
-    this.updateTweakpaneState(isEditing);
+    this.isEditing = isEditing
+    this.updateTweakpaneState(isEditing)
 
     // Actualizar estado de edición en el piso
     if (this.floor?.setEditableState)
-      this.floor.setEditableState(isEditing);
+      this.floor.setEditableState(isEditing)
 
     if (isEditing) {
-      console.log('Edit mode ON');
+      console.log('Edit mode ON')
 
       // Resetear vehículo a posición inicial
       if (this.vehicle?.chassis?.body) {
-        const body = this.vehicle.chassis.body;
-        body.setTranslation(this.initialVehiclePosition, true);
-        body.setRotation(this.initialVehicleRotation, true);
-        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        const body = this.vehicle.chassis.body
+        body.setTranslation(this.initialVehiclePosition, true)
+        body.setRotation(this.initialVehicleRotation, true)
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true)
       }
-
-      // Desactivar controles de conducción
-      if (this.game.inputs) {
-        this.game.inputs.enabled = false;
-        this.game.inputs.enableMouseTracking?.(); // activa mouse tracking si existe
-      }
-
-      // Mostrar tweakpane
-      this.pane.hidden = false;
 
       // Crear transform controls si no existen
       if (!this.transformControls) {
-        const camera = this.game.view.camera;
-        const domElement = this.game.domElement;
-        this.transformControls = new TransformControls(camera, domElement);
-        this.scene.add(this.transformControls.getHelper());
+        const camera = this.game.view.camera
+        const domElement = this.game.domElement
+        this.transformControls = new TransformControls(camera, domElement)
+        this.scene.add(this.transformControls.getHelper())
 
         // Cuando se arrastra un objeto
         this.transformControls.addEventListener('dragging-changed', (e) => {
-          this.game.inputs.enabled = !e.value; // bloquear movimiento del vehículo
+          const coneData = this.cones.instances.find(c => c.group === this.selectedCone)
+          if (!coneData?.body) return
 
-          // 🧱 Manejo de física del cono mientras se arrastra
-          if (e.value && this.selectedCone) {
-            const coneData = this.cones.instances.find(c => c.group === this.selectedCone);
-            if (coneData?.physical?.body) {
-              coneData.physical.body.setEnabled(false);
-            }
+          if (e.value) {
+            // Empieza a mover → hacerlo kinematic y pausar la física de ese cuerpo
+            coneData.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
+          } else {
+            // Soltó → volverlo dinámico para que vuelva a comportarse físicamente
+            coneData.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true)
           }
+        })
 
-          if (!e.value && this.selectedCone) {
-            const coneData = this.cones.instances.find(c => c.group === this.selectedCone);
-            if (coneData?.physical?.body) {
-              const pos = this.selectedCone.position;
-              coneData.physical.body.setTranslation({ x: pos.x, y: pos.y, z: pos.z }, true);
-              coneData.physical.body.setEnabled(true);
-            }
+        this.transformControls.addEventListener('objectChange', () => {
+          const coneData = this.cones.instances.find(c => c.group === this.selectedCone)
+          if (coneData?.body) {
+            const pos = coneData.group.position
+            const rot = coneData.group.quaternion
+            coneData.body.setNextKinematicTranslation(pos)
+            coneData.body.setNextKinematicRotation(rot)
           }
-        });
+        })
       }
 
       // Activar listeners de escena solo en modo edición
@@ -149,12 +143,6 @@ class World {
       if (this.isPlacingCone) {
         this.isPlacingCone = false;
         this.disablePlacing();
-      }
-
-      // Reactivar los controles del vehículo
-      if (this.game.inputs) {
-        this.game.inputs.enabled = true;
-        this.game.inputs.disableMouseTracking?.(); // desactiva mouse tracking
       }
 
       // Eliminar transform controls
@@ -212,6 +200,7 @@ class World {
   findConeGroup(object) {
     if (!this.cones?.instances) return null
     let node = object
+ 
     while (node) {
       const found = this.cones.instances.find(c => c.group === node)
       if (found) return node
@@ -249,6 +238,7 @@ class World {
     if (!camera) return
 
     const rect = this.domElement.getBoundingClientRect()
+  
     this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
     this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
 
@@ -372,35 +362,3 @@ class World {
 }
 
 export default World
-
-
-
-  // onPointerDown = (e) => {
-  //   if (e.button !== 0 || !this.isPlacingCone) return
- 
-  //   const camera =  this.game.view.camera
-  //   if (!camera) return
-
-  //   const rect = (this.domElement && this.domElement.getBoundingClientRect)
-  //     ? this.domElement.getBoundingClientRect()
-  //     : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
-
-  //   this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
-  //   this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
-
-  //   this.raycaster.setFromCamera(this.pointer, camera)
-    
-
-  //   let floorMesh =  this.floor?.mesh || null; 
-
-  //   let intersects = floorMesh
-  //     ? this.raycaster.intersectObject(floorMesh, true)
-  //     : this.raycaster.intersectObjects(this.scene.children, true).filter(it => it.face && Math.abs(it.face.normal.y) > 0.6)
-
-  //   const hit = intersects.length ? intersects[0] : null
-  //   if (hit && this.cones?.spawn) {
-  //     const yOffset = 0.5
-  //     const spawnPos = { x: hit.point.x, y: hit.point.y + yOffset, z: hit.point.z }
-  //     this.cones.spawn(spawnPos)
-  //   }
-  // }

@@ -142,7 +142,13 @@ class AssetManager {
       entity = this.physics.addEntity(physDesc, group);
     }
 
-    const inst = { group, model, physical: entity };
+    const inst = {
+      group,
+      model,
+      body: entity?.physical?.body || null,
+      colliders: entity?.physical?.colliders || null,
+      physicsEntity: entity, // opcional, si querés conservar referencia completa
+    };
     this.instances.push(inst);
     return inst;
   }
