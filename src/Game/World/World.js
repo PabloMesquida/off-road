@@ -101,6 +101,7 @@ class World {
         body.setAngvel({ x: 0, y: 0, z: 0 }, true)
       }
 
+
       // Crear transform controls si no existen
       if (!this.transformControls) {
         const camera = this.game.view.camera
@@ -117,8 +118,6 @@ class World {
             this.transformControls.showX = true
             this.transformControls.showY = false 
             this.transformControls.showZ = true 
-
-            console.log('🟦 Modo TRANSLATE activado')
           }
         })
 
@@ -128,13 +127,10 @@ class World {
             this.transformControls.showX = false 
             this.transformControls.showY = true 
             this.transformControls.showZ = false 
-            console.log('🟨 Modo ROTATE ativado')
           }
         })
 
-       
-
-         // Personalización visual
+        // Personalización visual
         this.transformControls.setColors(
           0xFFFFFF50,  // X
           0xFFFFFF,  // Y
@@ -142,7 +138,6 @@ class World {
           0xffff00   // activo
         )
 
-        this.transformControls.setSize(0.5)   // aumenta el tamaño general del gizmo
         this.transformControls.setSpace('world') // trabaja en coordenadas globales
         this.transformControls.rotationSnap = THREE.MathUtils.degToRad(5) // pasos de 5º
 
@@ -329,6 +324,15 @@ class World {
           this.selectedCone = coneGroup
           this.highlightAsset(this.selectedCone, true)
           this.transformControls.attach(this.selectedCone)
+
+          // --- Ajustar tamaño del gizmo según el objeto ---
+          const box = new THREE.Box3().setFromObject(this.selectedCone)
+          const size = new THREE.Vector3()
+          box.getSize(size)
+          
+          const maxSize = Math.max(size.x * 0.5, size.y * 0.5, size.z * 0.5)
+          const offset = 0.05 
+          this.transformControls.setSize(maxSize + offset)
         }
       }
     } else {
