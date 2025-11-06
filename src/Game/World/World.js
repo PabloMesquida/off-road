@@ -85,6 +85,7 @@ class World {
     this.isEditing = isEditing
     this.updateTweakpaneState(isEditing)
 
+
     // Actualizar estado de edición en el piso
     if (this.floor?.setEditableState)
       this.floor.setEditableState(isEditing)
@@ -100,7 +101,6 @@ class World {
         body.setLinvel({ x: 0, y: 0, z: 0 }, true)
         body.setAngvel({ x: 0, y: 0, z: 0 }, true)
       }
-
 
       // Crear transform controls si no existen
       if (!this.transformControls) {
@@ -151,10 +151,19 @@ class World {
           if (e.value) {
             // Empieza a mover → hacerlo kinematic y pausar la física de ese cuerpo
             coneData.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
+       
           } else {
             // Soltó → volverlo dinámico para que vuelva a comportarse físicamente
             coneData.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true)
+          
           }
+          // if (isEditing) {
+          //   console.log('true', isEditing)
+          //   this.setEditPhysics(true)
+          // } else {
+          //   console.log('false', isEditing)
+          //   this.setEditPhysics(false)
+          // }
         })
 
         this.transformControls.addEventListener('objectChange', () => {
@@ -199,6 +208,9 @@ class World {
       this.domElement.removeEventListener('pointermove', this.onPointerMove);
       this.domElement.removeEventListener('pointerdown', this.onPointerDown);
     }
+
+
+
   }
 
 
@@ -390,6 +402,23 @@ class World {
    * Update Loop
    * ───────────────────────────────────────────── */
   update() {
+    if(this.isEditing && this.cones?.instances) {
+      for (const c of this.cones.instances) {
+        const body = c.body
+        if (!body || body.isKinematic()) continue
+
+        const vel = body.linvel()
+        // Limita la velocidad de los conos
+        const maxSpeed = 0.5
+        const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
+        if (speed > maxSpeed) {
+          const scale = maxSpeed / speed
+          body.setLinvel({ x: vel.x * scale, y: vel.y * scale, z: vel.z * scale }, true)
+        }
+      }
+    }
+
+
     if (!this.vehicle) return
     const pos = this.vehicle.chassis.mesh.position
     const limit = this.floor.getLimit()
