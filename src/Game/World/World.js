@@ -85,13 +85,19 @@ class World {
     this.isEditing = isEditing
     this.updateTweakpaneState(isEditing)
 
-
+    if (this.game?.view && typeof this.game.view.setEditMode === 'function') {
+      this.game.view.setEditMode(this.isEditing)
+    } else {
+      console.warn('View not ready yet when toggling edit mode.')
+    }
+      
     // Actualizar estado de edición en el piso
     if (this.floor?.setEditableState)
       this.floor.setEditableState(isEditing)
 
     if (isEditing) {
       console.log('Edit mode ON')
+     
 
       // Resetear vehículo a posición inicial
       if (this.vehicle?.chassis?.body) {
@@ -182,7 +188,7 @@ class World {
       this.domElement.addEventListener('pointerdown', this.onPointerSelectAsset);
 
     } else {
-      console.log('Edit mode OFF');
+      console.log('Edit mode OFF')
 
       // Desactivar colocación de conos si estaba activa
       if (this.isPlacingCone) {
