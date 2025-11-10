@@ -33,6 +33,10 @@ class World {
     this.domElement = this.game.domElement
     this.camera = null
 
+    // Estados para control de cursor
+    this.isDraggingAsset = false
+    this.isHoveringAsset = false
+
     // tweakpane
     this.initTweakpane()
 
@@ -79,6 +83,25 @@ class World {
   }
 
   /* ─────────────────────────────────────────────
+   * Control Centralizado del Cursor
+   * ───────────────────────────────────────────── */
+  updateCursor() {
+    if (!this.domElement) return
+
+    if (this.isPlacingCone) {
+      this.domElement.style.cursor = 'crosshair'
+    } else if (this.isDraggingAsset) {
+      this.domElement.style.cursor = 'grabbing'
+    } else if (this.isHoveringAsset) {
+      this.domElement.style.cursor = 'pointer'
+    } else if (this.isEditing) {
+      this.domElement.style.cursor = 'grab'
+    } else {
+      this.domElement.style.cursor = 'default'
+    }
+  }
+
+  /* ─────────────────────────────────────────────
    * Edit Mode Toggle
    * ───────────────────────────────────────────── */
   toggleEditMode(isEditing) {
@@ -97,7 +120,6 @@ class World {
 
     if (isEditing) {
       console.log('Edit mode ON')
-     
 
       // Resetear vehículo a posición inicial
       if (this.vehicle?.chassis?.body) {
@@ -151,25 +173,19 @@ class World {
 
         // Cuando se arrastra un objeto
         this.transformControls.addEventListener('dragging-changed', (e) => {
+          this.isDraggingAsset = e.value
+          this.updateCursor()
+          
           const coneData = this.cones.instances.find(c => c.group === this.selectedCone)
           if (!coneData?.body) return
 
           if (e.value) {
             // Empieza a mover → hacerlo kinematic y pausar la física de ese cuerpo
             coneData.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
-       
           } else {
             // Soltó → volverlo dinámico para que vuelva a comportarse físicamente
             coneData.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true)
-          
           }
-          // if (isEditing) {
-          //   console.log('true', isEditing)
-          //   this.setEditPhysics(true)
-          // } else {
-          //   console.log('false', isEditing)
-          //   this.setEditPhysics(false)
-          // }
         })
 
         this.transformControls.addEventListener('objectChange', () => {
@@ -196,6 +212,10 @@ class World {
         this.disablePlacing();
       }
 
+      // Resetear estados de cursor
+      this.isDraggingAsset = false
+      this.isHoveringAsset = false
+
       // Eliminar transform controls
       if (this.transformControls) {
         this.scene.remove(this.transformControls.getHelper());
@@ -215,10 +235,8 @@ class World {
       this.domElement.removeEventListener('pointerdown', this.onPointerDown);
     }
 
-
-
+    this.updateCursor()
   }
-
 
   /* ─────────────────────────────────────────────
    * Placing Mode
@@ -232,6 +250,8 @@ class World {
     this.isPlacingCone = !this.isPlacingCone
     if (this.isPlacingCone) this.enablePlacing()
     else this.disablePlacing()
+    
+    this.updateCursor()
   }
 
   enablePlacing() {
@@ -239,6 +259,7 @@ class World {
     this.cones?.createPreview()
     this.domElement.addEventListener('pointermove', this.onPointerMove)
     this.domElement.addEventListener('pointerdown', this.onPointerDown)
+    this.updateCursor()
   }
 
   disablePlacing() {
@@ -246,6 +267,7 @@ class World {
     this.domElement.removeEventListener('pointermove', this.onPointerMove)
     this.domElement.removeEventListener('pointerdown', this.onPointerDown)
     this.isPlacingCone = false
+    this.updateCursor()
   }
 
   /* ─────────────────────────────────────────────
@@ -285,8 +307,7 @@ class World {
   }
 
   onPointerHoverAsset = (e) => {
-    if (!this.isEditing || this.isPlacingCone) return
-    if (this.transformControls?.dragging) return
+    if (!this.isEditing || this.isPlacingCone || this.isDraggingAsset) return
 
     const camera = this.game.view.camera
     if (!camera) return
@@ -308,19 +329,20 @@ class World {
         this.highlightAsset(this.hoveredCone, false)
         this.hoveredCone = coneGroup
         this.highlightAsset(this.hoveredCone, true)
-        this.domElement.style.cursor = 'pointer'
+        this.isHoveringAsset = true
       }
     } else {
       this.highlightAsset(this.hoveredCone, false)
       this.hoveredCone = null
-      this.domElement.style.cursor = 'default'
+      this.isHoveringAsset = false
     }
+    
+    this.updateCursor()
   }
 
   onPointerSelectAsset = (e) => {
-    if (!this.isEditing || this.isPlacingCone) return
+    if (!this.isEditing || this.isPlacingCone || this.isDraggingAsset) return
     if (e.button !== 0) return
-    if (this.transformControls?.dragging) return
 
     const camera = this.game.view.camera
     if (!camera) return
@@ -359,12 +381,16 @@ class World {
       this.selectedCone = null
       this.transformControls.detach()
     }
+    
+    this.updateCursor()
   }
 
   /* ─────────────────────────────────────────────
    * Colocación de conos
    * ───────────────────────────────────────────── */
   onPointerMove = (e) => {
+    if (!this.isPlacingCone) return
+    
     const camera = this.game.view.camera
     if (!camera) return
     const rect = this.domElement.getBoundingClientRect()
@@ -386,6 +412,7 @@ class World {
   }
 
   onPointerDown = (e) => {
+    if (!this.isPlacingCone) return
     if (e.button !== 0) return
     const camera = this.game.view.camera
     if (!camera) return
@@ -423,7 +450,6 @@ class World {
         }
       }
     }
-
 
     if (!this.vehicle) return
     const pos = this.vehicle.chassis.mesh.position
