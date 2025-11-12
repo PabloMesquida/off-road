@@ -1,17 +1,72 @@
 import * as THREE from "three";
 import Game from "../../Game";
 
+// Materiales globales compartidos por todos los assets
+const GLOBAL_MATERIALS = {
+  naranja: new THREE.MeshStandardMaterial({
+    color: 0xad4800,
+    metalness: 0,
+    roughness: 0.9,
+  }),
+  blanco: new THREE.MeshStandardMaterial({
+    color: 0xf5e8df,
+    metalness: 0,
+    roughness: 0.9,
+  }),
+  azul: new THREE.MeshStandardMaterial({
+    color: 0x0066cc,
+    metalness: 0,
+    roughness: 0.9,
+  }),
+  celeste: new THREE.MeshStandardMaterial({
+    color: 0x608ebd,
+    metalness: 0,
+    roughness: 0.9,
+  }),
+  rojo: new THREE.MeshStandardMaterial({
+    color: 0xcc0000,
+    metalness: 0,
+    roughness: 0.9,
+  }),
+  verde: new THREE.MeshStandardMaterial({
+    color: 0x00cc00,
+    metalness: 0,
+    roughness: 0.9,
+  }),
+  amarillo: new THREE.MeshStandardMaterial({
+    color: 0xcccc00,
+    metalness: 0,
+    roughness: 0.9,
+  }),
+  negro: new THREE.MeshStandardMaterial({
+    color: 0x333333,
+    metalness: 0,
+    roughness: 0.9,
+  }),
+  gris: new THREE.MeshStandardMaterial({
+    color: 0x888888,
+    metalness: 0,
+    roughness: 0.9,
+  }),
+  default: new THREE.MeshStandardMaterial({
+    color: 0xffffaa,
+    metalness: 0,
+    roughness: 0.9,
+  })
+};
+
 class AssetManager {
-  constructor( scene, options = {}) {
+  constructor(scene, options = {}) {
     this.game = new Game()
     this.scene = scene
     this.physics = this.game.physics
     this.resources = this.game.resources
 
     this.resourceName = options.resourcePathName || "coneModel"
+    this.assetType = options.assetType || "cone"
     this.original = this.resources.items?.[this.resourceName]?.scene
+    
     if (!this.original) {
-      console.error(`[AssetManager] recurso "${this.resourceName}" no encontrado en resources.items`)
       return
     }
 
@@ -26,35 +81,108 @@ class AssetManager {
     this.size = new THREE.Vector3();
     box.getSize(this.size);
 
-    // crear materiales compartidos UNA vez
-    this.createSharedMaterials();
+    // Configuraciones específicas por tipo de asset - ahora solo mapeo de materiales
+    this.assetConfigs = {
+      cone: {
+        // Mapeo de nombres de mesh a materiales globales
+        materialMapping: {
+          "base": "naranja",
+          "naranja": "naranja", 
+          "blanco": "blanco"
+        },
+        physics: {
+          type: "dynamic",
+          massProperties: {
+            useAdditionalMassProperties: true,
+            massValue: 1.0,
+            com: { x: 0, y: -this.size.y / 4, z: 0 }
+          },
+          colliders: [
+            {
+              shape: "cuboid",
+              parameters: [this.size.x * 0.5, this.size.y * 0.5, this.size.z * 0.5],
+              friction: 0.6,
+            }
+          ]
+        },
+        verticalOffset: -this.size.y / 2
+      },
+      barrel: {
+        // Mapeo de nombres de mesh a materiales globales
+        materialMapping: {
+          "base": "azul",
+          "azul": "azul",
+          "naranja": "celeste"
+        },
+        physics: {
+          type: "dynamic",
+          massProperties: {
+            useAdditionalMassProperties: true,
+            massValue: 2.5,
+            com: { x: 0, y: -this.size.y / 4, z: 0 }
+          },
+          colliders: [
+            {
+              shape: "cuboid", 
+              parameters: [this.size.x * 0.5, this.size.y * 0.5, this.size.z * 0.5],
+              friction: 0.6,
+            }
+          ]
+        },
+        verticalOffset: -this.size.y / 2 
+      }
+    }
+
+    // Usar configuración del asset type o default a cone
+    this.config = this.assetConfigs[this.assetType] || this.assetConfigs.cone
+    
+    // Usar materiales globales
+    this.sharedMaterials = GLOBAL_MATERIALS;
     
     // contenedor de instancias
     this.instances = [];
   }
 
-  createSharedMaterials() {
-    // usa los mismos nombres que usabas en tu Cone original
-    this.sharedMaterials = {
-      base: new THREE.MeshStandardMaterial({
-        color: 0xad4800,
-        metalness: 0,
-        roughness: 0.9,
-      }),
-      cone: new THREE.MeshStandardMaterial({
-        color: 0xad4800,
-        metalness: 0,
-        roughness: 0.9,
-      }),
-      stripe: new THREE.MeshStandardMaterial({
-        color: 0xf5e8df,
-        metalness: 0,
-        roughness: 0.9,
-      }),
-      default: new THREE.MeshStandardMaterial({
-        color: 0xaaaaaa,
-      }),
-    };
+  /**
+   * Asigna materiales según el tipo de asset y nombre del mesh
+   */
+  assignMaterialByAssetType(child) {
+    console.log('aca',this.getMaterialNameForMesh(child.name))
+    const materialName = this.getMaterialNameForMesh(child.name);
+    return this.sharedMaterials[materialName] || this.sharedMaterials.default;
+  }
+
+  /**
+   * Obtiene el nombre del material global para un mesh específico
+   */
+  getMaterialNameForMesh(meshName) {
+    const mapping = this.config.materialMapping || {};
+    console.log('OK', meshName)
+    // Buscar coincidencia exacta primero
+    if (mapping[meshName]) {
+      return mapping[meshName];
+    }
+
+
+    
+    // Buscar por coincidencia parcial (case insensitive)
+    const lowerName = meshName.toLowerCase();
+    for (const [key, value] of Object.entries(mapping)) {
+      if (lowerName.includes(key.toLowerCase())) {
+        console.log('x', value)
+        return value;
+      }
+    }
+    
+    // Material por defecto basado en el tipo de asset
+    switch (this.assetType) {
+      case "cone":
+        return "naranja";
+      case "barrel":
+        return "azul";
+      default:
+        return "default";
+    }
   }
 
   /**
@@ -62,7 +190,6 @@ class AssetManager {
    * Devuelve un THREE.Group preparado para añadirse a la escena.
    */
   cloneModelShared() {
-    // clonamos la estructura (transformaciones), pero volveremos a asignar geometrías compartidas
     const clone = this.original.clone(true)
 
     clone.traverse((child) => {
@@ -71,25 +198,12 @@ class AssetManager {
       // asignar geometría compartida si existe mesh original con mismo nombre
       const orig = this.origMeshes[child.name]
       if (orig) {
-        child.geometry = orig.geometry; // comparte BufferGeometry
+        child.geometry = orig.geometry;
       }
 
-      // asignar material compartido según nombre
-      let mat;
-      switch (child.name) {
-        case "Base":
-          mat = this.sharedMaterials.base;
-          break;
-        case "Cono":
-          mat = this.sharedMaterials.cone;
-          break;
-        case "ConoFranja":
-          mat = this.sharedMaterials.stripe;
-          break;
-        default:
-          mat = this.sharedMaterials.default;
-      }
-      child.material = mat;
+      // asignar material global según tipo de asset
+      const material = this.assignMaterialByAssetType(child);
+      child.material = material;
 
       child.castShadow = true;
       child.receiveShadow = true;
@@ -101,44 +215,30 @@ class AssetManager {
   /**
    * Crea una instancia (visual + física) en una posición dada.
    * position: {x,y,z}
-   * returns: objeto { group, physicalEntity }
+   * returns: objeto { group, body, colliders, physicsEntity }
    */
   spawn(position = { x: 0, y: 0, z: 0 }) {
     if (!this.physics || !this.physics.world) {
-      console.warn("[ConeManager] physics no está listo aún")
-      // aún así creamos visual para que aparezca; pero sin física retornamos null physicalEntity
+      console.warn("[AssetManager] physics no está listo aún")
     }
 
     const group = new THREE.Group()
     const model = this.cloneModelShared()
     group.add(model)
 
-    // centrar/ajustar verticalmente igual que en tu clase original:
-    // mueve el modelo hacia abajo la mitad de la altura para que el group quede en la base
-    model.position.y -= this.size.y / 2
+    // Aplicar offset vertical según configuración del asset
+    model.position.y += this.config.verticalOffset
 
     this.scene.add(group)
 
     let entity = null;
     if (this.physics && this.physics.world) {
+      // Usar directamente la configuración de física del asset
       const physDesc = {
-        type: "dynamic",
-        position,
-        massProperties: {
-          useAdditionalMassProperties: true,
-          massValue: 1.0,
-          com: { x: 0, y: -this.size.y / 4, z: 0 },
-        },
-        colliders: [
-          {
-            shape: "cuboid",
-            // Rapier espera los semi-ejes (half extents)
-            parameters: [this.size.x * 0.5, this.size.y * 0.5, this.size.z * 0.5],
-            friction: 0.6,
-          },
-        ],
+        ...this.config.physics,
+        position // Añadir la posición específica
       };
-
+      
       entity = this.physics.addEntity(physDesc, group);
     }
 
@@ -147,20 +247,16 @@ class AssetManager {
       model,
       body: entity?.physical?.body || null,
       colliders: entity?.physical?.colliders || null,
-      physicsEntity: entity, // opcional, si querés conservar referencia completa
+      physicsEntity: entity,
+      assetType: this.assetType
     };
+    
     this.instances.push(inst);
     return inst;
   }
 
   /**
    * Spawn multiple in a line (ordenados).
-   * options:
-   *   count: número de conos
-   *   start: {x,y,z} posición del primer cono
-   *   spacing: distancia entre conos (float)
-   *   axis: 'x'|'z' (eje a lo largo del cual ordenar). Por defecto 'x'
-   *   offsetY: valor para y (altitud) por si quieres ajustar
    */
   spawnLine({ count = 5, start = { x: 0, y: 0.1, z: 0 }, spacing = 1.2, axis = "x", offsetY = 0 } = {}) {
     const arr = [];
@@ -176,7 +272,6 @@ class AssetManager {
 
   /**
    * Spawn en una rejilla ordenada (grid)
-   * rows, cols, spacingX, spacingZ, origin
    */
   spawnGrid({ rows = 2, cols = 5, spacingX = 1.2, spacingZ = 1.2, origin = { x: 0, y: 0.1, z: 0 } } = {}) {
     const list = [];
@@ -190,55 +285,39 @@ class AssetManager {
     return list;
   }
 
- 
-
-    /**
-   * Crea (y devuelve) un preview del modelo: grupo visual transparente
-   * no interactúa con física y no lanza sombras.
-   * El preview comparte geometrías y materiales base, pero crea materiales
-   * clonados para poder hacerlos transparentes sin afectar al resto.
+  /**
+   * Crea (y devuelve) un preview del modelo
    */
   createPreview() {
-    // Si ya existe un preview, devolverlo
-    if (this.preview && this.preview.group) return this.preview;
+    if (this.preview && this.preview.group) {
+      return this.preview;
+    }
 
     const group = new THREE.Group();
     const model = this.cloneModelShared();
-     // model.position.y += this.size.y / 2
 
-    // Para preview queremos materiales semitransparentes pero sin tocar los
-    // sharedMaterials (que usan las instancias reales). Creamos clones ligeros.
+    // Para preview queremos materiales semitransparentes
     model.traverse((c) => {
       if (!c.isMesh) return;
 
-      // clonar material superficialmente para modificar transparencia
-      let m = c.material;
-      // si el material es uno de los compartidos, hacemos una copia simple
-      const previewMat = m.clone ? m.clone() : new THREE.MeshStandardMaterial();
+      const previewMat = c.material.clone ? c.material.clone() : new THREE.MeshStandardMaterial();
       previewMat.transparent = true;
       previewMat.opacity = 0.55;
-      // reducir brillo para que no parezca físico
       previewMat.roughness = (previewMat.roughness ?? 0.9);
-      previewMat.depthWrite = false; // evitar z-fighting con el suelo
+      previewMat.depthWrite = false;
       c.material = previewMat;
 
-      // desactivar sombras
       c.castShadow = false;
       c.receiveShadow = false;
-      // marcar para identificarlo luego
       c.userData.isPreview = true;
     });
 
-    // ajustar vertical como en spawn: mover modelo hacia abajo la mitad
-    model.position.y -= this.size.y / 2;
+    // Para el preview NO aplicamos el verticalOffset
+    model.position.y = 0;
 
     group.add(model);
-
-
-    // Opcional: escalar preview si quieres que sea más pequeño
-    // group.scale.setScalar(1.0);
-
     group.userData.isPreview = true;
+    group.userData.assetType = this.assetType;
 
     this.scene.add(group);
 
@@ -248,7 +327,6 @@ class AssetManager {
 
   /**
    * Muestra (o actualiza) la posición del preview en worldPos {x,y,z}.
-   * Si worldPos es null oculta el preview (visible = false).
    */
   updatePreviewPosition(worldPos) {
     if (!this.preview) return;
@@ -258,27 +336,76 @@ class AssetManager {
       return;
     }
     group.visible = true;
+  
+    // Para el preview, usamos la posición exacta del rayo
+    // ya que el modelo está centrado correctamente
     group.position.set(worldPos.x, worldPos.y, worldPos.z);
   }
 
   /**
    * Elimina el preview de la escena y limpia referencias.
    */
-  disposePreview() {
-    if (!this.preview) return;
-    const { group } = this.preview;
+disposePreview() { 
+  if (!this.preview) {
+    return;
+  }
+  
+  const { group } = this.preview;
+  
+  // Verificar si el grupo está en la escena antes de removerlo
+  const index = this.scene.children.indexOf(group);
+  
+  if (index !== -1) {
     this.scene.remove(group);
-    group.traverse((c) => {
-      if (c.isMesh) {
-        // los geometrías son compartidas, no las dispose.
-        if (c.material && c.material.dispose) {
+  } else {
+    console.warn(`[AssetManager ${this.assetType}] Grupo NO encontrado en escena!`);
+  }
+  
+  group.traverse((c) => {
+    if (c.isMesh && c.material && c.material.dispose) {
+      c.material.dispose();
+    }
+  });
+  
+  this.preview = null;
+}
+
+  /**
+   * Limpia todas las instancias de este asset manager
+   */
+  disposeAll() {
+    this.disposePreview();
+    
+    this.instances.forEach(instance => {
+      this.scene.remove(instance.group);
+      instance.group.traverse((c) => {
+        if (c.isMesh && c.material && c.material.dispose) {
           c.material.dispose();
         }
+      });
+      
+      if (instance.physicsEntity && this.physics.removeEntity) {
+        this.physics.removeEntity(instance.physicsEntity);
       }
     });
-    this.preview = null;
+    
+    this.instances = [];
   }
 
+  /**
+   * Método estático para acceder a los materiales globales desde fuera
+   */
+  static getGlobalMaterials() {
+    return GLOBAL_MATERIALS;
+  }
+
+  /**
+   * Limpia el preview y asegura que no queden referencias
+   */
+  resetPreview() {
+    this.disposePreview()
+    this.preview = null
+  }
 }
 
 export default AssetManager;

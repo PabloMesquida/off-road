@@ -117,7 +117,7 @@ class View {
   // ================================
   onMouseDown(e) {
     // No hacer nada si estamos colocando conos o arrastrando un asset
-    if (this.game.world.isPlacingCone || this.game.world.isDraggingAsset) return;
+    if (this.game.world.isPlacingAsset || this.game.world.isDraggingAsset) return;
     
     if (!this.isEditing) return;
     
@@ -131,7 +131,7 @@ class View {
 
   onMouseMove(e) {
     // No hacer nada si estamos colocando conos o arrastrando un asset
-    if (this.game.world.isPlacingCone || this.game.world.isDraggingAsset) return;
+    if (this.game.world.isPlacingAsset || this.game.world.isDraggingAsset) return;
     
     if (!this.isEditing || !this.dragging) return;
 
@@ -159,7 +159,7 @@ class View {
 
   onMouseUp(e) {
     // No hacer nada si estamos colocando conos o arrastrando un asset
-    if (this.game.world.isPlacingCone || this.game.world.isDraggingAsset) return;
+    if (this.game.world.isPlacingAsset || this.game.world.isDraggingAsset) return;
     
     if (!this.isEditing) return;
     
@@ -177,7 +177,7 @@ class View {
 
   onWheel(e) {
     // No hacer zoom si estamos colocando conos o arrastrando un asset
-    if (this.game.world.isPlacingCone || this.game.world.isDraggingAsset) return;
+    if (this.game.world.isPlacingAsset || this.game.world.isDraggingAsset) return;
     
     if (!this.isEditing) return;
     

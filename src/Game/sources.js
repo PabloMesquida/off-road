@@ -12,7 +12,12 @@ export default [
     {
         name: 'coneModel',
         type: 'gltfModel',
-        path: 'models/Assets/Cone/cono_02.glb'
+        path: 'models/Assets/Cone/cono_03.glb'
+    },
+    {
+        name: 'barrelModel',
+        type: 'gltfModel',
+        path: 'models/Assets/Barrel/barril_04.glb'
     },
     {
         name: 'environmentMapTexture',
