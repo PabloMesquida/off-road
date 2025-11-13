@@ -47,31 +47,36 @@ export default class TransformControlsManager {
 
     this.scene.add(this.transform.getHelper())
 
-    // this.transform.addEventListener('dragging-changed', (e) => {
-    //   this.onChangeKinematic?.(e.value, this.selectedAsset)
-    // })
-
     this.transform.addEventListener('dragging-changed', (e) => {
       // Solo notificamos
       this.onChangeKinematic?.(e.value, this.selectedAsset)
     })
 
-
-  this.transform.addEventListener('objectChange', () => {
-    const group = this.selectedAsset
-    if (!group?.body) return
-    if (group.body.isKinematic && typeof group.body.isKinematic === 'function' ? group.body.isKinematic() : false) {
-      // setNextKinematic* solo para kinematic
-      group.body.setNextKinematicTranslation?.(group.position)
-      group.body.setNextKinematicRotation?.(group.quaternion)
-    }
-  })
-
+    this.transform.addEventListener('objectChange', () => {
+      const group = this.selectedAsset
+      if (!group?.body) return
+      if (group.body.isKinematic && typeof group.body.isKinematic === 'function' ? group.body.isKinematic() : false) {
+        // setNextKinematic* solo para kinematic
+        group.body.setNextKinematicTranslation?.(group.position)
+        group.body.setNextKinematicRotation?.(group.quaternion)
+      }
+    })
   }
 
   attach(object) {
     this.selectedAsset = object
-    this.transform?.attach(object)
+    
+    if (!this.transform) return
+    
+    this.transform.attach(object)
+
+    const box = new THREE.Box3().setFromObject(object)
+    const size = new THREE.Vector3()
+    box.getSize(size)
+    const maxDimension = Math.max(size.x, size.y, size.z)
+
+    const scaleFactor = Math.max(0.5, Math.min(maxDimension * 0.5, 5)) 
+    this.transform.setSize(scaleFactor)
   }
 
   detach() {
@@ -84,7 +89,5 @@ export default class TransformControlsManager {
     this.scene.remove(this.transform.getHelper())
     this.transform.dispose()
     this.transform = null
-  }
-
-  
+  } 
 }
