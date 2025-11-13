@@ -1,0 +1,90 @@
+import { TransformControls } from 'three/examples/jsm/Addons.js'
+import * as THREE from 'three/webgpu'
+
+export default class TransformControlsManager {
+  constructor({ scene, cameraGetter, domElement, inputsEvents, onChangeKinematic }) {
+    this.scene = scene
+    this.cameraGetter = cameraGetter
+    this.domElement = domElement
+    this.inputsEvents = inputsEvents
+    this.onChangeKinematic = onChangeKinematic
+
+    this.transform = null
+    this.selectedAsset = null
+  }
+
+  create() {
+    if (this.transform) return
+
+    const camera = this.cameraGetter()
+    this.transform = new TransformControls(camera, this.domElement)
+
+    this.transform.showX = true
+    this.transform.showY = false
+    this.transform.showZ = true
+
+    this.inputsEvents.on('translateMode', (isDown) => {
+      if (isDown) {
+        this.transform.setMode('translate')
+        this.transform.showX = true
+        this.transform.showY = false
+        this.transform.showZ = true
+      }
+    })
+
+    this.inputsEvents.on('rotateMode', (isDown) => {
+      if (isDown) {
+        this.transform.setMode('rotate')
+        this.transform.showX = false
+        this.transform.showY = true
+        this.transform.showZ = false
+      }
+    })
+
+    this.transform.setColors(0xFFFFFF50, 0xFFFFFF, 0xFFFFFF50, 0xffff00)
+    this.transform.setSpace('world')
+    this.transform.rotationSnap = THREE.MathUtils.degToRad(5)
+
+    this.scene.add(this.transform.getHelper())
+
+    // this.transform.addEventListener('dragging-changed', (e) => {
+    //   this.onChangeKinematic?.(e.value, this.selectedAsset)
+    // })
+
+    this.transform.addEventListener('dragging-changed', (e) => {
+      // Solo notificamos
+      this.onChangeKinematic?.(e.value, this.selectedAsset)
+    })
+
+
+  this.transform.addEventListener('objectChange', () => {
+    const group = this.selectedAsset
+    if (!group?.body) return
+    if (group.body.isKinematic && typeof group.body.isKinematic === 'function' ? group.body.isKinematic() : false) {
+      // setNextKinematic* solo para kinematic
+      group.body.setNextKinematicTranslation?.(group.position)
+      group.body.setNextKinematicRotation?.(group.quaternion)
+    }
+  })
+
+  }
+
+  attach(object) {
+    this.selectedAsset = object
+    this.transform?.attach(object)
+  }
+
+  detach() {
+    this.selectedAsset = null
+    this.transform?.detach()
+  }
+
+  dispose() {
+    if (!this.transform) return
+    this.scene.remove(this.transform.getHelper())
+    this.transform.dispose()
+    this.transform = null
+  }
+
+  
+}

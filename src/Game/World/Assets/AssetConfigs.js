@@ -1,7 +1,7 @@
 
 import * as THREE from 'three'
 
-// 🎨 Materiales globales reutilizables
+//  Materiales globales reutilizables
 export const GLOBAL_MATERIALS = {
   naranja: new THREE.MeshStandardMaterial({ color: 0xad4800, metalness: 0, roughness: 0.9 }),
   blanco:  new THREE.MeshStandardMaterial({ color: 0xf5e8df, metalness: 0, roughness: 0.9 }),
@@ -15,7 +15,7 @@ export const GLOBAL_MATERIALS = {
   default: new THREE.MeshStandardMaterial({ color: 0xffffaa, metalness: 0, roughness: 0.9 })
 }
 
-// ⚙️ Configuración individual por tipo de asset
+// Configuración individual por tipo de asset
 export const ASSET_CONFIGS = (size) => ({
   cone: {
     materialMapping: {

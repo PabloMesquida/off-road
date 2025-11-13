@@ -12,7 +12,7 @@ class AssetManager {
     this.resourceName = options.resourcePathName || "coneModel";
     this.assetType = options.assetType || "cone";
 
-    // Buscar el modelo en los recursos cargados
+    // Cargar modelo original
     this.original = this.resources.items?.[this.resourceName]?.scene;
     if (!this.original) {
       console.warn(`[AssetManager] Recurso no encontrado: ${this.resourceName}`);
@@ -30,22 +30,17 @@ class AssetManager {
     this.size = new THREE.Vector3();
     box.getSize(this.size);
 
-    // Configuración según tipo (traída de AssetConfigs.js)
+    // Configuración según tipo
     const configs = ASSET_CONFIGS(this.size);
     this.config = configs[this.assetType] || configs.cone;
 
-    // Materiales globales compartidos
     this.sharedMaterials = GLOBAL_MATERIALS;
-
-    // Lista de instancias creadas
     this.instances = [];
-
-    // Preview temporal (para modo edición)
     this.preview = null;
   }
 
   /* ─────────────────────────────────────────────
-   * Material Assignment
+   * Materiales compartidos
    * ───────────────────────────────────────────── */
   assignMaterialByAssetType(child) {
     const materialName = this.getMaterialNameForMesh(child.name);
@@ -55,16 +50,12 @@ class AssetManager {
   getMaterialNameForMesh(meshName) {
     const mapping = this.config.materialMapping || {};
 
-    // Exact match
     if (mapping[meshName]) return mapping[meshName];
-
-    // Partial match (case-insensitive)
     const lowerName = meshName.toLowerCase();
     for (const [key, value] of Object.entries(mapping)) {
       if (lowerName.includes(key.toLowerCase())) return value;
     }
 
-    // Fallback por tipo de asset
     switch (this.assetType) {
       case "cone": return "naranja";
       case "barrel": return "azul";
@@ -73,21 +64,16 @@ class AssetManager {
   }
 
   /* ─────────────────────────────────────────────
-   * Clonado eficiente (geometría + material compartido)
+   * Clonado eficiente
    * ───────────────────────────────────────────── */
   cloneModelShared() {
     const clone = this.original.clone(true);
 
     clone.traverse((child) => {
       if (!child.isMesh) return;
-
-      // Compartir geometría si existe en el original
       const orig = this.origMeshes[child.name];
       if (orig) child.geometry = orig.geometry;
-
-      // Asignar material global según mapeo
       child.material = this.assignMaterialByAssetType(child);
-
       child.castShadow = true;
       child.receiveShadow = true;
     });
@@ -96,28 +82,36 @@ class AssetManager {
   }
 
   /* ─────────────────────────────────────────────
-   * Spawn (crear instancia física + visual)
+   * Spawn (modelo + física + grupo raíz)
    * ───────────────────────────────────────────── */
   spawn(position = { x: 0, y: 0, z: 0 }) {
     if (!this.physics || !this.physics.world) {
       console.warn("[AssetManager] Física no inicializada todavía.");
     }
 
+    // ✅ Grupo raíz consistente
     const group = new THREE.Group();
+    group.name = `${this.assetType}_group`;
+
+    // Modelo visual
     const model = this.cloneModelShared();
+    model.position.y += this.config.verticalOffset;
     group.add(model);
 
-    // Aplicar offset vertical del asset
-    model.position.y += this.config.verticalOffset;
+    // Posición inicial
+    group.position.set(position.x, position.y, position.z);
+
+    // Agregar grupo a escena
     this.scene.add(group);
 
-    // Crear entidad física según configuración
+    // Crear cuerpo físico
     let entity = null;
     if (this.physics?.world) {
       const physDesc = { ...this.config.physics, position };
       entity = this.physics.addEntity(physDesc, group);
     }
 
+    // Guardar referencias cruzadas
     const instance = {
       group,
       model,
@@ -127,42 +121,15 @@ class AssetManager {
       assetType: this.assetType
     };
 
+    group.userData.assetInstance = instance;
+    group.userData.assetType = this.assetType;
+
     this.instances.push(instance);
     return instance;
   }
 
   /* ─────────────────────────────────────────────
-   * Spawn Helpers (línea o grilla)
-   * ───────────────────────────────────────────── */
-  spawnLine({ count = 5, start = { x: 0, y: 0.1, z: 0 }, spacing = 1.2, axis = "x", offsetY = 0 } = {}) {
-    const list = [];
-    for (let i = 0; i < count; i++) {
-      const pos = { ...start };
-      if (axis === "x") pos.x += i * spacing;
-      else pos.z += i * spacing;
-      pos.y += offsetY;
-      list.push(this.spawn(pos));
-    }
-    return list;
-  }
-
-  spawnGrid({ rows = 2, cols = 5, spacingX = 1.2, spacingZ = 1.2, origin = { x: 0, y: 0.1, z: 0 } } = {}) {
-    const list = [];
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const pos = {
-          x: origin.x + c * spacingX,
-          y: origin.y,
-          z: origin.z + r * spacingZ
-        };
-        list.push(this.spawn(pos));
-      }
-    }
-    return list;
-  }
-
-  /* ─────────────────────────────────────────────
-   * Preview (para modo edición)
+   * Preview (modo edición)
    * ───────────────────────────────────────────── */
   createPreview() {
     if (this.preview && this.preview.group) return this.preview;
@@ -184,8 +151,8 @@ class AssetManager {
     group.add(model);
     group.userData.isPreview = true;
     group.userData.assetType = this.assetType;
-    this.scene.add(group);
 
+    this.scene.add(group);
     this.preview = { group, model };
     return this.preview;
   }
@@ -204,24 +171,18 @@ class AssetManager {
   disposePreview() {
     if (!this.preview) return;
     const { group } = this.preview;
-
-    if (this.scene.children.includes(group)) {
-      this.scene.remove(group);
-    }
-
+    if (this.scene.children.includes(group)) this.scene.remove(group);
     group.traverse((c) => {
       if (c.isMesh && c.material?.dispose) c.material.dispose();
     });
-
     this.preview = null;
   }
 
   /* ─────────────────────────────────────────────
-   * Limpieza total (todas las instancias)
+   * Limpieza
    * ───────────────────────────────────────────── */
   disposeAll() {
     this.disposePreview();
-
     for (const inst of this.instances) {
       this.scene.remove(inst.group);
       inst.group.traverse((c) => {
@@ -231,13 +192,9 @@ class AssetManager {
         this.physics.removeEntity(inst.physicsEntity);
       }
     }
-
     this.instances = [];
   }
 
-  /* ─────────────────────────────────────────────
-   * Utilidades
-   * ───────────────────────────────────────────── */
   resetPreview() {
     this.disposePreview();
     this.preview = null;
