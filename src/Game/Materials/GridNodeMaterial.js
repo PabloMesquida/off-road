@@ -135,7 +135,7 @@ const computeStartBorder = TSL.Fn(({ position, planeSize, borderWidth, borderOff
   // --- Umbrales del borde ---
   const start = borderOffset;
   
-  // 👉 aplicar compensación en el eje Z
+  //  aplicar compensación en el eje Z
   const endX = borderOffset.add(borderWidth);
   const endZ = borderOffset.add(borderWidthZ);
 
@@ -247,8 +247,6 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
     super();
     this.isGridNodeMaterial = true;
 
-
-
     // Merge con preset default
     const finalParams = { ...GridPresets.default, ...params };
 
@@ -322,10 +320,12 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
       stripeSize: this._stripeSize
     });
 
-    const startBorderMask = computeStartBorder({   position: TSL.positionWorld,
+    const startBorderMask = computeStartBorder({   
+      position: TSL.positionWorld,
       planeSize: this._planeSize,
       borderWidth: TSL.float(0.25),
-      borderOffset: TSL.float(76)})
+      borderOffset: TSL.float(76)
+    })
 
     // convertimos máscara a vec3
     const maskVec = TSL.vec3(borderMask)
@@ -418,8 +418,8 @@ export class GridNodeMaterial extends THREE.NodeMaterial {
 
 
   get gridSize() {
-  return this._planeSize?.value ?? new THREE.Vector2(100, 100);
-}
+    return this._planeSize?.value ?? new THREE.Vector2(100, 100);
+  }
 
 set gridSize(v) {
   if (!this._planeSize) this._planeSize = TSL.uniform(new THREE.Vector2(100, 100));
@@ -507,169 +507,3 @@ set gridSize(v) {
     return new GridNodeMaterial({ ...preset, ...overrides });
   }
 }
-
-
-
-export class GridTriplanarNodeMaterial extends THREE.NodeMaterial {
-
-  static get type() { return 'GridTriplanarNodeMaterial'; }
-
-  constructor(params = {}) {
-    super();
-    this.isGridTriplanarNodeMaterial = true;
-
-    const finalParams = { ...GridPresets.default, ...params };
-
-    // --- Uniforms ---
-    this._cellSizeA = TSL.uniform(finalParams.cellSizeA);
-    this._lineWidthA = TSL.uniform(finalParams.lineWidthA);
-    this._colorA = TSL.uniform(new THREE.Color(finalParams.colorA));
-
-    this._cellSizeB = TSL.uniform(finalParams.cellSizeB);
-    this._lineWidthB = TSL.uniform(finalParams.lineWidthB);
-    this._colorB = TSL.uniform(new THREE.Color(finalParams.colorB));
-
-    this._cellSizeC = TSL.uniform(finalParams.cellSizeC);
-    this._lineWidthC = TSL.uniform(finalParams.lineWidthC);
-    this._colorC = TSL.uniform(new THREE.Color(finalParams.colorC));
-    this._segmentLen = TSL.uniform(finalParams.segmentLen);
-
-    this._bgColor = TSL.uniform(new THREE.Color(finalParams.bgColor));
-    this._opacity = TSL.uniform(1.0);
-
-    this._uvScaleX = TSL.uniform(new THREE.Vector2(1.0, 1.0));
-    this._uvScaleY = TSL.uniform(new THREE.Vector2(1.0, 1.0)); 
-    this._uvScaleZ = TSL.uniform(new THREE.Vector2(1.0, 1.0));
-
-    // --- Triplanar UVs ---
-    const posW = TSL.positionLocal;
-    const nW = TSL.normalLocal;
-
-    // UVs
-    const uvX = TSL.vec2(posW.y, posW.z).mul( TSL.vec2(this._uvScaleX.value.x, this._uvScaleX.value.y) );
-    const uvY = TSL.vec2(posW.x, posW.z).mul( TSL.vec2(this._uvScaleY.value.x, this._uvScaleY.value.y) );
-    const uvZ = TSL.vec2(posW.x, posW.y).mul( TSL.vec2(this._uvScaleZ.value.x, this._uvScaleZ.value.y) );
-
-    // derivadas para cada uv (para AA correcto)
-    const ddxX = TSL.dFdx(uvX), ddyX = TSL.dFdy(uvX);
-    const uvDerivX = TSL.vec2(
-      TSL.length(TSL.vec2(ddxX.x, ddyX.x)),
-      TSL.length(TSL.vec2(ddxX.y, ddyX.y))
-    );
-    
-    const ddxY = TSL.dFdx(uvY), ddyY = TSL.dFdy(uvY);
-    const uvDerivY = TSL.vec2(
-      TSL.length(TSL.vec2(ddxY.x, ddyY.x)),
-      TSL.length(TSL.vec2(ddxY.y, ddyY.y))
-    );
-    
-    const ddxZ = TSL.dFdx(uvZ), ddyZ = TSL.dFdy(uvZ);
-    const uvDerivZ = TSL.vec2(
-      TSL.length(TSL.vec2(ddxZ.x, ddyZ.x)),
-      TSL.length(TSL.vec2(ddxZ.y, ddyZ.y))
-    );
-
-    // Masks A
-    const maskA_X = computeMask({ uv: uvX, lineWidth: this._lineWidthA, cellSize: this._cellSizeA, uvDeriv: uvDerivX });
-    const maskA_Y = computeMask({ uv: uvY, lineWidth: this._lineWidthA, cellSize: this._cellSizeA, uvDeriv: uvDerivY });
-    const maskA_Z = computeMask({ uv: uvZ, lineWidth: this._lineWidthA, cellSize: this._cellSizeA, uvDeriv: uvDerivZ });
-
-    // Masks B
-    const maskB_X = computeMask({ uv: uvX, lineWidth: this._lineWidthB, cellSize: this._cellSizeB, uvDeriv: uvDerivX });
-    const maskB_Y = computeMask({ uv: uvY, lineWidth: this._lineWidthB, cellSize: this._cellSizeB, uvDeriv: uvDerivY });
-    const maskB_Z = computeMask({ uv: uvZ, lineWidth: this._lineWidthB, cellSize: this._cellSizeB, uvDeriv: uvDerivZ });
-
-    // Masks C
-    const maskC_X = computePlusMask({ uv: uvX, lineWidth: this._lineWidthC, cellSize: this._cellSizeC, segmentLen: this._segmentLen, uvDeriv: uvDerivX });
-    const maskC_Y = computePlusMask({ uv: uvY, lineWidth: this._lineWidthC, cellSize: this._cellSizeC, segmentLen: this._segmentLen, uvDeriv: uvDerivY });
-    const maskC_Z = computePlusMask({ uv: uvZ, lineWidth: this._lineWidthC, cellSize: this._cellSizeC, segmentLen: this._segmentLen, uvDeriv: uvDerivZ });
-
-    // Pesos triplanar
-    const w = TSL.abs(nW);
-    const sum = w.x.add(w.y).add(w.z);
-    const weight = TSL.vec3(w.x.div(sum), w.y.div(sum), w.z.div(sum));
-
-    // Combinar máscaras
-    const maskA = maskA_X.mul(weight.x).add(maskA_Y.mul(weight.y)).add(maskA_Z.mul(weight.z));
-    const maskB = maskB_X.mul(weight.x).add(maskB_Y.mul(weight.y)).add(maskB_Z.mul(weight.z));
-    const maskC = maskC_X.mul(weight.x).add(maskC_Y.mul(weight.y)).add(maskC_Z.mul(weight.z));
-
-    // Post-proceso de capas
-    const one = TSL.float(1.0);
-    const mA = TSL.saturate(maskA);
-    const mB = TSL.saturate(maskB.mul(one.sub(mA)));
-    const mC = TSL.saturate(maskC.mul(one.sub(mA)).mul(one.sub(mB)));
-    const total = mA.add(mB).add(mC);
-    const bgWeight = TSL.saturate(one.sub(total));
-
-    // Composición final
-    const out = TSL.clamp(
-      this._bgColor.mul(bgWeight)
-        .add(this._colorA.mul(mA))
-        .add(this._colorB.mul(mB))
-        .add(this._colorC.mul(mC)),
-      TSL.vec3(0.0),
-      TSL.vec3(1.0)
-    );
-
-    this.colorNode = out;
-    this.alphaNode = this._opacity;
-    this.transparent = true
-  }
-
-  // --- Getters / Setters ---
-  get cellSizeA() { return this._cellSizeA.value; }
-  set cellSizeA(v) { this._cellSizeA.value = v; }
-
-  get lineWidthA() { return this._lineWidthA.value; }
-  set lineWidthA(v) { this._lineWidthA.value = v; }
-
-  get colorA() { return this._colorA.value; }
-  set colorA(v) {
-    if (typeof v === 'string' || typeof v === 'number') this._colorA.value.set(v);
-    else this._colorA.value.copy(v);
-  }
-
-  get cellSizeB() { return this._cellSizeB.value; }
-  set cellSizeB(v) { this._cellSizeB.value = v; }
-
-  get lineWidthB() { return this._lineWidthB.value; }
-  set lineWidthB(v) { this._lineWidthB.value = v; }
-
-  get colorB() { return this._colorB.value; }
-  set colorB(v) {
-    if (typeof v === 'string' || typeof v === 'number') this._colorB.value.set(v);
-    else this._colorB.value.copy(v);
-  }
-
-  get cellSizeC() { return this._cellSizeC.value; }
-  set cellSizeC(v) { this._cellSizeC.value = v; }
-
-  get lineWidthC() { return this._lineWidthC.value; }
-  set lineWidthC(v) { this._lineWidthC.value = v; }
-
-  get colorC() { return this._colorC.value; }
-  set colorC(v) {
-    if (typeof v === 'string' || typeof v === 'number') this._colorC.value.set(v);
-    else this._colorC.value.copy(v);
-  }
-
-  get segmentLen() { return this._segmentLen.value; }
-  set segmentLen(v) { this._segmentLen.value = v; }
-
-  get bgColor() { return this._bgColor.value; }
-  set bgColor(v) {
-    if (typeof v === 'string' || typeof v === 'number') this._bgColor.value.set(v);
-    else this._bgColor.value.copy(v);
-  }
-
-  get opacity() { return this._opacity.value; }
-  set opacity(v) { this._opacity.value = v; }
-
-  // --- Factory estática ---
-  static fromPreset(style = 'default', overrides = {}) {
-    const preset = GridPresets[style] || GridPresets.default;
-    return new GridTriplanarNodeMaterial({ ...preset, ...overrides });
-  }
-}
-

@@ -9,7 +9,8 @@ class Floor{
     this.scene = scene
     this.physics = physics
     this.size = { x, y, z }
-    
+
+    this.debugStartZoneMesh = null
 
     this.PARAMS = {
       preset: 'dark',
@@ -58,16 +59,9 @@ class Floor{
     })
   }
 
-  setEditableState(isEditing) {
-    if (!this.folder) return
 
-    const folderEl = this.folder.element
-    if (folderEl) {
-      folderEl.style.opacity = isEditing ? '1' : '0.5'
-      folderEl.style.pointerEvents = isEditing ? 'auto' : 'none'
-    }
-  }
 
+ 
   setModel(){
     const { x, y, z } = this.size
     const geometry = new THREE.BoxGeometry(x, y, z)
@@ -99,6 +93,8 @@ class Floor{
     floorMesh.receiveShadow = true;
     this.floorGroup.add(subFloorMesh)
     this.floorGroup.add(floorMesh)
+
+    this.createDebugStartZone()
 
     this.scene.add(this.floorGroup)
   }
@@ -146,7 +142,64 @@ class Floor{
     return halfSize - this.PARAMS.offset - this.PARAMS.width;
   }
 
- 
+  getStartZoneBounds() {
+      // Tamaño de la zona prohibida (ancho y profundidad)
+      const startZoneWidth = 8; 
+      const startZoneDepth = 5; 
+
+      // Centro del plano (0,0)
+      const xMin = -startZoneWidth / 2;
+      const xMax = startZoneWidth / 2;
+      const zMin = -startZoneDepth / 2;
+      const zMax = startZoneDepth / 2;
+
+      return { xMin, xMax, zMin, zMax };
+  }
+
+  createDebugStartZone() {
+    const b = this.getStartZoneBounds();
+    const sizeX = b.xMax - b.xMin;
+    const sizeZ = b.zMax - b.zMin;
+    const geometry = new THREE.BoxGeometry(sizeX, 0.01, sizeZ);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      opacity: 0.05,
+      transparent: true,
+    });
+    this.debugStartZoneMesh = new THREE.Mesh(geometry, material);
+    this.debugStartZoneMesh.position.set((b.xMin + b.xMax) / 2, 0.11, (b.zMin + b.zMax) / 2);
+    this.debugStartZoneMesh.visible = false; // Oculto por defecto
+    this.scene.add(this.debugStartZoneMesh);
+  }
+
+
+  isInsideStartZone(position) {
+    const b = this.getStartZoneBounds();
+    const { x, z } = position;
+    return x >= b.xMin && x <= b.xMax && z >= b.zMin && z <= b.zMax;
+  }
+  
+  setDebugStartZoneVisible(visible) {
+
+    if (this.debugStartZoneMesh) {
+      this.debugStartZoneMesh.visible = visible;
+          console.log('visible',visible)
+    }
+  }
+
+  setEditableState(isEditing) {
+    console.log(isEditing)
+    if (!this.folder) return
+
+    const folderEl = this.folder.element
+    if (folderEl) {
+      folderEl.style.opacity = isEditing ? '1' : '0.5'
+      folderEl.style.pointerEvents = isEditing ? 'auto' : 'none'
+    }
+
+    // Controlar visibilidad de la zona de debug
+    this.setDebugStartZoneVisible(isEditing);
+  }
 
 }
 

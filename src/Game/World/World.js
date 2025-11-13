@@ -142,6 +142,7 @@ class World {
     if (this.floor?.setEditableState)
       this.floor.setEditableState(isEditing)
 
+
     if (isEditing) {
       console.log('Edit mode ON')
 
@@ -342,7 +343,7 @@ class World {
         const q = selected.quaternion
         assetData.body.setNextKinematicRotation?.({ x: q.x, y: q.y, z: q.z, w: q.w })
       }
-    }
+    } 
 
 
     for (const assetType in this.assetManagers) {

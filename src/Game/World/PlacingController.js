@@ -16,8 +16,6 @@ export default class PlacingController {
 
     this.onPointerMove = this.onPointerMove.bind(this)
     this.onPointerDown = this.onPointerDown.bind(this)
-
-    console.log('scene', scene)
   }
 
   togglePlacing(assetType) {
@@ -36,16 +34,6 @@ export default class PlacingController {
     this.currentAssetType = assetType
     this.enablePlacing()
   }
-
-  // togglePlacing(assetType) {
-  //   if (this.isPlacing && this.currentAssetType === assetType) {
-  //     this.disablePlacing()
-  //     return
-  //   }
-  //   this.forceCleanPreviews()
-  //   this.currentAssetType = assetType
-  //   this.enablePlacing()
-  // }
 
   enablePlacing() {
     if (!this.currentAssetType) return
@@ -80,8 +68,6 @@ export default class PlacingController {
     }
   }
 
-
-
   onPointerMove(e) {
     if (!this.isPlacing || !this.currentAssetType) return
     const camera = this.cameraGetter()
@@ -105,8 +91,10 @@ export default class PlacingController {
   onPointerDown(e) {
     if (!this.isPlacing || !this.currentAssetType) return
     if (e.button !== 0) return
+
     const camera = this.cameraGetter()
     if (!camera) return
+
     const rect = this.domElement.getBoundingClientRect()
     this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
     this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
@@ -115,9 +103,19 @@ export default class PlacingController {
     const floorMesh = this.floor?.mesh
     const intersects = this.raycaster.intersectObject(floorMesh, true)
     const hit = intersects[0]
+
     if (hit) {
+      const position = { x: hit.point.x, y: hit.point.y, z: hit.point.z }
+      console.log(position)
+      //  Paso 3: chequeo del área de salida del vehículo
+      if (this.floor.isInsideStartZone(position)) {
+        console.warn('❌ No se puede colocar objetos en el área de salida del vehículo')
+        return
+      }
+
+      // Si pasa el filtro, se spawnea normalmente
       const manager = this.assetManagers[this.currentAssetType]
-      manager?.spawn?.({ x: hit.point.x, y: hit.point.y, z: hit.point.z })
+      manager?.spawn?.(position)
     }
   }
 
