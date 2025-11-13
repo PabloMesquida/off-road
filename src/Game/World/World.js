@@ -345,8 +345,8 @@ class World {
       }
     } 
 
-
-    for (const assetType in this.assetManagers) {
+   if(this._isDraggingAsset) {
+      for (const assetType in this.assetManagers) {
       const manager = this.assetManagers[assetType]
       if (manager?.instances) {
         for (const instance of manager.instances) {
@@ -362,6 +362,8 @@ class World {
         }
       }
     }
+}
+
 
     if (!this.vehicle) return
     const pos = this.vehicle.chassis.mesh.position
