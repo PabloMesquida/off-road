@@ -29,7 +29,7 @@ class Wheel {
     }
  
 
-     // ✅ rotar el modelo según el lado del coche
+     //  rotar el modelo según el lado del coche
     if (this.position.z <= 0) { 
       // Lado derecho → girar la rueda
       this.model.rotation.y = -Math.PI

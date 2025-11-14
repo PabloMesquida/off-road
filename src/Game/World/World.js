@@ -181,8 +181,6 @@ class World {
 
       this.domElement.removeEventListener('pointermove', this.onPointerHoverAsset)
       this.domElement.removeEventListener('pointerdown', this.onPointerSelectAsset)
-
-     
     }
 
     this.updateCursor()
