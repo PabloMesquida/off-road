@@ -199,8 +199,53 @@ class Floor{
 
     // Controlar visibilidad de la zona de debug
     this.setDebugStartZoneVisible(isEditing);
+
+    // Añadir o quitar collider físico
+    if (isEditing) {
+      this.createStartZoneCollider();
+    } else {
+      this.removeStartZoneCollider();
+    }
   }
 
+  createStartZoneCollider() {
+    if (this.startZoneBody) return; // evitar duplicados
+
+    const b = this.getStartZoneBounds();
+    const sizeX = b.xMax - b.xMin;
+    const sizeZ = b.zMax - b.zMin;
+
+    const halfX = sizeX * 0.5;
+    const halfZ = sizeZ * 0.5;
+
+    // ALTURA total = 10 → halfHeight = 5
+    const halfY = 5;
+
+    // centro del startZone
+    const centerX = (b.xMin + b.xMax) / 2;
+    const centerZ = (b.zMin + b.zMax) / 2;
+
+    // Elevar el collider para que quede centrado en la altura
+    const centerY = halfY;
+
+    this.startZoneBody = this.physics.addEntity({
+      type: 'fixed',
+      position: { x: centerX, y: centerY, z: centerZ },
+      colliders: [{
+        shape: 'cuboid',
+        parameters: [halfX, halfY, halfZ],
+        restitution: 0,
+        friction: 0.5
+      }]
+    });
+  }
+
+  removeStartZoneCollider() {
+    if (this.startZoneBody) {
+      this.physics.removeEntity?.(this.startZoneBody);
+      this.startZoneBody = null;
+    }
+  }
 }
 
 export default Floor

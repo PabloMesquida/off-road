@@ -152,6 +152,9 @@ class World {
         body.setRotation(this.initialVehicleRotation, true)
         body.setLinvel({ x: 0, y: 0, z: 0 }, true)
         body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+        
+        this.vehicle.chassis.mesh.visible = false
+        this.vehicle.chassis.body.setEnabled(false)
       }
 
       this.transformManager?.create()
@@ -175,6 +178,11 @@ class World {
 
       this.domElement.removeEventListener('pointermove', this.onPointerHoverAsset)
       this.domElement.removeEventListener('pointerdown', this.onPointerSelectAsset)
+
+      if (this.vehicle) {
+        this.vehicle.chassis.mesh.visible = true
+        this.vehicle.chassis.body.setEnabled(true)
+      }
     }
 
     this.updateCursor()
