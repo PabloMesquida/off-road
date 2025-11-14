@@ -68,7 +68,6 @@ class World {
           const assetData = this.findAssetData(selectedAsset)
           if (!assetData?.body) return
           const body = assetData.body
-          console.log(body)
           if (isDragging) {
             // Mientras arrastras → kinemático
             body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
@@ -164,6 +163,10 @@ class World {
       this.domElement.addEventListener('pointerdown', this.onPointerSelectAsset)
     } else {
       console.log('Edit mode OFF')
+       if (this.vehicle) {
+        this.vehicle.chassis.mesh.visible = true
+        this.vehicle.chassis.body.setEnabled(true)
+      }
 
       this.placing?.disablePlacing()
       this.transformManager?.dispose()
@@ -179,10 +182,7 @@ class World {
       this.domElement.removeEventListener('pointermove', this.onPointerHoverAsset)
       this.domElement.removeEventListener('pointerdown', this.onPointerSelectAsset)
 
-      if (this.vehicle) {
-        this.vehicle.chassis.mesh.visible = true
-        this.vehicle.chassis.body.setEnabled(true)
-      }
+     
     }
 
     this.updateCursor()

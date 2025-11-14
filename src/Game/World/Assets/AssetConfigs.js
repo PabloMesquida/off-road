@@ -31,7 +31,7 @@ export const ASSET_CONFIGS = (size) => ({
         com: { x: 0, y: -size.y / 4, z: 0 }
       },
       colliders: [
-        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 0.6 }
+        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 2.5 }
       ]
     },
     verticalOffset: -size.y / 2
@@ -51,7 +51,7 @@ export const ASSET_CONFIGS = (size) => ({
         com: { x: 0, y: -size.y / 4, z: 0 }
       },
       colliders: [
-        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 0.6 }
+        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 2.5 }
       ]
     },
     verticalOffset: -size.y / 2

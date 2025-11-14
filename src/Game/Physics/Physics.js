@@ -174,6 +174,87 @@ class Physics{
     // 3. Devolver el paquete físico
     return { body, colliders }
   }
+
+
+  // Método para eliminar entidades
+  removeEntity(entity) {
+    if (!entity || !this.world) return false
+
+    try {
+      // Buscar la entidad en el Map
+      let entityKey = null
+      for (const [key, value] of this.entities.entries()) {
+        if (value === entity || value.physical?.body === entity) {
+          entityKey = key
+          break
+        }
+      }
+
+      if (entityKey) {
+        const entityData = this.entities.get(entityKey)
+        
+        // Eliminar colliders primero
+        if (entityData.physical?.colliders) {
+          entityData.physical.colliders.forEach(collider => {
+            this.world.removeCollider(collider, true)
+          })
+        }
+
+        // Eliminar el cuerpo rígido
+        if (entityData.physical?.body) {
+          this.world.removeRigidBody(entityData.physical.body)
+        }
+
+        // Eliminar del Map
+        this.entities.delete(entityKey)
+        return true
+      }
+      
+      return false
+    } catch (error) {
+      console.error('Error al eliminar entidad física:', error)
+      return false
+    }
+  }
+
+  // Método alternativo para eliminar por key
+  removeEntityByKey(key) {
+    if (!this.entities.has(key)) return false
+
+    try {
+      const entity = this.entities.get(key)
+      
+      // Eliminar colliders
+      if (entity.physical?.colliders) {
+        entity.physical.colliders.forEach(collider => {
+          this.world.removeCollider(collider, true)
+        })
+      }
+
+      // Eliminar cuerpo rígido
+      if (entity.physical?.body) {
+        this.world.removeRigidBody(entity.physical.body)
+      }
+
+      // Eliminar del Map
+      this.entities.delete(key)
+      return true
+    } catch (error) {
+      console.error('Error al eliminar entidad física por key:', error)
+      return false
+    }
+  }
+
+  // Método para obtener todas las keys de entidades (útil para debugging)
+  getEntityKeys() {
+    return Array.from(this.entities.keys())
+  }
+
+  // Método para obtener una entidad por key
+  getEntity(key) {
+    return this.entities.get(key)
+  }
+
 }
 
 export default Physics
