@@ -39,6 +39,7 @@ class Game{
       { name: 'hazard', keys: ['KeyB'] }, 
       { name: 'translateMode', keys: ['KeyT'] },
       { name: 'rotateMode', keys: ['KeyR'] },
+      { name: 'delete', keys: ['KeyX'] },
     ])
 
     this.world = null

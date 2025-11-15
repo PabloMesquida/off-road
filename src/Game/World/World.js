@@ -77,7 +77,8 @@ class World {
             body.setRotation(selectedAsset.quaternion, true)
             body.setBodyType(RAPIER.RigidBodyType.Dynamic, true)
           }
-        }
+        },
+        onDeleteAsset: (assetGroup) => this.deleteAsset(assetGroup)
       })
     })
 
@@ -314,6 +315,44 @@ class World {
 
      this.updateCursor()
    }
+
+
+  deleteAsset(group) {
+    // Buscar la instancia asociada
+    let managerFound = null
+    let instanceIndex = -1
+    let instance = null
+
+    for (const type in this.assetManagers) {
+      const manager = this.assetManagers[type]
+      instanceIndex = manager.instances.findIndex(inst => inst.group === group)
+      if (instanceIndex !== -1) {
+        managerFound = manager
+        instance = manager.instances[instanceIndex]
+        break
+      }
+    }
+
+    if (!instance) return
+
+    // 1. Eliminar física si existe
+    if (instance.physicsEntity) {
+      const removed = this.game.physics.removeEntity(instance.physicsEntity)
+      console.log("remove physics:", removed)
+    }
+
+    // 2. Quitar del scene
+    this.scene.remove(group)
+
+    // 3. Quitar del AssetManager
+    managerFound.instances.splice(instanceIndex, 1)
+
+    // 4. Quitar highlight y gizmo
+    this.highlightAsset(group, false)
+    this.transformManager.detach()
+
+    console.log("Asset deleted successfully")
+  }
 
   /*────────────────────────────────────────────── 
   * Public getters 

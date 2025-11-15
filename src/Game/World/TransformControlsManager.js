@@ -3,7 +3,7 @@ import * as THREE from 'three/webgpu'
 import Game from '../Game'
 
 export default class TransformControlsManager {
-  constructor({ scene, cameraGetter, domElement, inputsEvents, onChangeKinematic }) {
+  constructor({ scene, cameraGetter, domElement, inputsEvents, onChangeKinematic, onDeleteAsset }) {
     this.game = new Game()
     this.floor = this.game.world.floor
     this.scene = scene
@@ -11,6 +11,7 @@ export default class TransformControlsManager {
     this.domElement = domElement
     this.inputsEvents = inputsEvents
     this.onChangeKinematic = onChangeKinematic
+    this.onDeleteAsset = onDeleteAsset
 
     this.transform = null
     this.selectedAsset = null
@@ -28,6 +29,15 @@ export default class TransformControlsManager {
     this.transform.showX = true
     this.transform.showY = false
     this.transform.showZ = true
+
+    this.inputsEvents.on("delete", (isDown) => {
+      if (!isDown) return
+      if (!this.selectedAsset) return
+
+      console.log("delete asset", this.selectedAsset)
+
+      this.onDeleteAsset?.(this.selectedAsset)
+    })
 
     this.inputsEvents.on('translateMode', (isDown) => {
       if (isDown) {
