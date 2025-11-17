@@ -26,7 +26,7 @@ class World {
 
     this.isEditing = false
     this._isDraggingAsset = false
-    this.isHoveringAsset = false
+    this._isHoveringAsset = false
 
     this.assetManagers = {}
 
@@ -47,6 +47,10 @@ class World {
       this.assetManagers.barrel = new AssetManager(this.scene, {
         resourcePathName: "barrelModel",
         assetType: "barrel"
+      })
+       this.assetManagers.ramp = new AssetManager(this.scene, {
+        resourcePathName: "rampModel",
+        assetType: "ramp"
       })
 
       // Inicializar subcontroladores
@@ -103,6 +107,9 @@ class World {
       this.placingButtonBarrel = this.assetsfolder.addButton({ title: 'Barrel' })
       this.placingButtonBarrel.on('click', () => this.placing?.togglePlacing('barrel'))
 
+      this.placingButtonRamp = this.assetsfolder.addButton({ title: 'Ramp' })
+      this.placingButtonRamp.on('click', () => this.placing?.togglePlacing('ramp'))
+
       this.updateTweakpaneState(false)
     } catch (e) {
       console.warn('[World] Tweakpane no disponible:', e)
@@ -123,8 +130,8 @@ class World {
   updateCursor() {
     if (!this.domElement) return
     if (this.placing?.isPlacing) this.domElement.style.cursor = 'crosshair'
-    else if (this.isDraggingAsset) this.domElement.style.cursor = 'grabbing'
-    else if (this.isHoveringAsset) this.domElement.style.cursor = 'pointer'
+    else if (this._isDraggingAsset) this.domElement.style.cursor = 'grabbing'
+    else if (this._isHoveringAsset) this.domElement.style.cursor = 'pointer'
     else if (this.isEditing) this.domElement.style.cursor = 'grab'
     else this.domElement.style.cursor = 'default'
   }
@@ -173,7 +180,7 @@ class World {
       this.transformManager?.dispose()
 
       this._isDraggingAsset = false
-      this.isHoveringAsset = false
+      this._isHoveringAsset = false
 
       if (this.transformManager?.selectedAsset) {
         this.highlightAsset(this.transformManager.selectedAsset, false)
@@ -268,12 +275,12 @@ class World {
          this.highlightAsset(this.hoveredAsset, false)
          this.hoveredAsset = assetGroup
          this.highlightAsset(this.hoveredAsset, true)
-         this.isHoveringAsset = true
+         this._isHoveringAsset = true
        }
      } else {
       this.highlightAsset(this.hoveredAsset, false)
        this.hoveredAsset = null
-       this.isHoveringAsset = false
+       this._isHoveringAsset = false
      }
 
      this.updateCursor()

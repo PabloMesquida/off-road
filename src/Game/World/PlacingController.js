@@ -25,6 +25,7 @@ export default class PlacingController {
       return
     }
 
+  
     // Desactivar preview del asset previo
     if (this.isPlacing && this.currentAssetType) {
       const prevManager = this.assetManagers[this.currentAssetType]
@@ -54,19 +55,19 @@ export default class PlacingController {
     this.currentAssetType = null
   }
 
-  forceCleanPreviews() {
-    if (!this.scene) return
+  // forceCleanPreviews() {
+  //   if (!this.scene) return
+  //   console.log('force')
+  //   this.scene.traverse(child => {
+  //     if (child.userData?.isPreview) this.scene.remove(child)
+  //   })
 
-    this.scene.traverse(child => {
-      if (child.userData?.isPreview) this.scene.remove(child)
-    })
-
-    for (const k in this.assetManagers) {
-      if (this.assetManagers[k]) {
-        this.assetManagers[k].preview = null
-      }
-    }
-  }
+  //   for (const k in this.assetManagers) {
+  //     if (this.assetManagers[k]) {
+  //       this.assetManagers[k].preview = null
+  //     }
+  //   }
+  // }
 
   onPointerMove(e) {
     if (!this.isPlacing || !this.currentAssetType) return

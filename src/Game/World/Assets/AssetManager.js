@@ -59,6 +59,7 @@ class AssetManager {
     switch (this.assetType) {
       case "cone": return "naranja";
       case "barrel": return "azul";
+      case "ramp": return "yellow";
       default: return "default";
     }
   }
@@ -89,7 +90,43 @@ class AssetManager {
       console.warn("[AssetManager] Física no inicializada todavía.");
     }
 
-    // ✅ Grupo raíz consistente
+    // Si el asset usa trimesh
+    if (this.config.physics.usesTrimesh) {
+
+      // 🔥 toma el mesh principal (o el que quieras)
+      const mesh = this.original.children.find(c => c.isMesh);
+
+      const { vertices, indices } = this.extractTrimeshData(mesh);
+
+      this.config.physics.colliders = [
+        {
+          shape: "trimesh",
+          parameters: { vertices, indices },
+          friction: 1.0
+        }
+      ];
+    }
+
+  if (this.config.physics.usesConvex) {
+
+      const mesh = this.original.children.find(c => c.isMesh);
+      const geo  = mesh.geometry;
+
+      const vertices = new Float32Array(geo.attributes.position.array);
+
+      // reemplazamos SOLO los parámetros del collider convex
+      this.config.physics.colliders = [
+          {
+              shape: "convex",
+              parameters: { vertices },
+              friction: this.config.physics.colliders[0]?.friction ?? 1.0,
+              density: this.config.physics.colliders[0]?.density ?? 1.0
+          }
+      ];
+  }
+
+
+    //  Grupo raíz consistente
     const group = new THREE.Group();
     group.name = `${this.assetType}_group`;
 
@@ -126,6 +163,42 @@ class AssetManager {
 
     this.instances.push(instance);
     return instance;
+  }
+
+  createConvexColliderFromMesh(mesh) {
+      const geo = mesh.geometry;
+
+      // Asegurar que la geometría está actualizada
+      geo.computeBoundingBox();
+      geo.computeBoundingSphere();
+
+      // Obtenemos los vértices de la geometría
+      const vertices = new Float32Array(geo.attributes.position.array);
+
+      return {
+          shape: "convex",
+          parameters: {
+              vertices
+          },
+          friction: 1.0
+      };
+  }
+
+  extractTrimeshData(mesh) {
+    const g = mesh.geometry;
+
+    const vertices = new Float32Array(g.attributes.position.array);
+    let indices;
+
+    if (g.index)
+      indices = new Uint32Array(g.index.array);
+    else {
+      // si la geometría no tiene índices, se generan
+      indices = new Uint32Array(vertices.length / 3);
+      for (let i = 0; i < indices.length; i++) indices[i] = i;
+    }
+
+    return { vertices, indices };
   }
 
   /* ─────────────────────────────────────────────

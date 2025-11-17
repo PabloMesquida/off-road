@@ -123,7 +123,7 @@ export default class TransformControlsManager {
     box.getSize(size)
     const maxDimension = Math.max(size.x, size.y, size.z)
 
-    const scaleFactor = Math.max(0.5, Math.min(maxDimension * 0.5, 5)) 
+    const scaleFactor = Math.max(0.5, Math.min(maxDimension * 0.5, 1)) 
     this.transform.setSize(scaleFactor)
   }
 

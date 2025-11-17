@@ -85,7 +85,7 @@ class Floor{
 
     const subFloorMesh = new THREE.Mesh(subFloorGeometry, this.subFloorMaterial)
     subFloorGeometry.rotateX(-Math.PI / 2)
-    subFloorMesh.position.set(0, 0.12, 0)
+    subFloorMesh.position.set(0, 0.11, 0)
     
     this.floorGroup = new THREE.Object3D()
     floorMesh.position.set(0, 0, 0)
@@ -202,13 +202,13 @@ class Floor{
 
     // Añadir o quitar collider físico
     if (isEditing) {
-      this.createStartZoneCollider();
-      console.log('create')
-    } else {
-      setTimeout(() => {
-        this.removeStartZoneCollider();
-        console.log('remove')
-      }, 100);
+        this.removeStartZoneCollider();   // 🔥 borrar el anterior SIEMPRE
+        this.createStartZoneCollider();   // 🔥 crearlo limpio
+    }
+    else {
+        setTimeout(() => {
+            this.removeStartZoneCollider(); // mejor borrar que esconder
+        }, 100);
     }
   }
 
@@ -223,14 +223,14 @@ class Floor{
     const halfZ = sizeZ * 0.5;
 
     // ALTURA total = 10 → halfHeight = 5
-    const halfY = 5;
+    const halfY = 10;
 
     // centro del startZone
     const centerX = (b.xMin + b.xMax) / 2;
     const centerZ = (b.zMin + b.zMax) / 2;
 
     // Elevar el collider para que quede centrado en la altura
-    const centerY = halfY;
+    const centerY = 10;
 
     this.startZoneBody = this.physics.addEntity({
       type: 'fixed',
@@ -242,13 +242,31 @@ class Floor{
         friction: 0.5
       }]
     });
+
+        this.showStartZoneCollider(centerX, centerY, centerZ);
   }
 
   removeStartZoneCollider() {
     if (this.startZoneBody) {
-      this.physics.removeEntity?.(this.startZoneBody);
+      this.physics.removeEntity(this.startZoneBody);
       this.startZoneBody = null;
     }
+  }
+
+  hideStartZoneCollider() {
+    if (!this.startZoneBody) return;
+    const body = this.startZoneBody.physical.body;
+
+    // Lo mandás lejos hacia abajo
+    body.setTranslation({ x: 0, y: -10000, z: 0 }, true);
+  }
+
+  showStartZoneCollider(realX, realY, realZ) {
+    if (!this.startZoneBody) return;
+    console.log('ok')
+    const body = this.startZoneBody.physical.body;
+
+    body.setTranslation({ x: realX, y: realY, z: realZ }, true);
   }
 }
 

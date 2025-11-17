@@ -20,6 +20,11 @@ export default [
         path: 'models/Assets/Barrel/barril_04.glb'
     },
     {
+        name: 'rampModel',
+        type: 'gltfModel',
+        path: 'models/Assets/Ramp/rampa_02.glb'
+    },
+    {
         name: 'environmentMapTexture',
         type: 'cubeTexture',
         path:
