@@ -22,7 +22,7 @@ export default [
     {
         name: 'rampModel',
         type: 'gltfModel',
-        path: 'models/Assets/Ramp/rampa_02.glb'
+        path: 'models/Assets/Ramp/rampa_03.glb'
     },
     {
         name: 'environmentMapTexture',

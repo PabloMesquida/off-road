@@ -58,8 +58,11 @@ export const ASSET_CONFIGS = (size) => ({
   },
 
   ramp: {
-    materialMapping: { rampa: 'gris' },
-
+    materialMapping: { 
+      rampa: 'gris',
+      rampaBorder: 'amarillo',
+      rampaLine: 'amarillo'
+    },
     physics: {
       type: 'fixed',       
       usesConvex: true,                    // <-- generará el convex dinámicamente
