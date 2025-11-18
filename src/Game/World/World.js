@@ -104,13 +104,22 @@ class World {
         .on('change', ev => this.toggleEditMode(ev.value))
 
       this.placingButtonCone = this.assetsfolder.addButton({ title: 'Cone' })
-      this.placingButtonCone.on('click', () => this.placing?.togglePlacing('cone'))
+      this.placingButtonCone.on('click', () => { 
+        this.placing?.togglePlacing('cone')
+        this.transformManager.detach()
+      })
 
       this.placingButtonBarrel = this.assetsfolder.addButton({ title: 'Barrel' })
-      this.placingButtonBarrel.on('click', () => this.placing?.togglePlacing('barrel'))
+      this.placingButtonBarrel.on('click', () => {
+        this.placing?.togglePlacing('barrel')
+        this.transformManager.detach()
+      })
 
       this.placingButtonRamp = this.assetsfolder.addButton({ title: 'Ramp' })
-      this.placingButtonRamp.on('click', () => this.placing?.togglePlacing('ramp'))
+      this.placingButtonRamp.on('click', () => {
+        this.placing?.togglePlacing('ramp')
+        this.transformManager.detach()
+      })
 
       this.updateTweakpaneState(false)
     } catch (e) {

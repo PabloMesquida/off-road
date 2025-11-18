@@ -24,8 +24,7 @@ export default class PlacingController {
       this.disablePlacing()
       return
     }
-
-  
+    
     // Desactivar preview del asset previo
     if (this.isPlacing && this.currentAssetType) {
       const prevManager = this.assetManagers[this.currentAssetType]
