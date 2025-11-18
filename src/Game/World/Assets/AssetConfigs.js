@@ -62,14 +62,6 @@ export const ASSET_CONFIGS = (size) => ({
 
     physics: {
       type: 'fixed',       
-
-      massProperties: {
-        useAdditionalMassProperties: true,
-        massValue: 1,                    //  MASA DE LA RAMPA
-        com: { x: 0, y: 0, z: 0 },
-        collidersContribute: false
-      },
-
       usesConvex: true,                    // <-- generará el convex dinámicamente
 
       colliders: [
