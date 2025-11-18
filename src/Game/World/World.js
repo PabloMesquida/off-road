@@ -73,13 +73,15 @@ class World {
           if (!assetData?.body) return
           const body = assetData.body
           if (isDragging) {
+            assetData.originalBodyType = body.bodyType()
             // Mientras arrastras → kinemático
             body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
           } else {
             // Al soltar → teletransporta al Dynamic a la posición final
             body.setTranslation(selectedAsset.position, true)
             body.setRotation(selectedAsset.quaternion, true)
-            body.setBodyType(RAPIER.RigidBodyType.Dynamic, true)
+            body.setBodyType(assetData.originalBodyType, true)
+            // body.setBodyType(RAPIER.RigidBodyType.Dynamic, true)
           }
         },
         onDeleteAsset: (assetGroup) => this.deleteAsset(assetGroup)

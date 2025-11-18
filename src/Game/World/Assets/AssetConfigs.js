@@ -65,13 +65,13 @@ export const ASSET_CONFIGS = (size) => ({
     },
     physics: {
       type: 'fixed',       
-      usesConvex: true,                    // <-- generará el convex dinámicamente
+      usesConvex: true,                  
 
       colliders: [
         {
           shape: "convex",
-          parameters: {},                  // será completado dinámicamente
-          friction: 1.3,                   // FRICTION DEL ASSET
+          parameters: {},                 
+          friction: 1.3,                 
           density: 1.0
         }
       ]
