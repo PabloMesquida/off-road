@@ -59,6 +59,11 @@ class Physics{
         bodyDesc = RAPIER.RigidBodyDesc.dynamic()
     }
 
+    if (_desc.type === "dynamic") {
+      bodyDesc.setAngularDamping(1.2)
+      bodyDesc.setLinearDamping(0.8)
+    }
+
     // 2. Posición y rotación inicial
     if (_desc.position) {
       bodyDesc.setTranslation(
@@ -95,15 +100,17 @@ class Physics{
     }
 
     // Opciones de estabilidad/ayuda (opcionales, puedes pasarlas en _desc.physicsOptions)
-    if (_desc.physicsOptions) {
-      const po = _desc.physicsOptions
-      if (typeof po.linearDamping === 'number') bodyDesc.setLinearDamping(po.linearDamping)
-      if (typeof po.angularDamping === 'number') bodyDesc.setAngularDamping(po.angularDamping)
-      if (typeof po.ccd === 'boolean') bodyDesc.setCcdEnabled(po.ccd)
-      if (typeof po.solverIterations === 'number') bodyDesc.setAdditionalSolverIterations(po.solverIterations)
-    }
+    const po = _desc.physicsOptions || {};
+    if (typeof po.linearDamping !== 'number') bodyDesc.setLinearDamping(0.2);
+    else bodyDesc.setLinearDamping(po.linearDamping);
 
-    const body = this.world.createRigidBody(bodyDesc)
+    if (typeof po.angularDamping !== 'number') bodyDesc.setAngularDamping(0.8);
+    else bodyDesc.setAngularDamping(po.angularDamping);
+
+    if (typeof po.ccd === 'boolean') bodyDesc.setCcdEnabled(po.ccd);
+    if (typeof po.solverIterations === 'number') bodyDesc.setAdditionalSolverIterations(po.solverIterations);
+
+    const body = this.world.createRigidBody(bodyDesc);
 
     // 2. Crear los colliders
     const colliders = []

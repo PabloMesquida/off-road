@@ -202,8 +202,8 @@ class Floor{
 
     // Añadir o quitar collider físico
     if (isEditing) {
-        this.removeStartZoneCollider();   // 🔥 borrar el anterior SIEMPRE
-        this.createStartZoneCollider();   // 🔥 crearlo limpio
+        this.removeStartZoneCollider();   // borrar el anterior SIEMPRE
+        this.createStartZoneCollider();   // crearlo limpio
     }
     else {
         setTimeout(() => {

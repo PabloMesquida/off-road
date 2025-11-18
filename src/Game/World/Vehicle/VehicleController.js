@@ -57,7 +57,7 @@ class VehicleController {
     this.controller.setWheelSideFrictionStiffness(3, 0.85)  
 
     // parámetros de control
-    this.accelerateForce = 25 // 25.0
+    this.accelerateForce = 50 // 25.0
     this.brakeForce = 25.0
     this.steerAngleMax = Math.PI / 6
   }
