@@ -102,13 +102,13 @@ class Floor{
   setPhysics(){
     const { x, y, z } = this.size
     this.physics.addEntity({
-      type: 'kinematic',
+      type: 'fixed',
       position: { x:0, y:0, z:0},
       colliders: [ { 
         shape: 'cuboid', 
         parameters: [x * .5, y * .5, z * .5],
-        restitution: 0.05,   
-        friction: 0.5
+        restitution: 0, // 0.05,   
+        friction: 0.8
       }]
     }, this.floorGroup)   
   }
