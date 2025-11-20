@@ -172,7 +172,10 @@ class World {
         body.setAngvel({ x: 0, y: 0, z: 0 }, true)
         
         this.vehicle.chassis.mesh.visible = false
-        this.vehicle.chassis.body.setEnabled(false)
+        // this.vehicle.chassis.body.setEnabled(false)
+        this.vehicle.chassis.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
+        this.vehicle.chassis.body.setTranslation(this.initialVehiclePosition, true)
+        this.vehicle.chassis.body.setRotation(this.initialVehicleRotation, true)
       }
 
       this.transformManager?.create()
@@ -182,9 +185,12 @@ class World {
       this.domElement.addEventListener('pointerdown', this.onPointerSelectAsset)
     } else {
       console.log('Edit mode OFF')
-       if (this.vehicle) {
+      if (this.vehicle) {
         this.vehicle.chassis.mesh.visible = true
-        this.vehicle.chassis.body.setEnabled(true)
+        // this.vehicle.chassis.body.setEnabled(true)
+        this.vehicle.chassis.body.lockTranslations(false, true)
+        this.vehicle.chassis.body.lockRotations(false, true)
+        this.vehicle.chassis.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true)
       }
 
       this.placing?.disablePlacing()
