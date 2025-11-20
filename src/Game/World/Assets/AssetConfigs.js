@@ -78,6 +78,27 @@ export const ASSET_CONFIGS = (size) => ({
     },
 
     verticalOffset: 0
+  },
+
+  bump: {
+    materialMapping: { 
+      bump01: 'gris',
+      bump02: 'amarillo'
+    },
+    physics: {
+      type: 'fixed',       
+      usesConvex: true,                  
+      colliders: [
+        {
+          shape: "convex",
+          parameters: {},                 
+          friction: 1.3,                 
+          density: 1.0
+        }
+      ]
+    },
+
+    verticalOffset: 0
   }
 
 })

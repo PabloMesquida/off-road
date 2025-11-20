@@ -25,6 +25,11 @@ export default [
         path: 'models/Assets/Ramp/rampa_03.glb'
     },
     {
+        name: 'bumpModel',
+        type: 'gltfModel',
+        path: 'models/Assets/Bump/bump_02.glb'
+    },
+    {
         name: 'environmentMapTexture',
         type: 'cubeTexture',
         path:

@@ -48,9 +48,13 @@ class World {
         resourcePathName: "barrelModel",
         assetType: "barrel"
       })
-       this.assetManagers.ramp = new AssetManager(this.scene, {
+      this.assetManagers.ramp = new AssetManager(this.scene, {
         resourcePathName: "rampModel",
         assetType: "ramp"
+      })
+      this.assetManagers.bump = new AssetManager(this.scene, {
+        resourcePathName: "bumpModel",
+        assetType: "bump"
       })
 
       // Inicializar subcontroladores
@@ -118,6 +122,12 @@ class World {
       this.placingButtonRamp = this.assetsfolder.addButton({ title: 'Ramp' })
       this.placingButtonRamp.on('click', () => {
         this.placing?.togglePlacing('ramp')
+        this.transformManager.detach()
+      })
+
+      this.placingButtonBump = this.assetsfolder.addButton({ title: 'Bump' })
+      this.placingButtonBump.on('click', () => {
+        this.placing?.togglePlacing('bump')
         this.transformManager.detach()
       })
 

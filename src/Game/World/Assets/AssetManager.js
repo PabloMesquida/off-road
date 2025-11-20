@@ -60,6 +60,7 @@ class AssetManager {
       case "cone": return "naranja";
       case "barrel": return "azul";
       case "ramp": return "yellow";
+      case "bump": return "yellow";
       default: return "default";
     }
   }
