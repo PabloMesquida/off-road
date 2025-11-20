@@ -136,8 +136,18 @@ class AssetManager {
     model.position.y += this.config.verticalOffset;
     group.add(model);
 
+    let finalY = position.y;
+    console.log(this.config.physics)
+    if (this.config.physics.type === "dynamic") {
+      console.log( this.size.y)
+      const proportionalOffset = this.size.y * 1.5; // mitad de la altura
+      const configOffset = this.config.verticalOffset || 0;
+      finalY += proportionalOffset + configOffset;
+      console.log(finalY)
+    }
+
     // Posición inicial
-    group.position.set(position.x, position.y, position.z);
+    group.position.set(position.x, finalY, position.z);
 
     // Agregar grupo a escena
     this.scene.add(group);
@@ -145,7 +155,7 @@ class AssetManager {
     // Crear cuerpo físico
     let entity = null;
     if (this.physics?.world) {
-      const physDesc = { ...this.config.physics, position };
+      const physDesc = { ...this.config.physics, position: { x: position.x, y: finalY, z: position.z  }}
       entity = this.physics.addEntity(physDesc, group);
     }
 
