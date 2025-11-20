@@ -30,6 +30,11 @@ export default [
         path: 'models/Assets/Bump/bump_02.glb'
     },
     {
+        name: 'barrierModel',
+        type: 'gltfModel',
+        path: 'models/Assets/Barrier/barrier_03.glb'
+    },
+    {
         name: 'environmentMapTexture',
         type: 'cubeTexture',
         path:

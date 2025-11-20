@@ -106,7 +106,7 @@ export default class PlacingController {
 
     if (hit) {
       const position = { x: hit.point.x, y: hit.point.y, z: hit.point.z }
-      console.log(position)
+      // console.log(position)
       //  Paso 3: chequeo del área de salida del vehículo
       if (this.floor.isInsideStartZone(position)) {
         console.warn('❌ No se puede colocar objetos en el área de salida del vehículo')

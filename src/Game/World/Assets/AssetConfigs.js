@@ -79,7 +79,6 @@ export const ASSET_CONFIGS = (size) => ({
 
     verticalOffset: 0
   },
-
   bump: {
     materialMapping: { 
       bump01: 'gris',
@@ -97,8 +96,25 @@ export const ASSET_CONFIGS = (size) => ({
         }
       ]
     },
-
     verticalOffset: 0
+  },
+  barrier: {
+    materialMapping: { 
+      barrier1: 'gris',
+      barrier2: 'amarillo'
+    },
+    physics: {
+      type: 'dynamic',
+      massProperties: {
+        useAdditionalMassProperties: true,
+        massValue: 32,
+        com: { x: 0, y: -size.y / 2, z: 0 }
+      },
+      colliders: [
+        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 1.2 }
+      ]
+    },
+    verticalOffset:  -size.y / 2
   }
 
 })

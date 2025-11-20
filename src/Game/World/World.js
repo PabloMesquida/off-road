@@ -56,6 +56,10 @@ class World {
         resourcePathName: "bumpModel",
         assetType: "bump"
       })
+      this.assetManagers.barrier = new AssetManager(this.scene, {
+        resourcePathName: "barrierModel",
+        assetType: "barrier"
+      })
 
       // Inicializar subcontroladores
       this.placing = new PlacingController({
@@ -125,9 +129,15 @@ class World {
         this.transformManager.detach()
       })
 
-      this.placingButtonBump = this.assetsfolder.addButton({ title: 'Bump' })
+      this.placingButtonBump = this.assetsfolder.addButton({ title: 'Speed Bump' })
       this.placingButtonBump.on('click', () => {
         this.placing?.togglePlacing('bump')
+        this.transformManager.detach()
+      })
+
+      this.placingButtonBarrier = this.assetsfolder.addButton({ title: 'Concrete Barrier' })
+      this.placingButtonBarrier.on('click', () => {
+        this.placing?.togglePlacing('barrier')
         this.transformManager.detach()
       })
 
