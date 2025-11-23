@@ -50,10 +50,13 @@ class Game{
 
   async start() {
     await this.physics.ready
-    this.world = new World()         
+
+    this.world = new World()    
+    this.view = new View()     
     //  this.physicsDebug = new PhysicsDebug()
-    this.view = new View()
+
     this.rendering = new Rendering()
+    this.world.toggleEditMode(this.world.isEditing)
   }
 
   updateAll(dt){

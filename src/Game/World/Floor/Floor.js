@@ -58,9 +58,6 @@ class Floor{
       this.updateGridPreset()
     })
   }
-
-
-
  
   setModel(){
     const { x, y, z } = this.size
@@ -190,7 +187,7 @@ class Floor{
   setEditableState(isEditing) {
     console.log(isEditing)
     if (!this.folder) return
-
+    
     const folderEl = this.folder.element
     if (folderEl) {
       folderEl.style.opacity = isEditing ? '1' : '0.5'
@@ -263,7 +260,6 @@ class Floor{
 
   showStartZoneCollider(realX, realY, realZ) {
     if (!this.startZoneBody) return;
-    console.log('ok')
     const body = this.startZoneBody.physical.body;
 
     body.setTranslation({ x: realX, y: realY, z: realZ }, true);

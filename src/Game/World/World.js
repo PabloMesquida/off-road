@@ -112,7 +112,7 @@ class World {
       })
     })
 
-    this.toggleEditMode(this.isEditing)
+    // this.toggleEditMode(this.isEditing)
   }
 
   /*──────────────────────────────────────────────
@@ -216,16 +216,16 @@ class World {
   toggleEditMode(isEditing) {
     this.isEditing = isEditing
     this.updateTweakpaneState(isEditing)
+    if (this.game?.view){
+      this.game.view.setEditableState(isEditing)
+      this.game.view.setEditMode(isEditing)
 
-    if (this.game?.view?.setEditMode)
-      this.game.view.setEditMode(this.isEditing)
-
+    }
+    
     if (this.floor?.setEditableState)
       this.floor.setEditableState(isEditing)
 
-
     if (isEditing) {
-      console.log('Edit mode ON')
 
       if (this.vehicle?.chassis?.body) {
         const body = this.vehicle.chassis.body

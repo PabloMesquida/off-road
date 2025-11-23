@@ -20,6 +20,8 @@ class View {
     this.camera.position.copy(this.initialCamPos);
     this.camera.lookAt(this.initialCamTarget);
 
+    this.pane = this.game.pane
+
     // Agregar a la escena
     this.game.world.scene.add(this.camera);
 
@@ -52,12 +54,43 @@ class View {
     dom.addEventListener('mousedown', (e) => this.onMouseDown(e));
     dom.addEventListener('mousemove', (e) => this.onMouseMove(e));
     dom.addEventListener('mouseup', (e) => this.onMouseUp(e));
-    dom.addEventListener('wheel', (e) => this.onWheel(e));
+    // dom.addEventListener('wheel', (e) => this.onWheel(e));
     dom.addEventListener('mouseleave', () => this.onMouseLeave());
 
     this.game.viewport.events.on('change', () => this.resize());
+
+    this.initTweakpane()
   }
 
+  initTweakpane() {
+    if (!this.pane) return
+
+    this.cameraFolder = this.pane.addFolder({ title: 'Camera', expanded: false })
+
+    this.cameraMode = { zoomedOut: false }
+
+    this.cameraFolder
+      .addBinding(this.cameraMode, 'zoomedOut', { label: 'Zoom Out Mode' })
+      .on('change', ev => {
+        if (ev.value) {
+          this.game.view.zoomOutCamera()
+        } else {
+          this.game.view.resetCameraZoom()
+        }
+      })
+  }
+
+  setEditableState(isEditing) {
+    if (!this.cameraFolder) return
+
+    const folderEl = this.cameraFolder.element
+    if (folderEl) {
+      folderEl.style.opacity = isEditing ? '1' : '0.5'
+      folderEl.style.pointerEvents = isEditing ? 'auto' : 'none'
+    }
+  }
+
+  
   resize() {
     this.camera.aspect = this.game.viewport.sizes.width / this.game.viewport.sizes.height;
     this.camera.updateProjectionMatrix();
@@ -67,8 +100,6 @@ class View {
   //   MODO EDICIÓN ON/OFF
   // ================================
   setEditMode(active) {
-    console.log("View - Edit mode:", active);
-
     if (active) {
       // --- ENTRAR AL MODO EDICIÓN ---
       this.transitioningToEdit = true;
@@ -89,6 +120,10 @@ class View {
       this.transitioningToEdit = false;
       this.transitioningFromEdit = true;
       this.transitionTime = 0;
+
+      this.resetCameraZoom()   // siempre vuelve al estado original
+      this.cameraMode.zoomedOut = false
+      this.cameraFolder.refresh() 
 
       // Resetear estado de arrastre
       this.dragging = false;
@@ -175,17 +210,16 @@ class View {
     }
   }
 
-  onWheel(e) {
-    // No hacer zoom si estamos colocando conos o arrastrando un asset
-    if (this.game.world.isPlacingAsset || this.game.world.isDraggingAsset) return;
-    
-    if (!this.isEditing) return;
-    
-    const delta = e.deltaY > 0 ? 1 : -1;
-    this.targetCamPos.y += delta * this.zoomSpeed;
-    this.targetCamPos.y = Math.max(5, Math.min(50, this.targetCamPos.y));
-    e.preventDefault();
+  zoomOutCamera() {
+    this.offset.set(40, 50, 40);   // una distancia fija razonable
+    this.targetCamPos.set(40, 50, 40);
   }
+
+  resetCameraZoom() {
+    this.offset.set(20, 25, 20);
+    this.targetCamPos.copy(this.initialCamPos);
+  }
+  
 
   // ================================
   //   UPDATE PRINCIPAL
@@ -250,3 +284,15 @@ class View {
 }
 
 export default View;
+
+  // onWheel(e) {
+  //   // No hacer zoom si estamos colocando conos o arrastrando un asset
+  //   if (this.game.world.isPlacingAsset || this.game.world.isDraggingAsset) return;
+    
+  //   if (!this.isEditing) return;
+    
+  //   const delta = e.deltaY > 0 ? 1 : -1;
+  //   this.targetCamPos.y += delta * this.zoomSpeed;
+  //   this.targetCamPos.y = Math.max(5, Math.min(50, this.targetCamPos.y));
+  //   e.preventDefault();
+  // }
