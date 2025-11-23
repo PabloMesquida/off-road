@@ -122,6 +122,7 @@ class World {
     try {
       this.pane = this.game.pane
       this.assetsfolder = this.pane.addFolder({ title: 'Assets', expanded: false })
+      this.signsFolder = this.assetsfolder.addFolder({ title: 'Signs', expanded: false })
       this.editParam = { editMode: false }
 
       this.pane.addBinding(this.editParam, 'editMode', { label: 'EDIT MODE' })
@@ -156,32 +157,38 @@ class World {
         this.placing?.togglePlacing('barrier')
         this.transformManager.detach()
       })
-      this.placingButtonSignAhead = this.assetsfolder.addButton({ title: 'Sign Ahead' })
+
+      this.placingButtonSignAhead = this.signsFolder.addButton({ title: 'Sign Ahead' })
       this.placingButtonSignAhead.on('click', () => {
         this.placing?.togglePlacing('signAhead')
         this.transformManager.detach()
       })
-      this.placingButtonSignStop = this.assetsfolder.addButton({ title: 'Sign Stop' })
+
+      this.placingButtonSignStop = this.signsFolder.addButton({ title: 'Sign Stop' })
       this.placingButtonSignStop.on('click', () => {
         this.placing?.togglePlacing('signStop')
         this.transformManager.detach()
       })
-      this.placingButtonSignWarning = this.assetsfolder.addButton({ title: 'Sign Warning' })
+
+      this.placingButtonSignWarning = this.signsFolder.addButton({ title: 'Sign Warning' })
       this.placingButtonSignWarning.on('click', () => {
         this.placing?.togglePlacing('signWarning')
         this.transformManager.detach()
       })
-      this.placingButtonSignNot = this.assetsfolder.addButton({ title: 'Sign Do Not Enter' })
+
+      this.placingButtonSignNot = this.signsFolder.addButton({ title: 'Sign Do Not Enter' })
       this.placingButtonSignNot.on('click', () => {
         this.placing?.togglePlacing('signNot')
         this.transformManager.detach()
       })
 
       this.updateTweakpaneState(false)
+
     } catch (e) {
       console.warn('[World] Tweakpane no disponible:', e)
     }
   }
+
 
   updateTweakpaneState(isEditing) {
     const el = this.assetsfolder?.element
