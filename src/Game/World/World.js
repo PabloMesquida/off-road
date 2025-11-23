@@ -60,6 +60,22 @@ class World {
         resourcePathName: "barrierModel",
         assetType: "barrier"
       })
+      this.assetManagers.signAhead = new AssetManager(this.scene, {
+        resourcePathName: "signAheadModel",
+        assetType: "signAhead"
+      })
+      this.assetManagers.signStop = new AssetManager(this.scene, {
+        resourcePathName: "signStopModel",
+        assetType: "signStop"
+      })
+      this.assetManagers.signWarning = new AssetManager(this.scene, {
+        resourcePathName: "signWarningModel",
+        assetType: "signWarning"
+      })
+      this.assetManagers.signNot = new AssetManager(this.scene, {
+        resourcePathName: "signNotModel",
+        assetType: "signNot"
+      })
 
       // Inicializar subcontroladores
       this.placing = new PlacingController({
@@ -138,6 +154,26 @@ class World {
       this.placingButtonBarrier = this.assetsfolder.addButton({ title: 'Concrete Barrier' })
       this.placingButtonBarrier.on('click', () => {
         this.placing?.togglePlacing('barrier')
+        this.transformManager.detach()
+      })
+      this.placingButtonSignAhead = this.assetsfolder.addButton({ title: 'Sign Ahead' })
+      this.placingButtonSignAhead.on('click', () => {
+        this.placing?.togglePlacing('signAhead')
+        this.transformManager.detach()
+      })
+      this.placingButtonSignStop = this.assetsfolder.addButton({ title: 'Sign Stop' })
+      this.placingButtonSignStop.on('click', () => {
+        this.placing?.togglePlacing('signStop')
+        this.transformManager.detach()
+      })
+      this.placingButtonSignWarning = this.assetsfolder.addButton({ title: 'Sign Warning' })
+      this.placingButtonSignWarning.on('click', () => {
+        this.placing?.togglePlacing('signWarning')
+        this.transformManager.detach()
+      })
+      this.placingButtonSignNot = this.assetsfolder.addButton({ title: 'Sign Do Not Enter' })
+      this.placingButtonSignNot.on('click', () => {
+        this.placing?.togglePlacing('signNot')
         this.transformManager.detach()
       })
 

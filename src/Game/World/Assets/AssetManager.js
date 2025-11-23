@@ -137,13 +137,10 @@ class AssetManager {
     group.add(model);
 
     let finalY = position.y;
-    console.log(this.config.physics)
     if (this.config.physics.type === "dynamic") {
-      console.log( this.size.y)
       const proportionalOffset = this.size.y * 1.5; // mitad de la altura
       const configOffset = this.config.verticalOffset || 0;
       finalY += proportionalOffset + configOffset;
-      console.log(finalY)
     }
 
     // Posición inicial

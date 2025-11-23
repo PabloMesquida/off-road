@@ -10,6 +10,7 @@ export const GLOBAL_MATERIALS = {
   rojo:    new THREE.MeshStandardMaterial({ color: 0xcc0000, metalness: 0, roughness: 0.9 }),
   verde:   new THREE.MeshStandardMaterial({ color: 0x00cc00, metalness: 0, roughness: 0.9 }),
   amarillo:new THREE.MeshStandardMaterial({ color: 0x5A6333, metalness: 0, roughness: 0.9 }),
+  amarillo2:new THREE.MeshStandardMaterial({ color: 0xa1a10d, metalness: 0, roughness: 0.9 }),
   negro:   new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0, roughness: 0.9 }),
   gris:    new THREE.MeshStandardMaterial({ color: 0x3D444D, metalness: 0, roughness: 0.9 }),
   default: new THREE.MeshStandardMaterial({ color: 0xffffaa, metalness: 0, roughness: 0.9 })
@@ -115,6 +116,102 @@ export const ASSET_CONFIGS = (size) => ({
       ]
     },
     verticalOffset:  -size.y / 2
+  },
+  signAhead: {
+    materialMapping: { 
+      barra: 'gris',
+      barra2: 'gris',
+       base1: 'negro',
+      base2: 'gris',
+      signAhead1: 'negro',
+      signAhead2: 'gris',
+      signAhead3: 'amarillo2',
+      signAhead4: 'negro'
+    },
+    physics: {
+      type: 'dynamic',
+      massProperties: {
+        useAdditionalMassProperties: true,
+        massValue: 10,
+        com: { x: 0, y: 0, z: 0 }
+      },
+      colliders: [
+        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 1.2 }
+      ]
+    },
+    verticalOffset: -size.y / 2
+  },
+  signStop: {
+    materialMapping: { 
+      barra: 'gris',
+      barra2: 'gris',
+      base1: 'negro',
+      base2: 'gris',
+      signStop1: 'gris',
+      signStop2: 'blanco',
+      signStop3: 'rojo',
+      signStop4: 'blanco'
+    },
+    physics: {
+      type: 'dynamic',
+      massProperties: {
+        useAdditionalMassProperties: true,
+        massValue: 10,
+        com: { x: 0, y: 0, z: 0 }
+      },
+      colliders: [
+        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 1.2 }
+      ]
+    },
+    verticalOffset: -size.y / 2
+  },
+  signWarning: {
+    materialMapping: { 
+      barra: 'gris',
+      barra2: 'gris',
+      base1: 'negro',
+      base2: 'gris',
+      signWarning1: 'rojo',
+      signWarning2: 'gris',
+      signWarning3: 'blanco',
+      signWarning4: 'negro'
+    },
+    physics: {
+      type: 'dynamic',
+      massProperties: {
+        useAdditionalMassProperties: true,
+        massValue: 10,
+        com: { x: 0, y: 0, z: 0 }
+      },
+      colliders: [
+        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 1.2 }
+      ]
+    },
+    verticalOffset: -size.y / 2
+  },
+  signNot: {
+    materialMapping: { 
+      barra: 'gris',
+      barra2: 'gris',
+      base1: 'negro',
+      base2: 'gris',
+      signNot1: 'blanco',
+      signNot2: 'gris',
+      signNot3: 'blanco',
+      signNot4: 'rojo'
+    },
+    physics: {
+      type: 'dynamic',
+      massProperties: {
+        useAdditionalMassProperties: true,
+        massValue: 10,
+        com: { x: 0, y: 0, z: 0 }
+      },
+      colliders: [
+        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 1.2 }
+      ]
+    },
+    verticalOffset: -size.y / 2
   }
 
 })

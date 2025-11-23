@@ -35,6 +35,26 @@ export default [
         path: 'models/Assets/Barrier/barrier_03.glb'
     },
     {
+        name: 'signAheadModel',
+        type: 'gltfModel',
+        path: 'models/Assets/Signs/signAhead_03.glb'
+    },
+    {
+        name: 'signStopModel',
+        type: 'gltfModel',
+        path: 'models/Assets/Signs/signStop_02.glb'
+    },
+    {
+        name: 'signWarningModel',
+        type: 'gltfModel',
+        path: 'models/Assets/Signs/signWarning_02.glb'
+    },
+    {
+        name: 'signNotModel',
+        type: 'gltfModel',
+        path: 'models/Assets/Signs/signNot_01.glb'
+    },
+    {
         name: 'environmentMapTexture',
         type: 'cubeTexture',
         path:
