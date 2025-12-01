@@ -212,6 +212,24 @@ export const ASSET_CONFIGS = (size) => ({
       ]
     },
     verticalOffset: -size.y / 2
-  }
+  },
+    tire: {
+    materialMapping: { 
+      rueda: 'negro'
+    },
+    physics: {
+      type: 'dynamic',       
+      usesConvex: true,                  
+      colliders: [
+        {
+          shape: "convex",
+          parameters: {},                 
+          friction: 1.3,                 
+          density: 1.0
+        }
+      ]
+    },
+    verticalOffset: 0
+  },
 
 })

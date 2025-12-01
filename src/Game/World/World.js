@@ -76,6 +76,10 @@ class World {
         resourcePathName: "signNotModel",
         assetType: "signNot"
       })
+      this.assetManagers.tire = new AssetManager(this.scene, {
+        resourcePathName: "tireModel",
+        assetType: "tire"
+      })
 
       // Inicializar subcontroladores
       this.placing = new PlacingController({
@@ -158,6 +162,12 @@ class World {
         this.transformManager.detach()
       })
 
+      this.placingButtonTire = this.assetsfolder.addButton({ title: 'Tire' })
+      this.placingButtonTire.on('click', () => {
+        this.placing?.togglePlacing('tire')
+        this.transformManager.detach()
+      })
+
       this.placingButtonSignAhead = this.signsFolder.addButton({ title: 'Sign Ahead' })
       this.placingButtonSignAhead.on('click', () => {
         this.placing?.togglePlacing('signAhead')
@@ -181,6 +191,8 @@ class World {
         this.placing?.togglePlacing('signNot')
         this.transformManager.detach()
       })
+
+
 
       this.updateTweakpaneState(false)
 

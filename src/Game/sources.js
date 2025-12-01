@@ -55,6 +55,11 @@ export default [
         path: 'models/Assets/Signs/signNot_01.glb'
     },
     {
+        name: 'tireModel',
+        type: 'gltfModel',
+        path: 'models/Assets/Tire/tire.glb'
+    },
+    {
         name: 'environmentMapTexture',
         type: 'cubeTexture',
         path:
