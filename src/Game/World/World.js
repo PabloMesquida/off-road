@@ -81,6 +81,8 @@ class World {
         assetType: "tire"
       })
 
+      this.loadAssetsFromLocal()
+
       // Inicializar subcontroladores
       this.placing = new PlacingController({
         scene: this.scene,
@@ -192,6 +194,11 @@ class World {
         this.transformManager.detach()
       })
 
+      this.saveButton = this.assetsfolder.addButton({ title: 'Save Assets' })
+
+      this.saveButton.on('click', () => {
+        this.saveAssetsToLocal()
+      })
 
 
       this.updateTweakpaneState(false)
@@ -489,24 +496,24 @@ class World {
       }
     } 
 
-   if(this._isDraggingAsset) {
-      for (const assetType in this.assetManagers) {
-      const manager = this.assetManagers[assetType]
-      if (manager?.instances) {
-        for (const instance of manager.instances) {
-          const body = instance.body
-          if (!body || body.isKinematic()) continue
-          const vel = body.linvel()
-          const maxSpeed = 0.5
-          const speed = Math.sqrt(vel.x ** 2 + vel.y ** 2 + vel.z ** 2)
-          if (speed > maxSpeed) {
-            const scale = maxSpeed / speed
-            body.setLinvel({ x: vel.x * scale, y: vel.y * scale, z: vel.z * scale }, true)
+    if(this._isDraggingAsset) {
+        for (const assetType in this.assetManagers) {
+        const manager = this.assetManagers[assetType]
+        if (manager?.instances) {
+          for (const instance of manager.instances) {
+            const body = instance.body
+            if (!body || body.isKinematic()) continue
+            const vel = body.linvel()
+            const maxSpeed = 0.5
+            const speed = Math.sqrt(vel.x ** 2 + vel.y ** 2 + vel.z ** 2)
+            if (speed > maxSpeed) {
+              const scale = maxSpeed / speed
+              body.setLinvel({ x: vel.x * scale, y: vel.y * scale, z: vel.z * scale }, true)
+            }
           }
         }
       }
     }
-}
 
 
     if (!this.vehicle) return
@@ -523,6 +530,67 @@ class World {
     this.vehicle.controller.isOutsideLimit = shouldBrake
     this.vehicle.visuals.isOutsideLimit = shouldBrake
   }
+
+  saveAssetsToLocal() {
+    const data = [];
+
+    const all = this.getAllAssetInstances();
+
+    for (const inst of all) {
+      const g = inst.group;
+
+      data.push({
+        type: inst.assetType,
+        position: {
+          x: g.position.x,
+          y: g.position.y,
+          z: g.position.z
+        },
+        rotation: {
+          x: g.quaternion.x,
+          y: g.quaternion.y,
+          z: g.quaternion.z,
+          w: g.quaternion.w
+        }
+      });
+    }
+
+    localStorage.setItem("world_assets", JSON.stringify(data));
+    console.log(" Assets guardados:", data);
+  }
+
+  loadAssetsFromLocal() {
+    const json = localStorage.getItem("world_assets");
+    if (!json) return;
+
+    const data = JSON.parse(json);
+    console.log("Cargando assets:", data);
+
+    for (const item of data) {
+      const manager = this.assetManagers[item.type];
+      if (!manager) {
+        console.warn("Asset no encontrado:", item.type);
+        continue;
+      }
+
+      const inst = manager.spawn(item.position);
+
+      // restaurar rotación
+      inst.group.quaternion.set(
+        item.rotation.x,
+        item.rotation.y,
+        item.rotation.z,
+        item.rotation.w
+      );
+
+      // sincronizar física
+      if (inst.body) {
+        inst.body.setTranslation(item.position, true);
+        inst.body.setRotation(item.rotation, true);
+      }
+    }
+  }
+
 }
 
 export default World
