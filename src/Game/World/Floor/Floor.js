@@ -26,6 +26,9 @@ class Floor{
     this.setPhysics()
 
     this.initTweakpane()
+
+    this.loadFromLocal()
+    this.applyParamsToMaterial()
   }
 
   initTweakpane() {
@@ -56,6 +59,7 @@ class Floor{
     // Escuchar cambios globalmente
     this.folder.on('change', () => {
       this.updateGridPreset()
+      this.saveToLocal() 
     })
   }
  
@@ -263,6 +267,54 @@ class Floor{
     const body = this.startZoneBody.physical.body;
 
     body.setTranslation({ x: realX, y: realY, z: realZ }, true);
+  }
+
+  saveToLocal() {
+    const data = { ...this.PARAMS };
+    localStorage.setItem("floor_config", JSON.stringify(data));
+    console.log("Floor config saved:", data);
+  }
+
+  loadFromLocal() {
+    const json = localStorage.getItem("floor_config");
+    if (!json) return;
+
+    const saved = JSON.parse(json);
+    console.log("Floor config loaded:", saved);
+
+    // Copiar valores al objeto PARAMS
+    Object.assign(this.PARAMS, saved);
+
+    // Aplicar valores al material actual
+    this.applyParamsToMaterial();
+  }
+
+  applyParamsToMaterial() {
+    if (!this.subFloorMaterial) return;
+
+    this.subFloorMaterial.borderWidth = this.PARAMS.width;
+    this.subFloorMaterial.borderOffset = this.PARAMS.offset;
+    this.subFloorMaterial.stripeSize = this.PARAMS.stripeSize;
+    this.subFloorMaterial.opacity = this.PARAMS.opacity;
+
+    // Cambiar preset (crea nuevo material)
+    const newMaterial = GridNodeMaterial.fromPreset(this.PARAMS.preset);
+
+    newMaterial.gridSize = this.subFloorMaterial.gridSize;
+    newMaterial.borderColor = this.subFloorMaterial.borderColor;
+    newMaterial.borderWidth = this.PARAMS.width;
+    newMaterial.borderOffset = this.PARAMS.offset;
+    newMaterial.stripeSize = this.PARAMS.stripeSize;
+    newMaterial.opacity = this.PARAMS.opacity;
+
+    const subFloorMesh = this.floorGroup.children.find(
+      m => m.material === this.subFloorMaterial
+    );
+
+    if (subFloorMesh) subFloorMesh.material = newMaterial;
+
+    this.subFloorMaterial.dispose();
+    this.subFloorMaterial = newMaterial;
   }
 }
 
