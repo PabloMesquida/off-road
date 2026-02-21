@@ -37,7 +37,7 @@ export default [
     {
         name: 'signAheadModel',
         type: 'gltfModel',
-        path: 'models/Assets/Signs/signAhead_03.glb'
+        path: 'models/Assets/Signs/signAhead_04.glb'
     },
     {
         name: 'signStopModel',
@@ -57,7 +57,7 @@ export default [
     {
         name: 'tireModel',
         type: 'gltfModel',
-        path: 'models/Assets/Tire/tire.glb'
+        path: 'models/Assets/Tire/tire_01.glb'
     },
     {
         name: 'environmentMapTexture',

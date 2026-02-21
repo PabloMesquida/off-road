@@ -11,12 +11,33 @@ class AssetMaterialResolver {
 
     root.traverse(child => {
       if (!child.isMesh) return
-      const materialName = mapping[child.name]
-      if (!materialName) return
 
-      child.material = this.getMaterial(materialName)
+      let materialKey = null
+
+      const tag = child.userData?.tag
+      if (tag && mapping[tag]) {
+        materialKey = mapping[tag]
+      }
+
+      // if (!materialKey) {
+      //   materialKey = mapping[child.name]
+      // }
+
+      // if (!materialKey) {
+      //   const lower = child.name.toLowerCase()
+      //   for (const key in mapping) {
+      //     if (lower.includes(key.toLowerCase())) {
+      //       materialKey = mapping[key]
+      //       break
+      //     }
+      //   }
+      // }
+
+      if (!materialKey) return
+      child.material = this.getMaterial(materialKey)
     })
   }
+
 }
 
 export default new AssetMaterialResolver()

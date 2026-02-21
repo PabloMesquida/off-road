@@ -100,14 +100,14 @@ export const ASSET_CONFIGS = (size) => ({
   },
   signAhead: {
     materialMapping: { 
-      barra: 'gris',
-      barra2: 'gris',
-       base1: 'negro',
-      base2: 'gris',
-      signAhead1: 'negro',
-      signAhead2: 'gris',
-      signAhead3: 'amarillo2',
-      signAhead4: 'negro'
+      bar_1: 'gris',
+      support: 'gris',
+      base: 'negro',
+      base_accent: 'gris',
+      sign: 'negro',
+      back: 'gris',
+      front: 'amarillo2',
+      border: 'negro'
     },
     physics: {
       type: 'dynamic',
@@ -196,7 +196,7 @@ export const ASSET_CONFIGS = (size) => ({
   },
     tire: {
     materialMapping: { 
-      rueda: 'negro'
+      rubber: 'negro'
     },
     physics: {
       type: 'dynamic',       
