@@ -21,8 +21,8 @@ export const ASSET_CONFIGS = (size) => ({
 
   barrel: {
     materialMapping: {
-      base: 'azul',
-      azul: 'azul',
+      azul_1: 'azul',
+      azul_2: 'azul',
       naranja: 'celeste'
     },
     physics: {
