@@ -40,46 +40,7 @@ class World {
       }
       this.environment = new Environment(this.scene)
 
-      this.assetManagers.cone = new AssetManager(this.scene, {
-        resourcePathName: "coneModel",
-        assetType: "cone"
-      })
-      this.assetManagers.barrel = new AssetManager(this.scene, {
-        resourcePathName: "barrelModel",
-        assetType: "barrel"
-      })
-      this.assetManagers.ramp = new AssetManager(this.scene, {
-        resourcePathName: "rampModel",
-        assetType: "ramp"
-      })
-      this.assetManagers.bump = new AssetManager(this.scene, {
-        resourcePathName: "bumpModel",
-        assetType: "bump"
-      })
-      this.assetManagers.barrier = new AssetManager(this.scene, {
-        resourcePathName: "barrierModel",
-        assetType: "barrier"
-      })
-      this.assetManagers.signAhead = new AssetManager(this.scene, {
-        resourcePathName: "signAheadModel",
-        assetType: "signAhead"
-      })
-      this.assetManagers.signStop = new AssetManager(this.scene, {
-        resourcePathName: "signStopModel",
-        assetType: "signStop"
-      })
-      this.assetManagers.signWarning = new AssetManager(this.scene, {
-        resourcePathName: "signWarningModel",
-        assetType: "signWarning"
-      })
-      this.assetManagers.signNot = new AssetManager(this.scene, {
-        resourcePathName: "signNotModel",
-        assetType: "signNot"
-      })
-      this.assetManagers.tire = new AssetManager(this.scene, {
-        resourcePathName: "tireModel",
-        assetType: "tire"
-      })
+      this.initAssetManagers()
 
       this.loadAssetsFromLocal()
 
@@ -119,6 +80,28 @@ class World {
     })
 
     // this.toggleEditMode(this.isEditing)
+  }
+
+  initAssetManagers() {
+    const list = [
+      { key: 'cone', resourcePathName: "coneModel", assetType: "cone" },
+      { key: 'barrel', resourcePathName: "barrelModel", assetType: "barrel" },
+      { key: 'ramp', resourcePathName: "rampModel", assetType: "ramp" },
+      { key: 'bump', resourcePathName: "bumpModel", assetType: "bump" },
+      { key: 'barrier', resourcePathName: "barrierModel", assetType: "barrier" },
+      { key: 'signAhead', resourcePathName: "signAheadModel", assetType: "signAhead" },
+      { key: 'signStop', resourcePathName: "signStopModel", assetType: "signStop" },
+      { key: 'signWarning', resourcePathName: "signWarningModel", assetType: "signWarning" },
+      { key: 'signNot', resourcePathName: "signNotModel", assetType: "signNot" },
+      { key: 'tire', resourcePathName: "tireModel", assetType: "tire" }
+    ];
+
+    for (const item of list) {
+      this.assetManagers[item.key] = new AssetManager(this.scene, {
+        resourcePathName: item.resourcePathName,
+        assetType: item.assetType
+      });
+    }
   }
 
   /*──────────────────────────────────────────────
