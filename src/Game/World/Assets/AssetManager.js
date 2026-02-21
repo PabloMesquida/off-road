@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import Game from "../../Game";
+import materialResolver from './AssetMaterialResolver.js'
 import { ASSET_CONFIGS } from "./AssetDefinitions.js";
-import { GLOBAL_MATERIALS } from "./AssetMaterials.js";
 
 class AssetManager {
   constructor(scene, options = {}) {
@@ -35,36 +35,13 @@ class AssetManager {
     const configs = ASSET_CONFIGS(this.size);
     this.config = configs[this.assetType] || configs.cone;
 
-    this.sharedMaterials = GLOBAL_MATERIALS;
     this.instances = [];
     this.preview = null;
   }
 
-  /* ─────────────────────────────────────────────
-   * Materiales compartidos
-   * ───────────────────────────────────────────── */
-  assignMaterialByAssetType(child) {
-    const materialName = this.getMaterialNameForMesh(child.name);
-    return this.sharedMaterials[materialName] || this.sharedMaterials.default;
-  }
 
-  getMaterialNameForMesh(meshName) {
-    const mapping = this.config.materialMapping || {};
 
-    if (mapping[meshName]) return mapping[meshName];
-    const lowerName = meshName.toLowerCase();
-    for (const [key, value] of Object.entries(mapping)) {
-      if (lowerName.includes(key.toLowerCase())) return value;
-    }
 
-    switch (this.assetType) {
-      case "cone": return "naranja";
-      case "barrel": return "azul";
-      case "ramp": return "yellow";
-      case "bump": return "yellow";
-      default: return "default";
-    }
-  }
 
   /* ─────────────────────────────────────────────
    * Clonado eficiente
@@ -76,10 +53,12 @@ class AssetManager {
       if (!child.isMesh) return;
       const orig = this.origMeshes[child.name];
       if (orig) child.geometry = orig.geometry;
-      child.material = this.assignMaterialByAssetType(child);
       child.castShadow = true;
       child.receiveShadow = true;
     });
+
+    // aplicar materiales declarativos
+    materialResolver.applyMaterialMapping(clone, this.config.materialMapping);
 
     return clone;
   }
@@ -282,9 +261,7 @@ class AssetManager {
     this.preview = null;
   }
 
-  static getGlobalMaterials() {
-    return GLOBAL_MATERIALS;
-  }
+
 }
 
 export default AssetManager;
