@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import Game from "../../Game";
-import { GLOBAL_MATERIALS, ASSET_CONFIGS } from "./AssetDefinitions.js";
+import { ASSET_CONFIGS } from "./AssetDefinitions.js";
+import { GLOBAL_MATERIALS } from "./AssetMaterials.js";
 
 class AssetManager {
   constructor(scene, options = {}) {
