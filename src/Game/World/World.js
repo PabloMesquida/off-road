@@ -8,6 +8,7 @@ import Environment from './Environment/Environment.js'
 import AssetManager from './Assets/AssetManager.js'
 import PlacingController from './PlacingController.js'
 import TransformControlsManager from './TransformControlsManager.js'
+import assetsConfig from './Assets/assetsConfig.js'
 
 class World {
   constructor() {
@@ -83,20 +84,7 @@ class World {
   }
 
   initAssetManagers() {
-    const list = [
-      { key: 'cone', resourcePathName: "coneModel", assetType: "cone" },
-      { key: 'barrel', resourcePathName: "barrelModel", assetType: "barrel" },
-      { key: 'ramp', resourcePathName: "rampModel", assetType: "ramp" },
-      { key: 'bump', resourcePathName: "bumpModel", assetType: "bump" },
-      { key: 'barrier', resourcePathName: "barrierModel", assetType: "barrier" },
-      { key: 'signAhead', resourcePathName: "signAheadModel", assetType: "signAhead" },
-      { key: 'signStop', resourcePathName: "signStopModel", assetType: "signStop" },
-      { key: 'signWarning', resourcePathName: "signWarningModel", assetType: "signWarning" },
-      { key: 'signNot', resourcePathName: "signNotModel", assetType: "signNot" },
-      { key: 'tire', resourcePathName: "tireModel", assetType: "tire" }
-    ];
-
-    for (const item of list) {
+    for (const item of assetsConfig) {
       this.assetManagers[item.key] = new AssetManager(this.scene, {
         resourcePathName: item.resourcePathName,
         assetType: item.assetType
@@ -249,7 +237,6 @@ class World {
       this.domElement.addEventListener('pointermove', this.onPointerHoverAsset)
       this.domElement.addEventListener('pointerdown', this.onPointerSelectAsset)
     } else {
-      console.log('Edit mode OFF')
       if (this.vehicle) {
         this.vehicle.chassis.mesh.visible = true
         // this.vehicle.chassis.body.setEnabled(true)
@@ -427,7 +414,6 @@ class World {
     // 1. Eliminar física si existe
     if (instance.physicsEntity) {
       const removed = this.game.physics.removeEntity(instance.physicsEntity)
-      console.log("remove physics:", removed)
     }
 
     // 2. Quitar del scene
@@ -440,7 +426,6 @@ class World {
     this.highlightAsset(group, false)
     this.transformManager.detach()
 
-    console.log("Asset deleted successfully")
   }
 
   /*────────────────────────────────────────────── 
@@ -539,7 +524,6 @@ class World {
     }
 
     localStorage.setItem("world_assets", JSON.stringify(data));
-    console.log(" Assets guardados:", data);
   }
 
   loadAssetsFromLocal() {
@@ -547,7 +531,6 @@ class World {
     if (!json) return;
 
     const data = JSON.parse(json);
-    console.log("Cargando assets:", data);
 
     for (const item of data) {
       const manager = this.assetManagers[item.type];
