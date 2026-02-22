@@ -47,7 +47,7 @@ export default [
     {
         name: 'signWarningModel',
         type: 'gltfModel',
-        path: 'models/Assets/Signs/signWarning_02.glb'
+        path: 'models/Assets/Signs/signWarning_03.glb'
     },
     {
         name: 'signNotModel',
