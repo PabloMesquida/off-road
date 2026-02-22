@@ -172,14 +172,14 @@ export const ASSET_CONFIGS = (size) => ({
   },
   signNot: {
     materialMapping: { 
-      barra: 'gris',
-      barra2: 'gris',
-      base1: 'negro',
-      base2: 'gris',
-      signNot1: 'blanco',
-      signNot2: 'gris',
-      signNot3: 'blanco',
-      signNot4: 'rojo'
+      bar_1: 'gris',
+      support: 'gris',
+      base: 'negro',
+      base_accent: 'gris',
+      sign: 'blanco',
+      back: 'gris',
+      border: 'blanco',
+      front: 'rojo'
     },
     physics: {
       type: 'dynamic',

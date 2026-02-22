@@ -52,7 +52,7 @@ export default [
     {
         name: 'signNotModel',
         type: 'gltfModel',
-        path: 'models/Assets/Signs/signNot_01.glb'
+        path: 'models/Assets/Signs/signNot_02.glb'
     },
     {
         name: 'tireModel',
