@@ -1,9 +1,8 @@
 export const ASSET_CONFIGS = (size) => ({
   cone: {
     materialMapping: {
-      base: 'naranja',
-      naranja: 'naranja',
-      blanco: 'blanco'
+      body: 'naranja',
+      stripe: 'blanco'
     },
     physics: {
       type: 'dynamic',

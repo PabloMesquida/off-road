@@ -12,7 +12,7 @@ export default [
     {
         name: 'coneModel',
         type: 'gltfModel',
-        path: 'models/Assets/Cone/cono_03.glb'
+        path: 'models/Assets/Cone/cono_04.glb'
     },
     {
         name: 'barrelModel',
