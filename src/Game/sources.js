@@ -27,7 +27,7 @@ export default [
     {
         name: 'bumpModel',
         type: 'gltfModel',
-        path: 'models/Assets/Bump/bump_02.glb'
+        path: 'models/Assets/Bump/bump_03.glb'
     },
     {
         name: 'barrierModel',

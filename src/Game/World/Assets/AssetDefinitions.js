@@ -63,8 +63,8 @@ export const ASSET_CONFIGS = (size) => ({
   },
   bump: {
     materialMapping: { 
-      bump01: 'gris',
-      bump02: 'amarillo'
+      body: 'gris',
+      stripe: 'amarillo'
     },
     physics: {
       type: 'fixed',       
