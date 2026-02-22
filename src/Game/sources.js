@@ -22,7 +22,7 @@ export default [
     {
         name: 'rampModel',
         type: 'gltfModel',
-        path: 'models/Assets/Ramp/rampa_03.glb'
+        path: 'models/Assets/Ramp/rampa_04.glb'
     },
     {
         name: 'bumpModel',

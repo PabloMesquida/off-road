@@ -41,9 +41,9 @@ export const ASSET_CONFIGS = (size) => ({
 
   ramp: {
     materialMapping: { 
-      rampa: 'gris',
-      rampaBorder: 'amarillo',
-      rampaLine: 'amarillo'
+      body: 'gris',
+      border: 'amarillo',
+      stripe: 'amarillo'
     },
     physics: {
       type: 'fixed',       
