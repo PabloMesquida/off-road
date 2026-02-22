@@ -32,7 +32,7 @@ export default [
     {
         name: 'barrierModel',
         type: 'gltfModel',
-        path: 'models/Assets/Barrier/barrier_03.glb'
+        path: 'models/Assets/Barrier/barrier_04.glb'
     },
     {
         name: 'signAheadModel',

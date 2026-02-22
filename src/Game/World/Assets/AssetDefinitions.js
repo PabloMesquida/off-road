@@ -82,8 +82,8 @@ export const ASSET_CONFIGS = (size) => ({
   },
   barrier: {
     materialMapping: { 
-      barrier1: 'gris',
-      barrier2: 'amarillo'
+      body: 'gris',
+      stripe: 'amarillo'
     },
     physics: {
       type: 'dynamic',
