@@ -17,7 +17,7 @@ export default [
     {
         name: 'barrelModel',
         type: 'gltfModel',
-        path: 'models/Assets/Barrel/barril_04.glb'
+        path: 'models/Assets/Barrel/barril_06.glb'
     },
     {
         name: 'rampModel',
