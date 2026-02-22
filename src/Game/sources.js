@@ -42,7 +42,7 @@ export default [
     {
         name: 'signStopModel',
         type: 'gltfModel',
-        path: 'models/Assets/Signs/signStop_02.glb'
+        path: 'models/Assets/Signs/signStop_03.glb'
     },
     {
         name: 'signWarningModel',

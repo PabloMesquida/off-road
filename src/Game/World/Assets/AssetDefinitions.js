@@ -124,14 +124,14 @@ export const ASSET_CONFIGS = (size) => ({
   },
   signStop: {
     materialMapping: { 
-      barra: 'gris',
-      barra2: 'gris',
-      base1: 'negro',
-      base2: 'gris',
-      signStop1: 'gris',
-      signStop2: 'blanco',
-      signStop3: 'rojo',
-      signStop4: 'blanco'
+      bar_1: 'gris',
+      support: 'gris',
+      base: 'negro',
+      base_accent: 'gris',
+      back: 'gris',
+      sign: 'blanco',
+      front: 'rojo',
+      border: 'blanco'
     },
     physics: {
       type: 'dynamic',
