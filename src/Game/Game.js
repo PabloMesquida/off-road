@@ -51,7 +51,7 @@ class Game{
   async start() {
     await this.physics.ready
 
-    this.world = new World()    
+    this.world = new World(this)    
     this.view = new View()     
     //  this.physicsDebug = new PhysicsDebug()
 
