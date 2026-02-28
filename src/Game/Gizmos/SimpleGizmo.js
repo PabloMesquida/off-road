@@ -57,29 +57,42 @@ class SimpleGizmo {
     createSimpleGizmoMeshes(this)
   }
 
-  /* helpers para hover / active */
+  _getVisualByAxis(axis) {
+    return {
+      x: this.xVisual,
+      z: this.zVisual,
+      ry: this.ringVisual,
+      xz: this.planeBorder
+    }[axis] || null
+  }
+
   _clearAllVisualColors() {
-    // reset a default
-    if (this.xVisual) this.xVisual.material.color.copy(this.colors.default)
-    if (this.zVisual) this.zVisual.material.color.copy(this.colors.default)
-    if (this.ringVisual) this.ringVisual.material.color.copy(this.colors.default)
-    if (this.planeBorder) this.planeBorder.material.color.copy(this.colors.default)
+    const visuals = [
+      this.xVisual,
+      this.zVisual,
+      this.ringVisual,
+      this.planeBorder
+    ]
+
+    visuals.forEach(v => {
+      if (v?.material?.color) {
+        v.material.color.copy(this.colors.default)
+      }
+    })
   }
 
   _setHover(axis) {
     if (this._hoverAxis === axis) return
     this._hoverAxis = axis
-    // si hay active, no sobreescribimos active (active tiene prioridad)
     if (this._activeAxis) return
 
     this._clearAllVisualColors()
-    switch(axis) {
-      case 'x': if (this.xVisual) this.xVisual.material.color.copy(this.colors.hover); break
-      case 'z': if (this.zVisual) this.zVisual.material.color.copy(this.colors.hover); break
-      case 'ry': if (this.ringVisual) this.ringVisual.material.color.copy(this.colors.hover); break
-      case 'xz': if (this.planeBorder) this.planeBorder.material.color.copy(this.colors.hover); break
-      default: break
+
+    const visual = this._getVisualByAxis(axis)
+    if (visual?.material?.color) {
+      visual.material.color.copy(this.colors.hover)
     }
+
     this.dom.style.cursor = 'pointer'
   }
 
@@ -94,13 +107,12 @@ class SimpleGizmo {
   _setActive(axis) {
     this._activeAxis = axis
     this._clearAllVisualColors()
-    switch(axis) {
-      case 'x': if (this.xVisual) this.xVisual.material.color.copy(this.colors.active); break
-      case 'z': if (this.zVisual) this.zVisual.material.color.copy(this.colors.active); break
-      case 'ry': if (this.ringVisual) this.ringVisual.material.color.copy(this.colors.active); break
-      case 'xz': if (this.planeBorder) this.planeBorder.material.color.copy(this.colors.active); break
-      default: break
+
+    const visual = this._getVisualByAxis(axis)
+    if (visual?.material?.color) {
+      visual.material.color.copy(this.colors.active)
     }
+
     this.dom.style.cursor = 'grabbing'
   }
 
