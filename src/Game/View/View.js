@@ -51,11 +51,11 @@ class View {
 
     // Listeners
     const dom = this.game.domElement;
-    dom.addEventListener('mousedown', (e) => this.onMouseDown(e));
-    dom.addEventListener('mousemove', (e) => this.onMouseMove(e));
-    dom.addEventListener('mouseup', (e) => this.onMouseUp(e));
+    dom.addEventListener('pointerdown', (e) => this.onPointerDown(e))
+    dom.addEventListener('pointermove', (e) => this.onPointerMove(e))
+    dom.addEventListener('pointerup', (e) => this.onPointerUp(e))
     // dom.addEventListener('wheel', (e) => this.onWheel(e));
-    dom.addEventListener('mouseleave', () => this.onMouseLeave());
+    dom.addEventListener('pointerleave', () => this.onPointerLeave())
 
     this.game.viewport.events.on('change', () => this.resize());
 
@@ -150,25 +150,63 @@ class View {
   // ================================
   //  EVENTOS DE MOUSE PARA MOVER
   // ================================
-  onMouseDown(e) {
-    // No hacer nada si estamos colocando conos o arrastrando un asset
-    if (this.game.world.isPlacingAsset || this.game.world.isDraggingAsset) return;
-    
-    if (!this.isEditing) return;
-    
-    if (e.button === 0 || e.button === 1) {
-      this.dragging = true;
-      this.prevMouse.set(e.clientX, e.clientY);
-      // El cursor ahora se maneja centralmente en World
-      e.preventDefault();
-    }
+  onPointerDown(e) {
+    if (e.defaultPrevented) return;
+    // no comenzar pan si estamos colocando o si no estamos en modo edición
+    if (this.game.world.isPlacingAsset) return
+    if (!this.isEditing) return
+
+    // Si botón distinto (solo izquierda/centro)
+    if (e.button !== 0 && e.button !== 1) return
+
+    // prevenir text-selection / default browser drag
+    e.preventDefault()
+
+    // guardamos coords, pero NO iniciamos pan inmediatamente
+    this.prevMouse.set(e.clientX, e.clientY)
+
+    // esperamos un frame para que TransformControls procese el evento primero
+    requestAnimationFrame(() => {
+      const transform = this.game.world.transformManager?.transform
+      const transformManager = this.game.world.transformManager
+
+      const tcDragging = !!transformManager?.dragging
+      const tcHasAxis =
+        !!(transform && typeof transform.axis !== 'undefined' && transform.axis !== null)
+
+      const hasSelection = !!transformManager?.selectedAsset
+
+      console.log(
+        '[View] RAF check →',
+        {
+          tcDragging,
+          tcHasAxis,
+          hasSelection,
+          isEditing: this.isEditing,
+          isPlacing: this.game.world.isPlacingAsset,
+          button: e.button
+        }
+      )
+
+      if (!tcDragging && !tcHasAxis && !hasSelection) {
+        this.dragging = true
+        console.log('[View] → PAN ACTIVADO')
+      } else {
+        this.dragging = false
+        console.log('[View] → PAN BLOQUEADO')
+      }
+    })
   }
 
-  onMouseMove(e) {
-    // No hacer nada si estamos colocando conos o arrastrando un asset
-    if (this.game.world.isPlacingAsset || this.game.world.isDraggingAsset) return;
-    
-    if (!this.isEditing || !this.dragging) return;
+  onPointerMove(e) {
+    if (e.defaultPrevented) return;
+    // Si TransformControls está arrastrando, nunca pans
+    if (this.game.world.transformManager?.dragging) {
+      this.dragging = false
+      return
+    }
+
+    if (!this.isEditing || !this.dragging) return
 
     // Lógica de movimiento de cámara
     const deltaX = e.clientX - this.prevMouse.x;
@@ -192,23 +230,15 @@ class View {
     this.editCamTarget.add(move);
   }
 
-  onMouseUp(e) {
-    // No hacer nada si estamos colocando conos o arrastrando un asset
-    if (this.game.world.isPlacingAsset || this.game.world.isDraggingAsset) return;
-    
-    if (!this.isEditing) return;
-    
-    if (e.button === 0 || e.button === 1) {
-      this.dragging = false;
-    }
+  onPointerUp(e) {
+    this.dragging = false
   }
 
-  onMouseLeave() {
-    // Si el mouse sale del canvas, resetear estado de arrastre
+  onPointerLeave() {
     if (this.dragging) {
-      this.dragging = false;
+      this.dragging = false
     }
-  }
+}
 
   zoomOutCamera() {
     this.offset.set(40, 50, 40);   // una distancia fija razonable

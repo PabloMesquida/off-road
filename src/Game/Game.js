@@ -37,8 +37,6 @@ class Game{
       { name: 'brake', keys: [ 'Space'] },
       { name: 'lights', keys: ['KeyL']},
       { name: 'hazard', keys: ['KeyB'] }, 
-      { name: 'translateMode', keys: ['KeyT'] },
-      { name: 'rotateMode', keys: ['KeyR'] },
       { name: 'delete', keys: ['KeyX'] },
     ])
 

@@ -6,7 +6,8 @@ import Events from '../Utils/Events.js'
 import Environment from './Environment/Environment.js'
 import AssetManager from './Assets/AssetManager.js'
 import PlacingController from './PlacingController.js'
-import TransformControlsManager from './TransformControlsManager.js'
+// import TransformControlsManager from './TransformControlsManager.js'
+import TransformGizmoManager from './TransformGizmoManager.js'
 import AssetInteractionController from './AssetInteractionController.js'
 import assetsConfig from './Assets/assetsConfig.js'
 
@@ -52,7 +53,7 @@ class World {
         assetManagers: this.assetManagers
       })
 
-      this.transformManager = new TransformControlsManager({
+      this.transformManager = new TransformGizmoManager({
         scene: this.scene,
         cameraGetter: () => this.game.view.camera,
         domElement: this.domElement,
