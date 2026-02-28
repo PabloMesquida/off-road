@@ -102,14 +102,29 @@ class SimpleGizmo {
 
     // ---------------- XZ PLANE ----------------
 
-    const planeVisual = new THREE.Mesh(
-      new THREE.PlaneGeometry(planeSize, planeSize),
-      lineMat
-    )
-    planeVisual.rotation.x = -Math.PI / 2
-    planeVisual.position.y = 0.01
-    this.group.add(planeVisual)
+    const half = planeSize * 0.5
 
+    // Crear geometría de líneas (cuadrado)
+    const squarePoints = [
+      new THREE.Vector3(-half, 0.01, -half),
+      new THREE.Vector3( half, 0.01, -half),
+
+      new THREE.Vector3( half, 0.01, -half),
+      new THREE.Vector3( half, 0.01,  half),
+
+      new THREE.Vector3( half, 0.01,  half),
+      new THREE.Vector3(-half, 0.01,  half),
+
+      new THREE.Vector3(-half, 0.01,  half),
+      new THREE.Vector3(-half, 0.01, -half),
+    ]
+
+    const squareGeo = new THREE.BufferGeometry().setFromPoints(squarePoints)
+
+    const squareLines = new THREE.LineSegments(squareGeo, lineMat)
+    this.group.add(squareLines)
+
+    // Hit area invisible (más grande)
     const planeHit = new THREE.Mesh(
       new THREE.PlaneGeometry(planeSize + 0.4, planeSize + 0.4),
       hitMat
