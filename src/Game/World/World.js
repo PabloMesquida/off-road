@@ -7,7 +7,7 @@ import Environment from './Environment/Environment.js'
 import AssetManager from './Assets/AssetManager.js'
 import PlacingController from './PlacingController.js'
 // import TransformControlsManager from './TransformControlsManager.js'
-import TransformGizmoManager from './TransformGizmoManager.js'
+import TransformGizmoManager from '../Gizmos/TransformGizmoManager.js'
 import AssetInteractionController from './AssetInteractionController.js'
 import assetsConfig from './Assets/assetsConfig.js'
 
