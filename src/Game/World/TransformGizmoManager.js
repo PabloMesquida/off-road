@@ -50,13 +50,16 @@ class SimpleGizmo {
 
     const lineMat = new THREE.MeshBasicMaterial({
       color: 0xffff00,
-      depthTest: false
+      depthTest: false,
+      depthWrite: false,
+      transparent: false
     })
 
     const hitMat = new THREE.MeshBasicMaterial({
       transparent: true,
       opacity: 0,
-      depthTest: false
+      depthTest: false,
+      depthWrite: false
     })
 
     const ringRadius = 1.5
@@ -133,6 +136,7 @@ class SimpleGizmo {
     this.group.add(ringHit)
 
     this.gizmoParts = [xHit, zHit, planeHit, ringHit]
+    this.group.renderOrder = 999
   }
 
   /* =========================================================
@@ -161,7 +165,7 @@ class SimpleGizmo {
 
   this.plane.constant = -(minY + eps)
 
-  // 🔒 TAMAÑO FIJO EN MUNDO
+  // TAMAÑO FIJO EN MUNDO
   this.group.scale.setScalar(1)
 
   this.group.visible = true
