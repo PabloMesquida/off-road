@@ -59,8 +59,13 @@ class SimpleGizmo {
       depthTest: false
     })
 
-    const shaftLength = 2.0
-    const shaftOffset = shaftLength * 0.5
+    const ringRadius = 1.5
+    const planeSize = 0.5
+    const planeHalf = planeSize * 0.5
+    const gap = 0.25  
+
+    const shaftLength = ringRadius - (planeHalf + gap)
+    const shaftOffset = planeHalf + gap + shaftLength * 0.5
 
     // ---------------- X AXIS ----------------
 
@@ -95,7 +100,7 @@ class SimpleGizmo {
     // ---------------- XZ PLANE ----------------
 
     const planeVisual = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.8, 0.8),
+      new THREE.PlaneGeometry(planeSize, planeSize),
       lineMat
     )
     planeVisual.rotation.x = -Math.PI / 2
@@ -103,7 +108,7 @@ class SimpleGizmo {
     this.group.add(planeVisual)
 
     const planeHit = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.2, 1.2),
+      new THREE.PlaneGeometry(planeSize + 0.4, planeSize + 0.4),
       hitMat
     )
     planeHit.rotation.x = -Math.PI / 2
@@ -113,14 +118,14 @@ class SimpleGizmo {
     // ---------------- ROTATION Y ----------------
 
     const ringVisual = new THREE.Mesh(
-      new THREE.TorusGeometry(2.5, 0.01, 8, 128),
+      new THREE.TorusGeometry(ringRadius, 0.01, 8, 128),
       lineMat
     )
     ringVisual.rotation.x = Math.PI / 2
     this.group.add(ringVisual)
 
     const ringHit = new THREE.Mesh(
-      new THREE.TorusGeometry(2.5, 0.25, 16, 128),
+      new THREE.TorusGeometry(ringRadius, 0.25, 16, 128),
       hitMat
     )
     ringHit.rotation.x = Math.PI / 2
