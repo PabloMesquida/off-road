@@ -1,4 +1,5 @@
 import * as THREE from 'three/webgpu'
+import { createSimpleGizmoMeshes } from './createSimpleGizmoMeshes.js'
 
 class SimpleGizmo {
 
@@ -52,97 +53,8 @@ class SimpleGizmo {
      GEOMETRY (guardamos referencias visuales para hover)
   ========================================================= */
 
-  _createMeshes() {
-
-    // materiales base (cada visual tendrá su propia instancia para poder colorear)
-    const baseLineMat = () => new THREE.MeshBasicMaterial({
-      color: this.colors.default.clone(),
-      depthTest: false,
-      depthWrite: false
-    })
-
-    const hitMat = new THREE.MeshBasicMaterial({
-      transparent: true,
-      opacity: 0,
-      depthTest: false,
-      depthWrite: false
-    })
-
-    const ringRadius = 1.5
-    const planeSize = 0.5
-    const planeHalf = planeSize * 0.5
-    const gap = 0.25
-
-    const shaftLength = ringRadius - (planeHalf + gap)
-    const shaftOffset = planeHalf + gap + shaftLength * 0.5
-
-    // ---------------- X AXIS ----------------
-    this.xVisual = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, shaftLength, 8), baseLineMat())
-    this.xVisual.rotation.z = -Math.PI / 2
-    this.xVisual.position.x = shaftOffset
-    this.group.add(this.xVisual)
-
-    const xHit = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, shaftLength, 8), hitMat)
-    xHit.rotation.z = -Math.PI / 2
-    xHit.position.x = shaftOffset
-    xHit.userData.axis = 'x'
-    this.group.add(xHit)
-
-    // ---------------- Z AXIS ----------------
-    this.zVisual = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, shaftLength, 8), baseLineMat())
-    this.zVisual.rotation.x = Math.PI / 2
-    this.zVisual.position.z = shaftOffset
-    this.group.add(this.zVisual)
-
-    const zHit = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, shaftLength, 8), hitMat)
-    zHit.rotation.x = Math.PI / 2
-    zHit.position.z = shaftOffset
-    zHit.userData.axis = 'z'
-    this.group.add(zHit)
-
-    // ---------------- XZ PLANE (solo bordes) ----------------
-    const half = planeSize * 0.5
-
-    const squarePoints = [
-      new THREE.Vector3(-half, 0.01, -half),
-      new THREE.Vector3( half, 0.01, -half),
-
-      new THREE.Vector3( half, 0.01, -half),
-      new THREE.Vector3( half, 0.01,  half),
-
-      new THREE.Vector3( half, 0.01,  half),
-      new THREE.Vector3(-half, 0.01,  half),
-
-      new THREE.Vector3(-half, 0.01,  half),
-      new THREE.Vector3(-half, 0.01, -half),
-    ]
-
-    const squareGeo = new THREE.BufferGeometry().setFromPoints(squarePoints)
-    this.planeBorder = new THREE.LineSegments(squareGeo, baseLineMat())
-    this.group.add(this.planeBorder)
-
-    const planeHit = new THREE.Mesh(
-      new THREE.PlaneGeometry(planeSize + 0.4, planeSize + 0.4),
-      hitMat
-    )
-    planeHit.rotation.x = -Math.PI / 2
-    planeHit.userData.axis = 'xz'
-    this.group.add(planeHit)
-
-    // ---------------- ROTATION Y ----------------
-    this.ringVisual = new THREE.Mesh(new THREE.TorusGeometry(ringRadius, 0.01, 8, 128), baseLineMat())
-    this.ringVisual.rotation.x = Math.PI / 2
-    this.group.add(this.ringVisual)
-
-    const ringHit = new THREE.Mesh(new THREE.TorusGeometry(ringRadius, 0.25, 16, 128), hitMat)
-    ringHit.rotation.x = Math.PI / 2
-    ringHit.userData.axis = 'ry'
-    this.group.add(ringHit)
-
-    // partes raycastables = HIT meshes (no los visuals)
-    this.gizmoParts = [xHit, zHit, planeHit, ringHit]
-
-    this.group.renderOrder = 999
+ _createMeshes() {
+    createSimpleGizmoMeshes(this)
   }
 
   /* helpers para hover / active */
