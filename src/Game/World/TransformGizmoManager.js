@@ -136,9 +136,33 @@ class SimpleGizmo {
 
   attach(obj) {
     this.object = obj
+    if (!obj) return
+
+    // Asegurarnos de tener matrices world actualizadas
+    obj.updateMatrixWorld(true)
+
+    // Bounding box en coordenadas world
+    const worldBox = new THREE.Box3().setFromObject(obj)
+    const worldCenter = worldBox.getCenter(new THREE.Vector3())
+    const minY = worldBox.min.y
+
+    // Guardamos offset entre la posición world del objeto (su referencia) y el minY del bounding
+    // Esto nos permite desplazar el gizmo correctamente cuando el objeto se mueva.
+    const objectWorldPos = new THREE.Vector3()
+    obj.getWorldPosition(objectWorldPos)
+    this.groundOffset = objectWorldPos.y - minY
+
+    // Posicionar gizmo en la base (suelo) del objeto
+    const eps = 0.01
+    this.group.position.set(worldCenter.x, minY + eps, worldCenter.z)
+
+    // Plano de interacción al nivel del suelo del objeto
+    this.plane.constant = -(minY + eps)
+
+    // Aseguramos visibilidad
     this.group.visible = true
-    this.group.position.copy(obj.position)
   }
+
 
   detach() {
     this.object = null
@@ -162,96 +186,173 @@ class SimpleGizmo {
   ========================================================= */
 
   _onPointerDown(e) {
-
     if (!this.object) return
 
     this._getPointer(e)
+    const cam = this.cameraGetter?.()
+    if (!cam) return
 
-    const cam = this.cameraGetter()
     this.raycaster.setFromCamera(this.pointer, cam)
+    const intersects = this.raycaster.intersectObjects(this.gizmoParts, true)
 
-    const hit = this.raycaster.intersectObjects(this.gizmoParts, true)[0]
-    if (!hit) return
+    if (!intersects.length) {
+      // No tocaste el gizmo → NO bloquear evento
+      return
+    }
 
+    const hit = intersects[0]
+    this.axis = hit.object.userData.axis || hit.object.parent?.userData?.axis
+    if (!this.axis) return
+
+    // BLOQUEAMOS eventos del DOM (ahora sí)
     e.preventDefault()
     e.stopImmediatePropagation()
 
-    this.axis = hit.object.userData.axis
     this.dragging = true
 
-    this.plane.constant = -this.object.position.y
+    // fijar plano al "suelo" actual del objeto (ya calculado en attach)
+    // plane.constant ya está seteado en attach, pero re-aseguramos en caso de que cambió
+    const eps = 0.01
+    // obtener posición world actual del objeto (puede haber cambiado)
+    const objWorldPos = new THREE.Vector3()
+    this.object.getWorldPosition(objWorldPos)
 
+    // recomputar plane.constant usando objWorldPos y groundOffset
+    const minY = objWorldPos.y - (this.groundOffset ?? 0)
+    this.plane.constant = -(minY + eps)
+
+    // punto de inicio en el plano (world)
     this.raycaster.ray.intersectPlane(this.plane, this.startPoint)
-    this.startPosition.copy(this.object.position)
-    this.startQuaternion.copy(this.object.quaternion)
+
+    // Guardamos posición de inicio en WORLD (IMPORTANTE)
+    this.startWorldPosition = new THREE.Vector3()
+    this.object.getWorldPosition(this.startWorldPosition)
+    this.startPosition.copy(this.startWorldPosition)
+
+    // Guardamos quaternion WORLD para rotaciones (usar getWorldQuaternion si el objeto tiene padres)
+    this.startQuaternion = new THREE.Quaternion()
+    this.object.getWorldQuaternion(this.startQuaternion)
 
     if (this.axis === 'ry') {
       this.startVector.copy(this.startPoint)
-        .sub(this.object.position)
+        .sub(this.object.getWorldPosition(new THREE.Vector3()))
         .setY(0)
         .normalize()
     }
+
+    this.dom.setPointerCapture?.(e.pointerId)
 
     this.onDragStart?.()
   }
 
   _onPointerMove(e) {
+    // Si no estamos draggeando, no hacemos nada y dejamos que el evento fluya
+    if (!this.dragging || !this.object || !this.axis) return
 
-    if (!this.dragging || !this.axis) return
-
+    // Solo si estamos en drag bloqueamos propagación
     e.preventDefault()
     e.stopImmediatePropagation()
 
     this._getPointer(e)
 
-    const cam = this.cameraGetter()
+    const cam = this.cameraGetter?.()
+    if (!cam) return
+
     this.raycaster.setFromCamera(this.pointer, cam)
     this.raycaster.ray.intersectPlane(this.plane, this.intersection)
-
     if (!this.intersection) return
 
-    if (this.axis === 'x') {
-      this.object.position.x = this.intersection.x
-    }
+    if (this.axis === 'x' || this.axis === 'z') {
+      const delta = new THREE.Vector3().subVectors(this.intersection, this.startPoint)
+      const dir = this.axis === 'x'
+        ? new THREE.Vector3(1, 0, 0)
+        : new THREE.Vector3(0, 0, 1)
 
-    if (this.axis === 'z') {
-      this.object.position.z = this.intersection.z
-    }
+      const amount = delta.dot(dir)
 
-    if (this.axis === 'xz') {
-      this.object.position.x = this.intersection.x
-      this.object.position.z = this.intersection.z
-    }
+      // newWorldPos es la posición world objetivo para el objeto
+      const newWorldPos = new THREE.Vector3()
+        .copy(this.startWorldPosition)
+        .addScaledVector(dir, amount)
 
-    if (this.axis === 'ry') {
+      // Mantener altura inicial (world)
+      newWorldPos.y = this.startWorldPosition.y
+
+      // Convertir a local si el objeto tiene parent
+      const localPos = newWorldPos.clone()
+      if (this.object.parent) {
+        this.object.parent.worldToLocal(localPos)
+      }
+
+      // Asignar en local
+      this.object.position.copy(localPos)
+
+      // Actualizar la posición del gizmo para quedar apoyado en la nueva base del objeto
+      const minY = newWorldPos.y - (this.groundOffset ?? 0)
+      const eps = 0.01
+      this.group.position.set(newWorldPos.x, minY + eps, newWorldPos.z)
+    }
+    else if (this.axis === 'ry') {
+      // Rotación con referencia world (calculada con startQuaternion que guardamos en world)
       const current = new THREE.Vector3()
-        .subVectors(this.intersection, this.object.position)
+        .subVectors(this.intersection, this.object.getWorldPosition(new THREE.Vector3()))
         .setY(0)
         .normalize()
 
-      if (current.lengthSq() < 0.0001) return
+      if (current.lengthSq() < 0.000001) return
 
-      const cross = this.startVector.x * current.z - this.startVector.z * current.x
-      const dot = THREE.MathUtils.clamp(this.startVector.dot(current), -1, 1)
-      const angle = -Math.atan2(cross, dot)
+      const crossY = this.startVector.x * current.z - this.startVector.z * current.x
+      const dot = Math.max(-1, Math.min(1, this.startVector.dot(current)))
+      const angle = -Math.atan2(crossY, dot)
 
-      const q = new THREE.Quaternion()
-        .setFromAxisAngle(new THREE.Vector3(0,1,0), angle)
+      const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle)
 
-      this.object.quaternion
-        .copy(this.startQuaternion)
-        .multiply(q)
+      // Si el objeto tiene parent, debemos aplicar la rotación en el sistema local del objeto.
+      // La forma más robusta es convertir startQuaternion (world) a local antes de aplicar y luego escribir local quaternion.
+      // Simplificación práctica (funciona si el objeto no tiene rotación de padre compleja): aplicar world quaternion y luego convertir a local.
+
+      // Obtener parent world quaternion inversa si existe
+      if (this.object.parent) {
+        // newWorldQuat = startWorldQuat * q
+        const newWorldQuat = new THREE.Quaternion().copy(this.startQuaternion).multiply(q)
+
+        // convertir newWorldQuat a quaternion local para el objeto
+        const parentWorldQuat = new THREE.Quaternion()
+        this.object.parent.getWorldQuaternion(parentWorldQuat)
+        const parentWorldQuatInv = parentWorldQuat.clone().invert()
+
+        const localQuat = newWorldQuat.clone().premultiply(parentWorldQuatInv)
+        this.object.quaternion.copy(localQuat)
+      } else {
+        // el objeto no tiene parent → simplemente escribir quaternion local
+        this.object.quaternion.copy(this.startQuaternion).multiply(q)
+      }
     }
+    else if (this.axis === 'xz') {
+      // free plane drag: delta en world
+      const delta = new THREE.Vector3().subVectors(this.intersection, this.startPoint)
 
-    this.group.position.copy(this.object.position)
+      const newWorldPos = new THREE.Vector3().copy(this.startWorldPosition).add(delta)
+      newWorldPos.y = this.startWorldPosition.y
+
+      const localPos = newWorldPos.clone()
+      if (this.object.parent) this.object.parent.worldToLocal(localPos)
+
+      this.object.position.copy(localPos)
+
+      const minY = newWorldPos.y - (this.groundOffset ?? 0)
+      const eps = 0.01
+      this.group.position.set(newWorldPos.x, minY + eps, newWorldPos.z)
+    }
   }
 
   _onPointerUp(e) {
-
     if (!this.dragging) return
 
     e.preventDefault()
     e.stopImmediatePropagation()
+
+    this.dom.releasePointerCapture?.(e.pointerId)
 
     this.dragging = false
     this.axis = null
