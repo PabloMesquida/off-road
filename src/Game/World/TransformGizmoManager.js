@@ -135,35 +135,32 @@ class SimpleGizmo {
   ========================================================= */
 
   attach(obj) {
-    this.object = obj
-    if (!obj) return
 
-    obj.updateMatrixWorld(true)
+  this.object = obj
+  if (!obj) return
 
-    // Bounding box WORLD
-    const box = new THREE.Box3().setFromObject(obj)
-    const size = new THREE.Vector3()
-    box.getSize(size)
+  obj.updateMatrixWorld(true)
 
-    const minY = box.min.y
-    const center = box.getCenter(new THREE.Vector3())
+  // Bounding box WORLD
+  const box = new THREE.Box3().setFromObject(obj)
+  const minY = box.min.y
+  const center = box.getCenter(new THREE.Vector3())
 
-    const objectWorldPos = new THREE.Vector3()
-    obj.getWorldPosition(objectWorldPos)
+  const objectWorldPos = new THREE.Vector3()
+  obj.getWorldPosition(objectWorldPos)
 
-    this.groundOffset = objectWorldPos.y - minY
+  this.groundOffset = objectWorldPos.y - minY
 
-    const eps = 0.01
-    this.group.position.set(center.x, minY + eps, center.z)
+  const eps = 0.01
+  this.group.position.set(center.x, minY + eps, center.z)
 
-    this.plane.constant = -(minY + eps)
+  this.plane.constant = -(minY + eps)
 
-    const maxDim = Math.max(size.x, size.z)
-    const scaleFactor = THREE.MathUtils.clamp(maxDim * 0.3, 0.4, 3)
-    this.group.scale.setScalar(scaleFactor)
+  // 🔒 TAMAÑO FIJO EN MUNDO
+  this.group.scale.setScalar(1)
 
-    this.group.visible = true
-  }
+  this.group.visible = true
+}
 
 
   detach() {
