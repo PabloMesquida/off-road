@@ -138,28 +138,30 @@ class SimpleGizmo {
     this.object = obj
     if (!obj) return
 
-    // Asegurarnos de tener matrices world actualizadas
     obj.updateMatrixWorld(true)
 
-    // Bounding box en coordenadas world
-    const worldBox = new THREE.Box3().setFromObject(obj)
-    const worldCenter = worldBox.getCenter(new THREE.Vector3())
-    const minY = worldBox.min.y
+    // Bounding box WORLD
+    const box = new THREE.Box3().setFromObject(obj)
+    const size = new THREE.Vector3()
+    box.getSize(size)
 
-    // Guardamos offset entre la posición world del objeto (su referencia) y el minY del bounding
-    // Esto nos permite desplazar el gizmo correctamente cuando el objeto se mueva.
+    const minY = box.min.y
+    const center = box.getCenter(new THREE.Vector3())
+
     const objectWorldPos = new THREE.Vector3()
     obj.getWorldPosition(objectWorldPos)
+
     this.groundOffset = objectWorldPos.y - minY
 
-    // Posicionar gizmo en la base (suelo) del objeto
     const eps = 0.01
-    this.group.position.set(worldCenter.x, minY + eps, worldCenter.z)
+    this.group.position.set(center.x, minY + eps, center.z)
 
-    // Plano de interacción al nivel del suelo del objeto
     this.plane.constant = -(minY + eps)
 
-    // Aseguramos visibilidad
+    const maxDim = Math.max(size.x, size.z)
+    const scaleFactor = THREE.MathUtils.clamp(maxDim * 0.3, 0.4, 3)
+    this.group.scale.setScalar(scaleFactor)
+
     this.group.visible = true
   }
 
