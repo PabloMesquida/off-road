@@ -274,64 +274,111 @@ class SimpleGizmo {
     e.preventDefault()
     e.stopImmediatePropagation()
 
-    this.raycaster.ray.intersectPlane(this.plane, this.intersection)
-    if (!this.intersection) return
+    if (!this.raycaster.ray.intersectPlane(this.plane, this.intersection)) return
 
     if (this.axis === 'x' || this.axis === 'z') {
-      const delta = new THREE.Vector3().subVectors(this.intersection, this.startPoint)
-      const dir = this.axis === 'x' ? new THREE.Vector3(1,0,0) : new THREE.Vector3(0,0,1)
-      const amount = delta.dot(dir)
-      const newWorldPos = new THREE.Vector3().copy(this.startWorldPosition).addScaledVector(dir, amount)
-      newWorldPos.y = this.startWorldPosition.y
-
-      const localPos = newWorldPos.clone()
-      if (this.object.parent) this.object.parent.worldToLocal(localPos)
-
-      this.object.position.copy(localPos)
-
-      const minY = newWorldPos.y - (this.groundOffset ?? 0)
-      const eps = 0.01
-      this.group.position.set(newWorldPos.x, minY + eps, newWorldPos.z)
+      this._dragLinear(this.axis)
     }
     else if (this.axis === 'ry') {
-      const current = new THREE.Vector3()
-        .subVectors(this.intersection, this.object.getWorldPosition(new THREE.Vector3()))
-        .setY(0)
-        .normalize()
-
-      if (current.lengthSq() < 0.000001) return
-
-      const crossY = this.startVector.x * current.z - this.startVector.z * current.x
-      const dot = Math.max(-1, Math.min(1, this.startVector.dot(current)))
-      const angle = -Math.atan2(crossY, dot)
-
-      const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), angle)
-
-      if (this.object.parent) {
-        const newWorldQuat = new THREE.Quaternion().copy(this.startQuaternion).multiply(q)
-        const parentWorldQuat = new THREE.Quaternion()
-        this.object.parent.getWorldQuaternion(parentWorldQuat)
-        const parentWorldQuatInv = parentWorldQuat.clone().invert()
-        const localQuat = newWorldQuat.clone().premultiply(parentWorldQuatInv)
-        this.object.quaternion.copy(localQuat)
-      } else {
-        this.object.quaternion.copy(this.startQuaternion).multiply(q)
-      }
+      this._dragRotateY()
     }
     else if (this.axis === 'xz') {
-      const delta = new THREE.Vector3().subVectors(this.intersection, this.startPoint)
-      const newWorldPos = new THREE.Vector3().copy(this.startWorldPosition).add(delta)
-      newWorldPos.y = this.startWorldPosition.y
-
-      const localPos = newWorldPos.clone()
-      if (this.object.parent) this.object.parent.worldToLocal(localPos)
-
-      this.object.position.copy(localPos)
-
-      const minY = newWorldPos.y - (this.groundOffset ?? 0)
-      const eps = 0.01
-      this.group.position.set(newWorldPos.x, minY + eps, newWorldPos.z)
+      this._dragPlane()
     }
+  }
+
+  _dragLinear(axis) {
+    const delta = new THREE.Vector3()
+      .subVectors(this.intersection, this.startPoint)
+
+    const dir = axis === 'x'
+      ? new THREE.Vector3(1,0,0)
+      : new THREE.Vector3(0,0,1)
+
+    const amount = delta.dot(dir)
+
+    const newWorldPos = new THREE.Vector3()
+      .copy(this.startWorldPosition)
+      .addScaledVector(dir, amount)
+
+    newWorldPos.y = this.startWorldPosition.y
+
+    const localPos = newWorldPos.clone()
+
+    if (this.object.parent) {
+      this.object.parent.worldToLocal(localPos)
+    }
+
+    this.object.position.copy(localPos)
+
+    const minY = newWorldPos.y - (this.groundOffset ?? 0)
+    const eps = 0.01
+
+    this.group.position.set(newWorldPos.x, minY + eps, newWorldPos.z)
+  }
+
+  _dragRotateY() {
+    const current = new THREE.Vector3()
+      .subVectors(
+        this.intersection,
+        this.object.getWorldPosition(new THREE.Vector3())
+      )
+      .setY(0)
+      .normalize()
+
+    if (current.lengthSq() < 0.000001) return
+
+    const crossY = this.startVector.x * current.z - this.startVector.z * current.x
+    const dot = Math.max(-1, Math.min(1, this.startVector.dot(current)))
+    const angle = -Math.atan2(crossY, dot)
+
+    const q = new THREE.Quaternion()
+      .setFromAxisAngle(new THREE.Vector3(0,1,0), angle)
+
+    if (this.object.parent) {
+
+      const newWorldQuat = new THREE.Quaternion()
+        .copy(this.startQuaternion)
+        .multiply(q)
+
+      const parentWorldQuat = new THREE.Quaternion()
+      this.object.parent.getWorldQuaternion(parentWorldQuat)
+
+      const parentWorldQuatInv = parentWorldQuat.clone().invert()
+      const localQuat = newWorldQuat.clone().premultiply(parentWorldQuatInv)
+
+      this.object.quaternion.copy(localQuat)
+
+    } else {
+
+      this.object.quaternion
+        .copy(this.startQuaternion)
+        .multiply(q)
+    }
+  }
+
+  _dragPlane() {
+    const delta = new THREE.Vector3()
+      .subVectors(this.intersection, this.startPoint)
+
+    const newWorldPos = new THREE.Vector3()
+      .copy(this.startWorldPosition)
+      .add(delta)
+
+    newWorldPos.y = this.startWorldPosition.y
+
+    const localPos = newWorldPos.clone()
+
+    if (this.object.parent) {
+      this.object.parent.worldToLocal(localPos)
+    }
+
+    this.object.position.copy(localPos)
+
+    const minY = newWorldPos.y - (this.groundOffset ?? 0)
+    const eps = 0.01
+
+    this.group.position.set(newWorldPos.x, minY + eps, newWorldPos.z)
   }
 
   _onPointerUp(e) {
