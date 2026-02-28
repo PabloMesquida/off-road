@@ -171,7 +171,7 @@ class SimpleGizmo {
      POINTER UTIL
   ========================================================= */
 
-  _getPointer(e) {
+  _updatePointer(e) {
     const rect = this.dom.getBoundingClientRect()
     this.pointer.set(
       ((e.clientX - rect.left)/rect.width)*2-1,
@@ -186,7 +186,7 @@ class SimpleGizmo {
   _onPointerDown(e) {
     if (!this.object) return
 
-    this._getPointer(e)
+    this._updatePointer(e)
     const cam = this.cameraGetter?.()
     if (!cam) return
 
@@ -245,31 +245,47 @@ class SimpleGizmo {
   _onPointerMove(e) {
     if (!this.object) return
 
-    this._getPointer(e)
+    this._updatePointer(e)
 
+    if (!this.dragging) {
+      this._handleHover()
+      return
+    }
+
+    this._handleDrag(e)
+  }
+
+  _handleHover() {
     const cam = this.cameraGetter?.()
     if (!cam) return
 
     this.raycaster.setFromCamera(this.pointer, cam)
 
-    // HOVER (si no estamos arrastrando)
-    if (!this.dragging) {
-      const intersects = this.raycaster.intersectObjects(this.gizmoParts, true)
-      if (intersects.length) {
-        const a = intersects[0].object.userData.axis || intersects[0].object.parent?.userData?.axis
-        if (a) {
-          this._setHover(a)
-        } else {
-          this._clearHover()
-        }
-      } else {
-        this._clearHover()
-      }
+    const intersects = this.raycaster.intersectObjects(this.gizmoParts, true)
+
+    if (!intersects.length) {
+      this._clearHover()
       return
     }
 
-    // === DRAG MODE ===
+    const axis =
+      intersects[0].object.userData.axis ||
+      intersects[0].object.parent?.userData?.axis
+
+    if (axis) {
+      this._setHover(axis)
+    } else {
+      this._clearHover()
+    }
+  }
+
+  _handleDrag(e) {
     if (!this.axis) return
+
+    const cam = this.cameraGetter?.()
+    if (!cam) return
+
+    this.raycaster.setFromCamera(this.pointer, cam)
 
     e.preventDefault()
     e.stopImmediatePropagation()
