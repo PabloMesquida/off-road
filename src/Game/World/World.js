@@ -79,7 +79,7 @@ class World {
 
       // Ahora creamos la UI de Tweakpane, pasándole deps y callbacks
       this.tweakpaneUI = new TweakpaneUI({
-        pane: this.game.pane,
+        pane: this.game.debugUI.pane,
         placing: this.placing,
         transformManager: this.transformManager,
         onToggleEditMode: (isEditing) => this.toggleEditMode(isEditing),
@@ -102,9 +102,7 @@ class World {
   }
 
   updateTweakpaneState(isEditing) {
-    if (this.tweakpaneUI) {
-      this.tweakpaneUI.updateState(isEditing)
-    }
+    this.tweakpaneUI?.updateState(isEditing)
   }
 
   /*────────────────────────────*/
