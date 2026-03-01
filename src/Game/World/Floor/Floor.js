@@ -20,7 +20,7 @@ class Floor{
       stripeSize: 1.5
     }
 
-    this.pane = this.game.pane
+    this.debugUI = this.game.debugUI
 
     this.setModel()
     this.setPhysics()
@@ -32,9 +32,9 @@ class Floor{
   }
 
   initTweakpane() {
-    if (!this.pane) return
+    if (!this.debugUI) return
 
-    this.folder = this.pane.addFolder({ title: 'Floor', expanded: false })
+    this.folder = this.debugUI.addFolder({ title: 'Floor', expanded: false })
 
     const gridFolder = this.folder.addFolder({ title: 'Grid' })
     const limitsFolder = this.folder.addFolder({ title: 'Limits' })
@@ -181,15 +181,12 @@ class Floor{
   }
   
   setDebugStartZoneVisible(visible) {
-
     if (this.debugStartZoneMesh) {
       this.debugStartZoneMesh.visible = visible;
-          console.log('visible',visible)
     }
   }
 
   setEditableState(isEditing) {
-    console.log(isEditing)
     if (!this.folder) return
     
     const folderEl = this.folder.element
@@ -272,7 +269,6 @@ class Floor{
   saveToLocal() {
     const data = { ...this.PARAMS };
     localStorage.setItem("floor_config", JSON.stringify(data));
-    console.log("Floor config saved:", data);
   }
 
   loadFromLocal() {
@@ -280,13 +276,12 @@ class Floor{
     if (!json) return;
 
     const saved = JSON.parse(json);
-    console.log("Floor config loaded:", saved);
 
-    // Copiar valores al objeto PARAMS
     Object.assign(this.PARAMS, saved);
 
-    // Aplicar valores al material actual
     this.applyParamsToMaterial();
+
+    this.folder?.refresh();
   }
 
   applyParamsToMaterial() {
