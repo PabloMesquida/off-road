@@ -3,6 +3,7 @@ import * as RAPIER from '@dimforge/rapier3d-compat'
 import Floor from './Floor/Floor.js'
 import Vehicle from './Vehicle/Vehicle.js'
 import Events from '../Utils/Events.js'
+import TweakpaneUI from '../UI/TweakpaneUI.js'
 import Environment from './Environment/Environment.js'
 import AssetManager from './Assets/AssetManager.js'
 import PlacingController from './PlacingController.js'
@@ -29,8 +30,6 @@ class World {
 
     this.assetManagers = {}
 
-    // this.initTweakpane()
-
     this.resources.events.on('ready', () => {
       this.vehicle = new Vehicle(this.scene, this.game.physics)
 
@@ -40,10 +39,11 @@ class World {
 
       this.environment = new Environment(this.scene)
 
-      this.initTweakpane()
+      // Asset managers, carga local antes de crear placing
       this.initAssetManagers()
       this.loadAssetsFromLocal()
 
+      // Crear placing primero (como antes)
       this.placing = new PlacingController({
         scene: this.scene,
         domElement: this.domElement,
@@ -52,6 +52,7 @@ class World {
         assetManagers: this.assetManagers
       })
 
+      // Crear transform manager (usa inputs.events)
       this.transformManager = new TransformGizmoManager({
         scene: this.scene,
         cameraGetter: () => this.game.view.camera,
@@ -76,7 +77,16 @@ class World {
         onDeleteAsset: (assetGroup) => this.deleteAsset(assetGroup)
       })
 
-      // 🔥 Nuevo controlador de interacción
+      // Ahora creamos la UI de Tweakpane, pasándole deps y callbacks
+      this.tweakpaneUI = new TweakpaneUI({
+        pane: this.game.pane,
+        placing: this.placing,
+        transformManager: this.transformManager,
+        onToggleEditMode: (isEditing) => this.toggleEditMode(isEditing),
+        onSaveAssets: () => this.saveAssetsToLocal()
+      })
+
+      // Nuevo controlador de interacción
       this.assetInteraction = new AssetInteractionController({
         scene: this.scene,
         domElement: this.domElement,
@@ -91,96 +101,9 @@ class World {
     })
   }
 
-   initTweakpane() {
-    try {
-      this.pane = this.game.pane
-      this.assetsfolder = this.pane.addFolder({ title: 'Assets', expanded: false })
-      this.signsFolder = this.assetsfolder.addFolder({ title: 'Signs', expanded: false })
-      this.editParam = { editMode: false }
-
-      this.pane.addBinding(this.editParam, 'editMode', { label: 'EDIT MODE' })
-        .on('change', ev => this.toggleEditMode(ev.value))
-
-      this.placingButtonCone = this.assetsfolder.addButton({ title: 'Cone' })
-      this.placingButtonCone.on('click', () => { 
-        this.placing?.togglePlacing('cone')
-        this.transformManager.detach()
-      })
-
-      this.placingButtonBarrel = this.assetsfolder.addButton({ title: 'Barrel' })
-      this.placingButtonBarrel.on('click', () => {
-        this.placing?.togglePlacing('barrel')
-        this.transformManager.detach()
-      })
-
-      this.placingButtonRamp = this.assetsfolder.addButton({ title: 'Ramp' })
-      this.placingButtonRamp.on('click', () => {
-        this.placing?.togglePlacing('ramp')
-        this.transformManager.detach()
-      })
-
-      this.placingButtonBump = this.assetsfolder.addButton({ title: 'Speed Bump' })
-      this.placingButtonBump.on('click', () => {
-        this.placing?.togglePlacing('bump')
-        this.transformManager.detach()
-      })
-
-      this.placingButtonBarrier = this.assetsfolder.addButton({ title: 'Concrete Barrier' })
-      this.placingButtonBarrier.on('click', () => {
-        this.placing?.togglePlacing('barrier')
-        this.transformManager.detach()
-      })
-
-      this.placingButtonTire = this.assetsfolder.addButton({ title: 'Tire' })
-      this.placingButtonTire.on('click', () => {
-        this.placing?.togglePlacing('tire')
-        this.transformManager.detach()
-      })
-
-      this.placingButtonSignAhead = this.signsFolder.addButton({ title: 'Sign Ahead' })
-      this.placingButtonSignAhead.on('click', () => {
-        this.placing?.togglePlacing('signAhead')
-        this.transformManager.detach()
-      })
-
-      this.placingButtonSignStop = this.signsFolder.addButton({ title: 'Sign Stop' })
-      this.placingButtonSignStop.on('click', () => {
-        this.placing?.togglePlacing('signStop')
-        this.transformManager.detach()
-      })
-
-      this.placingButtonSignWarning = this.signsFolder.addButton({ title: 'Sign Warning' })
-      this.placingButtonSignWarning.on('click', () => {
-        this.placing?.togglePlacing('signWarning')
-        this.transformManager.detach()
-      })
-
-      this.placingButtonSignNot = this.signsFolder.addButton({ title: 'Sign Do Not Enter' })
-      this.placingButtonSignNot.on('click', () => {
-        this.placing?.togglePlacing('signNot')
-        this.transformManager.detach()
-      })
-
-      this.saveButton = this.assetsfolder.addButton({ title: 'Save Assets' })
-
-      this.saveButton.on('click', () => {
-        this.saveAssetsToLocal()
-      })
-
-
-      this.updateTweakpaneState(false)
-
-    } catch (e) {
-      console.warn('[World] Tweakpane no disponible:', e)
-    }
-  }
-
-
   updateTweakpaneState(isEditing) {
-    const el = this.assetsfolder?.element
-    if (el) {
-      el.style.opacity = isEditing ? '1' : '0.5'
-      el.style.pointerEvents = isEditing ? 'auto' : 'none'
+    if (this.tweakpaneUI) {
+      this.tweakpaneUI.updateState(isEditing)
     }
   }
 
