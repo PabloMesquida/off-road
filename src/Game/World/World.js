@@ -77,12 +77,13 @@ class World {
         onDeleteAsset: (assetGroup) => this.deleteAsset(assetGroup)
       })
 
-      // Ahora creamos la UI de Tweakpane, pasándole deps y callbacks
       this.tweakpaneUI = new TweakpaneUI({
         pane: this.game.debugUI.pane,
-        placing: this.placing,
-        transformManager: this.transformManager,
         onToggleEditMode: (isEditing) => this.toggleEditMode(isEditing),
+        onPlaceAsset: (type) => {
+          this.placing?.togglePlacing(type)
+          this.transformManager?.detach()
+        },
         onSaveAssets: () => this.saveAssetsToLocal()
       })
 

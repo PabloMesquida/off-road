@@ -1,18 +1,15 @@
 export default class TweakpaneUI {
-  constructor({
+   constructor({
     pane,
-    placing,
-    transformManager,
-    onToggleEditMode, // function(boolean)
-    onSaveAssets      // function()
+    onToggleEditMode,
+    onPlaceAsset,
+    onSaveAssets
   }) {
     this.pane = pane
-    this.placing = placing
-    this.transformManager = transformManager
     this.onToggleEditMode = onToggleEditMode
+    this.onPlaceAsset = onPlaceAsset
     this.onSaveAssets = onSaveAssets
 
-    // Guarda referencias a controles para posible dispose
     this._controls = {}
 
     this._create()
@@ -36,8 +33,7 @@ export default class TweakpaneUI {
       const makePlaceBtn = (folder, title, type) => {
         const btn = folder.addButton({ title })
         const handler = () => {
-          this.placing?.togglePlacing(type)
-          this.transformManager?.detach()
+          this.onPlaceAsset?.(type)
         }
         btn.on('click', handler)
         return { btn, handler }
@@ -77,28 +73,21 @@ export default class TweakpaneUI {
   }
 
   updateState(isEditing) {
-    // Responsable de cambiar la apariencia/interactividad del folder
     try {
       const el = this.assetsfolder?.element
       if (el) {
         el.style.opacity = isEditing ? '1' : '0.5'
         el.style.pointerEvents = isEditing ? 'auto' : 'none'
       }
-      // Actualizar binding visual si existe
-      if (this.editParam) this.editParam.editMode = !!isEditing
-      // Si hack necesario para que binding refresque, podríamos reemitir
+
+      if (this.editParam) {
+        this.editParam.editMode = !!isEditing
+        this._controls.binding?.refresh?.()
+      }
+
     } catch (e) {
       // silencioso
     }
-  }
-
-  // Permite reasignar referencias si cambian (opcional)
-  setPlacing(placing) {
-    this.placing = placing
-  }
-
-  setTransformManager(tm) {
-    this.transformManager = tm
   }
 
   dispose() {
