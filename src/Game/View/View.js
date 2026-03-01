@@ -13,14 +13,14 @@ class View {
       1000
     );
 
-    // ✅ POSICIÓN Y ORIENTACIÓN INICIAL DE LA CÁMARA
+    // POSICIÓN Y ORIENTACIÓN INICIAL DE LA CÁMARA
     this.initialCamPos = new THREE.Vector3(20, 25, 20);
     this.initialCamTarget = new THREE.Vector3(0, 1.5, 0);
 
     this.camera.position.copy(this.initialCamPos);
     this.camera.lookAt(this.initialCamTarget);
 
-    this.pane = this.game.pane
+    this.debugUI = this.game.debugUI
 
     // Agregar a la escena
     this.game.world.scene.add(this.camera);
@@ -63,9 +63,9 @@ class View {
   }
 
   initTweakpane() {
-    if (!this.pane) return
+    if (!this.debugUI) return
 
-    this.cameraFolder = this.pane.addFolder({ title: 'Camera', expanded: false })
+    this.cameraFolder = this.debugUI.addFolder({ title: 'Camera', expanded: false })
 
     this.cameraMode = { zoomedOut: false }
 
@@ -176,24 +176,10 @@ class View {
 
       const hasSelection = !!transformManager?.selectedAsset
 
-      console.log(
-        '[View] RAF check →',
-        {
-          tcDragging,
-          tcHasAxis,
-          hasSelection,
-          isEditing: this.isEditing,
-          isPlacing: this.game.world.isPlacingAsset,
-          button: e.button
-        }
-      )
-
       if (!tcDragging && !tcHasAxis && !hasSelection) {
         this.dragging = true
-        console.log('[View] → PAN ACTIVADO')
       } else {
         this.dragging = false
-        console.log('[View] → PAN BLOQUEADO')
       }
     })
   }
