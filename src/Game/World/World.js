@@ -10,6 +10,7 @@ import PlacingController from './PlacingController.js'
 import TransformGizmoManager from '../Gizmos/TransformGizmoManager.js'
 import AssetInteractionController from './AssetInteractionController.js'
 import assetsConfig from './Assets/assetsConfig.js'
+import EditorController from './EditorController.js'
 
 class World {
   constructor(game) {
@@ -29,76 +30,98 @@ class World {
     this._isDraggingAsset = false
 
     this.assetManagers = {}
+    this.tweakpaneUI = null
+    this.placing = null
+    this.transformManager = null
+    this.assetInteraction = null
 
+    // Cuando los recursos estén listos inicializamos el mundo
     this.resources.events.on('ready', () => {
-      this.vehicle = new Vehicle(this.scene, this.game.physics)
+      this._onResourcesReady()
+    })
+  }
 
-      if (this.vehicle?.chassis?.mesh) {
-        this.initialVehicleRotation.copy(this.vehicle.chassis.mesh.quaternion)
-      }
+  _onResourcesReady() {
+    this.vehicle = new Vehicle(this.scene, this.game.physics)
 
-      this.environment = new Environment(this.scene)
+    if (this.vehicle?.chassis?.mesh) {
+      this.initialVehicleRotation.copy(this.vehicle.chassis.mesh.quaternion)
+    }
 
-      // Asset managers, carga local antes de crear placing
-      this.initAssetManagers()
-      this.loadAssetsFromLocal()
+    this.environment = new Environment(this.scene)
 
-      // Crear placing primero (como antes)
-      this.placing = new PlacingController({
-        scene: this.scene,
-        domElement: this.domElement,
-        cameraGetter: () => this.game.view.camera,
-        floor: this.floor,
-        assetManagers: this.assetManagers
-      })
+    // Asset managers, carga local antes de crear placing
+    this.initAssetManagers()
+    this.loadAssetsFromLocal()
 
-      // Crear transform manager (usa inputs.events)
-      this.transformManager = new TransformGizmoManager({
-        scene: this.scene,
-        cameraGetter: () => this.game.view.camera,
-        domElement: this.domElement,
-        inputsEvents: this.inputs.events,
-        onChangeKinematic: (isDragging, selectedAsset) => {
-          this._isDraggingAsset = !!isDragging
-          const assetData = this.findAssetData(selectedAsset)
-          if (!assetData?.body) return
+    // Crear placing primero (como antes)
+    this.placing = new PlacingController({
+      scene: this.scene,
+      domElement: this.domElement,
+      cameraGetter: () => this.game.view.camera,
+      floor: this.floor,
+      assetManagers: this.assetManagers
+    })
 
-          const body = assetData.body
+    // Crear transform manager (usa inputs.events)
+    this.transformManager = new TransformGizmoManager({
+      scene: this.scene,
+      cameraGetter: () => this.game.view.camera,
+      domElement: this.domElement,
+      inputsEvents: this.inputs.events,
+      onChangeKinematic: (isDragging, selectedAsset) => {
+        this._isDraggingAsset = !!isDragging
+        const assetData = this.findAssetData(selectedAsset)
+        if (!assetData?.body) return
 
-          if (isDragging) {
-            assetData.originalBodyType = body.bodyType()
-            body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
-          } else {
-            body.setTranslation(selectedAsset.position, true)
-            body.setRotation(selectedAsset.quaternion, true)
-            body.setBodyType(assetData.originalBodyType, true)
-          }
-        },
-        onDeleteAsset: (assetGroup) => this.deleteAsset(assetGroup)
-      })
+        const body = assetData.body
 
-      this.tweakpaneUI = new TweakpaneUI({
-        pane: this.game.debugUI.pane,
-        onToggleEditMode: (isEditing) => this.toggleEditMode(isEditing),
-        onPlaceAsset: (type) => {
-          this.placing?.togglePlacing(type)
-          this.transformManager?.detach()
-        },
-        onSaveAssets: () => this.saveAssetsToLocal()
-      })
+        if (isDragging) {
+          assetData.originalBodyType = body.bodyType()
+          body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
+        } else {
+          body.setTranslation(selectedAsset.position, true)
+          body.setRotation(selectedAsset.quaternion, true)
+          body.setBodyType(assetData.originalBodyType, true)
+        }
+      },
+      onDeleteAsset: (assetGroup) => this.deleteAsset(assetGroup)
+    })
 
-      // Nuevo controlador de interacción
-      this.assetInteraction = new AssetInteractionController({
-        scene: this.scene,
-        domElement: this.domElement,
-        cameraGetter: () => this.game.view.camera,
-        getAllAssetInstances: () => this.getAllAssetInstances(),
-        findAssetData: (g) => this.findAssetData(g),
-        transformManager: this.transformManager,
-        isEditingGetter: () => this.isEditing,
-        isPlacingGetter: () => this.placing?.isPlacing,
-        isDraggingGetter: () => this._isDraggingAsset
-      })
+    // UI: Tweakpane desacoplada emitiendo intenciones (World maneja la lógica)
+    this.tweakpaneUI = new TweakpaneUI({
+      pane: this.game.debugUI.pane,
+      onToggleEditMode: (isEditing) => this.toggleEditMode(isEditing),
+      onPlaceAsset: (type) => {
+        this.placing?.togglePlacing(type)
+        this.transformManager?.detach()
+      },
+      onSaveAssets: () => this.saveAssetsToLocal()
+    })
+
+    // EditorController
+    this.editorController = new EditorController({
+      view: this.game.view,
+      floor: this.floor,
+      vehicle: this.vehicle,
+      placing: this.placing,
+      transformManager: this.transformManager,
+      tweakpaneUI: this.tweakpaneUI,
+      initialVehiclePosition: this.initialVehiclePosition,
+      initialVehicleRotation: this.initialVehicleRotation
+    })
+
+    // Controlador de interacción
+    this.assetInteraction = new AssetInteractionController({
+      scene: this.scene,
+      domElement: this.domElement,
+      cameraGetter: () => this.game.view.camera,
+      getAllAssetInstances: () => this.getAllAssetInstances(),
+      findAssetData: (g) => this.findAssetData(g),
+      transformManager: this.transformManager,
+      isEditingGetter: () => this.isEditing,
+      isPlacingGetter: () => this.placing?.isPlacing,
+      isDraggingGetter: () => this._isDraggingAsset
     })
   }
 
@@ -144,36 +167,7 @@ class World {
 
   toggleEditMode(isEditing) {
     this.isEditing = isEditing
-
-    this.updateTweakpaneState(isEditing) 
-
-    this.game.view.setEditableState(isEditing)
-    this.game.view.setEditMode(isEditing)
-
-    this.floor?.setEditableState?.(isEditing)
-
-    if (isEditing) {
-      if (this.vehicle?.chassis?.body) {
-        const body = this.vehicle.chassis.body
-        body.setTranslation(this.initialVehiclePosition, true)
-        body.setRotation(this.initialVehicleRotation, true)
-        body.setLinvel({ x: 0, y: 0, z: 0 }, true)
-        body.setAngvel({ x: 0, y: 0, z: 0 }, true)
-        this.vehicle.chassis.mesh.visible = false
-        body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
-      }
-
-      this.transformManager?.create()
-    } else {
-      if (this.vehicle) {
-        this.vehicle.chassis.mesh.visible = true
-        this.vehicle.chassis.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true)
-      }
-
-      this.placing?.disablePlacing()
-      this.transformManager?.dispose()
-      this._isDraggingAsset = false
-    }
+    this.editorController?.setEditMode(isEditing)
   }
 
   /*────────────────────────────*/
@@ -203,7 +197,7 @@ class World {
 
     this.scene.remove(group)
     managerFound.instances.splice(index, 1)
-    this.transformManager.detach()
+    this.transformManager?.detach()
   }
 
   /*────────────────────────────*/
@@ -247,11 +241,11 @@ class World {
       rotation: inst.group.quaternion
     }))
 
-    localStorage.setItem("world_assets", JSON.stringify(data))
+    localStorage.setItem('world_assets', JSON.stringify(data))
   }
 
   loadAssetsFromLocal() {
-    const json = localStorage.getItem("world_assets")
+    const json = localStorage.getItem('world_assets')
     if (!json) return
 
     const data = JSON.parse(json)
@@ -280,7 +274,34 @@ class World {
   }
 
   get isDraggingAsset() {
-    return this.transformManager?.transform?.dragging ?? false
+    // usa la API pública del transform manager
+    return this.transformManager?.dragging ?? false
+  }
+
+  /*────────────────────────────*/
+  /* Cleanup */
+  /*────────────────────────────*/
+
+  dispose() {
+    try {
+      this.tweakpaneUI?.dispose()
+    } catch (e) {
+      // ignore
+    }
+
+    try {
+      this.transformManager?.dispose()
+    } catch (e) {
+      // ignore
+    }
+
+    try {
+      this.assetInteraction?.dispose?.()
+    } catch (e) {
+      // ignore
+    }
+
+    // Si quieres borrar la escena/physics también puedes hacerlo aquí
   }
 }
 
