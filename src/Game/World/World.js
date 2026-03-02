@@ -30,7 +30,9 @@ class World {
     this._isDraggingAsset = false
 
     this.assetManagers = {}
-  this.assetIndex = new Map()
+    this.assetIndex = new Map()
+    
+    this.assets = []
 
     this.tweakpaneUI = null
     this.placing = null
@@ -65,6 +67,7 @@ class World {
       assetManagers: this.assetManagers,
       onAssetSpawned: (inst) => {
         this.assetIndex.set(inst.group, inst)
+        this.assets.push(inst)
       }
     })
 
@@ -147,23 +150,22 @@ class World {
     }
   }
 
-  findAssetData(group) {
-    if (!group) return null
-    for (const type in this.assetManagers) {
-      const manager = this.assetManagers[type]
-      const found = manager.instances?.find(i => i.group === group)
-      if (found) return found
+  findAssetData(object) {
+    if (!object) return null
+
+    let node = object
+
+    while (node) {
+      const inst = this.assetIndex.get(node)
+      if (inst) return inst
+      node = node.parent
     }
+
     return null
   }
 
   getAllAssetInstances() {
-    const all = []
-    for (const type in this.assetManagers) {
-      const manager = this.assetManagers[type]
-      if (manager?.instances) all.push(...manager.instances)
-    }
-    return all
+    return this.assets
   }
 
   /*────────────────────────────*/
@@ -180,28 +182,18 @@ class World {
   /*────────────────────────────*/
 
   deleteAsset(group) {
-    let managerFound = null
-    let index = -1
+    const inst = this.assetIndex.get(group)
+    if (!inst) return
 
-    for (const type in this.assetManagers) {
-      const manager = this.assetManagers[type]
-      index = manager.instances.findIndex(i => i.group === group)
-      if (index !== -1) {
-        managerFound = manager
-        break
-      }
-    }
-
-    if (!managerFound) return
-
-    const instance = managerFound.instances[index]
-
-    if (instance.physicsEntity) {
-      this.game.physics.removeEntity(instance.physicsEntity)
+    if (inst.physicsEntity) {
+      this.game.physics.removeEntity(inst.physicsEntity)
     }
 
     this.scene.remove(group)
-    managerFound.instances.splice(index, 1)
+
+    this.assetIndex.delete(group)
+    this.assets = this.assets.filter(a => a !== inst)
+
     this.transformManager?.detach()
   }
 
@@ -261,6 +253,7 @@ class World {
 
       const inst = manager.spawn(item.position)
       this.assetIndex.set(inst.group, inst)
+      this.assets.push(inst) 
 
       inst.group.quaternion.set(
         item.rotation.x,

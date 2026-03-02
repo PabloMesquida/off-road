@@ -103,11 +103,15 @@ class AssetInteractionController {
 
   findAssetGroup(object) {
     let node = object
+
     while (node) {
       const assetData = this.findAssetData(node)
-      if (assetData) return node
+      if (assetData) {
+        return assetData.group
+      }
       node = node.parent
     }
+
     return null
   }
 }

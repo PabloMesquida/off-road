@@ -35,7 +35,6 @@ class AssetManager {
     const configs = ASSET_CONFIGS(this.size);
     this.config = configs[this.assetType] || configs.cone;
 
-    this.instances = [];
     this.preview = null;
   }
 
@@ -149,7 +148,6 @@ class AssetManager {
     group.userData.assetInstance = instance;
     group.userData.assetType = this.assetType;
 
-    this.instances.push(instance);
     return instance;
   }
 
