@@ -30,6 +30,8 @@ class World {
     this._isDraggingAsset = false
 
     this.assetManagers = {}
+  this.assetIndex = new Map()
+
     this.tweakpaneUI = null
     this.placing = null
     this.transformManager = null
@@ -60,7 +62,10 @@ class World {
       domElement: this.domElement,
       cameraGetter: () => this.game.view.camera,
       floor: this.floor,
-      assetManagers: this.assetManagers
+      assetManagers: this.assetManagers,
+      onAssetSpawned: (inst) => {
+        this.assetIndex.set(inst.group, inst)
+      }
     })
 
     // Crear transform manager (usa inputs.events)
@@ -255,6 +260,8 @@ class World {
       if (!manager) continue
 
       const inst = manager.spawn(item.position)
+      this.assetIndex.set(inst.group, inst)
+
       inst.group.quaternion.set(
         item.rotation.x,
         item.rotation.y,

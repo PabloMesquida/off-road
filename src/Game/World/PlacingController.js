@@ -1,12 +1,13 @@
 import * as THREE from 'three/webgpu'
 
 export default class PlacingController {
-  constructor({ scene, domElement, cameraGetter, floor, assetManagers }) {
+  constructor({ scene, domElement, cameraGetter, floor, assetManagers, onAssetSpawned }) {
     this.scene =  scene
     this.domElement = domElement
     this.cameraGetter = cameraGetter
     this.floor = floor
     this.assetManagers = assetManagers
+    this.onAssetSpawned = onAssetSpawned
 
     this.raycaster = new THREE.Raycaster()
     this.pointer = new THREE.Vector2()
@@ -54,20 +55,6 @@ export default class PlacingController {
     this.currentAssetType = null
   }
 
-  // forceCleanPreviews() {
-  //   if (!this.scene) return
-  //   console.log('force')
-  //   this.scene.traverse(child => {
-  //     if (child.userData?.isPreview) this.scene.remove(child)
-  //   })
-
-  //   for (const k in this.assetManagers) {
-  //     if (this.assetManagers[k]) {
-  //       this.assetManagers[k].preview = null
-  //     }
-  //   }
-  // }
-
   onPointerMove(e) {
     if (!this.isPlacing || !this.currentAssetType) return
     const camera = this.cameraGetter()
@@ -107,7 +94,7 @@ export default class PlacingController {
     if (hit) {
       const position = { x: hit.point.x, y: hit.point.y, z: hit.point.z }
       // console.log(position)
-      //  Paso 3: chequeo del área de salida del vehículo
+      //  chequeo del área de salida del vehículo
       if (this.floor.isInsideStartZone(position)) {
         console.warn('❌ No se puede colocar objetos en el área de salida del vehículo')
         return
@@ -115,7 +102,11 @@ export default class PlacingController {
 
       // Si pasa el filtro, se spawnea normalmente
       const manager = this.assetManagers[this.currentAssetType]
-      manager?.spawn?.(position)
+      const inst = manager?.spawn?.(position)
+
+      if (inst) {
+        this.onAssetSpawned?.(inst)
+      }
     }
   }
 
