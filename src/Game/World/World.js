@@ -131,10 +131,6 @@ class World {
     })
   }
 
-  updateTweakpaneState(isEditing) {
-    this.tweakpaneUI?.updateState(isEditing)
-  }
-
   /*────────────────────────────*/
   /* Asset Managers */
   /*────────────────────────────*/
