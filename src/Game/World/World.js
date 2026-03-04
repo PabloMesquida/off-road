@@ -10,6 +10,7 @@ import PlacingController from './PlacingController.js'
 import TransformGizmoManager from '../Gizmos/TransformGizmoManager.js'
 import AssetInteractionController from './AssetInteractionController.js'
 import assetsConfig from './Assets/assetsConfig.js'
+import AssetRegistry from './Assets/AssetRegistry.js'
 import EditorController from './EditorController.js'
 
 class World {
@@ -29,9 +30,7 @@ class World {
     this.isEditing = false
 
     this.assetManagers = {}
-    this.assetIndex = new Map()
-    
-    this.assets = []
+    this.assetRegistry = new AssetRegistry(this.scene, this.game.physics)
 
     this.tweakpaneUI = null
     this.placing = null
@@ -84,8 +83,7 @@ class World {
       floor: this.floor,
       assetManagers: this.assetManagers,
       onAssetSpawned: (inst) => {
-        this.assetIndex.set(inst.group, inst)
-        this.assets.push(inst)
+        this.assetRegistry.add(inst)
       }
     })
   }
@@ -169,21 +167,11 @@ class World {
   }
 
   findAssetData(object) {
-    if (!object) return null
-
-    let node = object
-
-    while (node) {
-      const inst = this.assetIndex.get(node)
-      if (inst) return inst
-      node = node.parent
-    }
-
-    return null
+    return this.assetRegistry.find(object)
   }
 
   getAllAssetInstances() {
-    return this.assets
+    return this.assetRegistry.getAll()
   }
 
   /*────────────────────────────*/
@@ -200,17 +188,8 @@ class World {
   /*────────────────────────────*/
 
   deleteAsset(group) {
-    const inst = this.assetIndex.get(group)
+    const inst = this.assetRegistry.remove(group)
     if (!inst) return
-
-    if (inst.physicsEntity) {
-      this.game.physics.removeEntity(inst.physicsEntity)
-    }
-
-    this.scene.remove(group)
-
-    this.assetIndex.delete(group)
-    this.assets = this.assets.filter(a => a !== inst)
 
     this.transformManager?.detach()
   }
@@ -270,8 +249,7 @@ class World {
       if (!manager) continue
 
       const inst = manager.spawn(item.position)
-      this.assetIndex.set(inst.group, inst)
-      this.assets.push(inst) 
+      this.assetRegistry.add(inst)
 
       inst.group.quaternion.set(
         item.rotation.x,
