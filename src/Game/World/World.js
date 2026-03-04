@@ -27,7 +27,6 @@ class World {
     this.domElement = this.game.domElement
 
     this.isEditing = false
-    this._isDraggingAsset = false
 
     this.assetManagers = {}
     this.assetIndex = new Map()
@@ -78,7 +77,6 @@ class World {
       domElement: this.domElement,
       inputsEvents: this.inputs.events,
       onChangeKinematic: (isDragging, selectedAsset) => {
-        this._isDraggingAsset = !!isDragging
         const assetData = this.findAssetData(selectedAsset)
         if (!assetData?.body) return
 
@@ -129,7 +127,7 @@ class World {
       transformManager: this.transformManager,
       isEditingGetter: () => this.isEditing,
       isPlacingGetter: () => this.placing?.isPlacing,
-      isDraggingGetter: () => this._isDraggingAsset
+      isDraggingGetter: () => this.transformManager?.dragging ?? false
     })
   }
 
@@ -274,7 +272,6 @@ class World {
   }
 
   get isDraggingAsset() {
-    // usa la API pública del transform manager
     return this.transformManager?.dragging ?? false
   }
 
