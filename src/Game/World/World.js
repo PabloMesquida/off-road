@@ -45,19 +45,38 @@ class World {
   }
 
   _onResourcesReady() {
+    this._initVehicle()
+    this._initEnvironment()
+    this._initAssets()
+    this._initControllers()
+  }
+
+  _initVehicle() {
     this.vehicle = new Vehicle(this.scene, this.game.physics)
 
     if (this.vehicle?.chassis?.mesh) {
       this.initialVehicleRotation.copy(this.vehicle.chassis.mesh.quaternion)
     }
+  }
 
+  _initEnvironment() {
     this.environment = new Environment(this.scene)
+  }
 
-    // Asset managers, carga local antes de crear placing
+  _initAssets() {
     this.initAssetManagers()
     this.loadAssetsFromLocal()
+  }
 
-    // Crear placing primero (como antes)
+  _initControllers() {
+    this._createPlacingController()
+    this._createTransformManager()
+    this._createUI()
+    this._createEditorController()
+    this._createInteractionController()
+  }
+
+  _createPlacingController() {
     this.placing = new PlacingController({
       scene: this.scene,
       domElement: this.domElement,
@@ -69,14 +88,16 @@ class World {
         this.assets.push(inst)
       }
     })
+  }
 
-    // Crear transform manager (usa inputs.events)
+  _createTransformManager() {
     this.transformManager = new TransformGizmoManager({
       scene: this.scene,
       cameraGetter: () => this.game.view.camera,
       domElement: this.domElement,
       inputsEvents: this.inputs.events,
       onChangeKinematic: (isDragging, selectedAsset) => {
+
         const assetData = this.findAssetData(selectedAsset)
         if (!assetData?.body) return
 
@@ -93,8 +114,9 @@ class World {
       },
       onDeleteAsset: (assetGroup) => this.deleteAsset(assetGroup)
     })
+  }
 
-    // UI: Tweakpane desacoplada emitiendo intenciones (World maneja la lógica)
+  _createUI() {
     this.tweakpaneUI = new TweakpaneUI({
       pane: this.game.debugUI.pane,
       onToggleEditMode: (isEditing) => this.toggleEditMode(isEditing),
@@ -104,8 +126,9 @@ class World {
       },
       onSaveAssets: () => this.saveAssetsToLocal()
     })
+  }
 
-    // EditorController
+  _createEditorController() {
     this.editorController = new EditorController({
       view: this.game.view,
       floor: this.floor,
@@ -116,8 +139,9 @@ class World {
       initialVehiclePosition: this.initialVehiclePosition,
       initialVehicleRotation: this.initialVehicleRotation
     })
+  }
 
-    // Controlador de interacción
+  _createInteractionController() {
     this.assetInteraction = new AssetInteractionController({
       scene: this.scene,
       domElement: this.domElement,
