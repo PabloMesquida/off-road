@@ -6,12 +6,12 @@ import Events from '../Utils/Events.js'
 import TweakpaneUI from '../UI/TweakpaneUI.js'
 import Environment from './Environment/Environment.js'
 import AssetManager from './Assets/AssetManager.js'
-import PlacingController from './PlacingController.js'
-import TransformGizmoManager from '../Gizmos/TransformGizmoManager.js'
-import AssetInteractionController from './AssetInteractionController.js'
 import assetsConfig from './Assets/assetsConfig.js'
 import AssetRegistry from './Assets/AssetRegistry.js'
-import EditorController from './EditorController.js'
+import PlacingController from './Editor/PlacingController.js'
+import EditorController from './Editor/EditorController.js'
+import AssetInteractionController from './Editor/AssetInteractionController.js'
+import TransformGizmoManager from '../Gizmos/TransformGizmoManager.js'
 
 class World {
   constructor(game) {
