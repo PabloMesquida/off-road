@@ -61,6 +61,8 @@ class Floor{
       this.updateGridPreset()
       this.saveToLocal() 
     })
+
+    this.setEditableState(false)
   }
  
   setModel(){

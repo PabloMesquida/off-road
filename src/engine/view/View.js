@@ -78,6 +78,8 @@ class View {
           this.game.view.resetCameraZoom()
         }
       })
+    
+    this.setEditableState(false)
   }
 
   setEditableState(isEditing) {
