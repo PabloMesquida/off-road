@@ -5,7 +5,7 @@ import Vehicle from './vehicle/Vehicle.js'
 import Environment from './environment/Environment.js'
 import AssetManager from './assets/AssetManager.js'
 import assetsConfig from './assets/assetsConfig.js'
-import AssetRegistry from './assets/AssetRegistry.js'
+import AssetSystem from "./systems/AssetSystem.js"
 import Events from '../../core/Events.js'
 import TweakpaneUI from '../../editor/UI/TweakpaneUI.js'
 import PlacingController from '../../editor/controllers/PlacingController.js'
@@ -30,7 +30,6 @@ class World {
     this.isEditing = false
 
     this.assetManagers = {}
-    this.assetRegistry = new AssetRegistry(this.scene, this.game.physics)
 
     this.tweakpaneUI = null
     this.placing = null
@@ -38,12 +37,16 @@ class World {
     this.assetInteraction = null
 
     // Cuando los recursos estén listos inicializamos el mundo
-    this.resources.events.on('ready', () => {
-      this._onResourcesReady()
-    })
+    this.resources.events.on('ready', this._onResourcesReady.bind(this))
   }
 
   _onResourcesReady() {
+    this.assetSystem = new AssetSystem({
+      scene: this.scene,
+      physics: this.game.physics,
+      assetManagers: this.assetManagers
+    })
+
     this._initVehicle()
     this._initEnvironment()
     this._initAssets()
@@ -64,7 +67,7 @@ class World {
 
   _initAssets() {
     this.initAssetManagers()
-    this.loadAssetsFromLocal()
+    this.assetSystem.load()
   }
 
   _initControllers() {
@@ -83,7 +86,7 @@ class World {
       floor: this.floor,
       assetManagers: this.assetManagers,
       onAssetSpawned: (inst) => {
-        this.assetRegistry.add(inst)
+        this.assetSystem.add(inst)
       }
     })
   }
@@ -122,7 +125,7 @@ class World {
         this.placing?.togglePlacing(type)
         this.transformManager?.detach()
       },
-      onSaveAssets: () => this.saveAssetsToLocal()
+      onSaveAssets: () => this.assetSystem.save()
     })
   }
 
@@ -144,7 +147,7 @@ class World {
       scene: this.scene,
       domElement: this.domElement,
       cameraGetter: () => this.game.view.camera,
-      getAllAssetInstances: () => this.getAllAssetInstances(),
+      getAllAssetInstances:() => this.assetSystem.getAll(),
       findAssetData: (g) => this.findAssetData(g),
       transformManager: this.transformManager,
       isEditingGetter: () => this.isEditing,
@@ -167,11 +170,7 @@ class World {
   }
 
   findAssetData(object) {
-    return this.assetRegistry.find(object)
-  }
-
-  getAllAssetInstances() {
-    return this.assetRegistry.getAll()
+    return this.assetSystem.find(object)
   }
 
   /*────────────────────────────*/
@@ -188,9 +187,8 @@ class World {
   /*────────────────────────────*/
 
   deleteAsset(group) {
-    const inst = this.assetRegistry.remove(group)
+    const inst = this.assetSystem.delete(group)
     if (!inst) return
-
     this.transformManager?.detach()
   }
 
@@ -224,47 +222,6 @@ class World {
     this.vehicle.visuals.isOutsideLimit = isOutside
   }
 
-  /*────────────────────────────*/
-  /* Persistence */
-  /*────────────────────────────*/
-
-  saveAssetsToLocal() {
-    const data = this.getAllAssetInstances().map(inst => ({
-      type: inst.assetType,
-      position: inst.group.position,
-      rotation: inst.group.quaternion
-    }))
-
-    localStorage.setItem('world_assets', JSON.stringify(data))
-  }
-
-  loadAssetsFromLocal() {
-    const json = localStorage.getItem('world_assets')
-    if (!json) return
-
-    const data = JSON.parse(json)
-
-    for (const item of data) {
-      const manager = this.assetManagers[item.type]
-      if (!manager) continue
-
-      const inst = manager.spawn(item.position)
-      this.assetRegistry.add(inst)
-
-      inst.group.quaternion.set(
-        item.rotation.x,
-        item.rotation.y,
-        item.rotation.z,
-        item.rotation.w
-      )
-
-      if (inst.body) {
-        inst.body.setTranslation(item.position, true)
-        inst.body.setRotation(item.rotation, true)
-      }
-    }
-  }
-
   get isPlacingAsset() {
     return this.placing?.isPlacing ?? false
   }
@@ -295,8 +252,6 @@ class World {
     } catch (e) {
       // ignore
     }
-
-    // Si quieres borrar la escena/physics también puedes hacerlo aquí
   }
 }
 
