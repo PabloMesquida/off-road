@@ -86,7 +86,7 @@ class EditorSystem {
     this.editorController = new EditorController({
       view: this.game.view,
       floor: this.world.floor,
-      vehicle: this.world.vehicle,
+      getVehicle: () => this.world.vehicleSystem.getVehicle(),
       placing: this.placing,
       transformManager: this.transformManager,
       tweakpaneUI: this.tweakpaneUI,

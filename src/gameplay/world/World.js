@@ -7,6 +7,7 @@ import AssetManager from './assets/AssetManager.js'
 import assetsConfig from './assets/assetsConfig.js'
 import AssetSystem from "./systems/AssetSystem.js"
 import EditorSystem from "./systems/EditorSystem.js"
+import VehicleSystem from "./systems/VehicleSystem.js"
 
 class World {
   constructor(game) {
@@ -39,22 +40,15 @@ class World {
       assetManagers: this.assetManagers
     })
 
+    this.vehicleSystem = new VehicleSystem({ world: this })
+    this.vehicleSystem.init()
 
-    this._initVehicle()
     this._initEnvironment()
     this._initAssets()
 
     this.editorSystem = new EditorSystem({ world: this })
     this.editorSystem.init()
     this.editorSystem.setEditMode(this.isEditing)
-  }
-
-  _initVehicle() {
-    this.vehicle = new Vehicle(this.scene, this.game.physics)
-
-    if (this.vehicle?.chassis?.mesh) {
-      this.initialVehicleRotation.copy(this.vehicle.chassis.mesh.quaternion)
-    }
   }
 
   _initEnvironment() {
@@ -110,29 +104,7 @@ class World {
   /*────────────────────────────*/
 
   update() {
-    if (!this.vehicle) return
-
-    const selected = this.transformManager?.selectedAsset
-
-    if (selected) {
-      const assetData = this.findAssetData(selected)
-      if (assetData?.body?.isKinematic?.()) {
-        const worldPos = selected.position
-        assetData.body.setNextKinematicTranslation?.(worldPos)
-        assetData.body.setNextKinematicRotation?.(selected.quaternion)
-      }
-    }
-
-    const pos = this.vehicle.chassis.mesh.position
-    const limit = this.floor.getLimit()
-    const vel = this.vehicle.chassis.body.linvel()
-
-    const isOutside =
-      (Math.abs(pos.x) > limit && Math.sign(vel.x) === Math.sign(pos.x)) ||
-      (Math.abs(pos.z) > limit && Math.sign(vel.z) === Math.sign(pos.z))
-
-    this.vehicle.controller.isOutsideLimit = isOutside
-    this.vehicle.visuals.isOutsideLimit = isOutside
+    this.vehicleSystem?.update()
   }
 
   get isPlacingAsset() {

@@ -1,8 +1,9 @@
 export default class EditorController {
+
   constructor({
     view,
     floor,
-    vehicle,
+    getVehicle,
     placing,
     transformManager,
     tweakpaneUI,
@@ -11,7 +12,7 @@ export default class EditorController {
   }) {
     this.view = view
     this.floor = floor
-    this.vehicle = vehicle
+    this.getVehicle = getVehicle
     this.placing = placing
     this.transformManager = transformManager
     this.tweakpaneUI = tweakpaneUI
@@ -38,25 +39,33 @@ export default class EditorController {
   }
 
   _enterEditMode() {
-    if (this.vehicle?.chassis?.body) {
-      const body = this.vehicle.chassis.body
+    const vehicle = this.getVehicle?.()
+
+    if (vehicle?.chassis?.body) {
+
+      const body = vehicle.chassis.body
 
       body.setTranslation(this.initialVehiclePosition, true)
       body.setRotation(this.initialVehicleRotation, true)
       body.setLinvel({ x: 0, y: 0, z: 0 }, true)
       body.setAngvel({ x: 0, y: 0, z: 0 }, true)
 
-      this.vehicle.chassis.mesh.visible = false
-      body.setBodyType(1, true) // KinematicPositionBased
+      vehicle.chassis.mesh.visible = false
+      body.setBodyType(1, true)
+
     }
 
     this.transformManager?.create()
   }
 
   _exitEditMode() {
-    if (this.vehicle?.chassis?.body) {
-      this.vehicle.chassis.mesh.visible = true
-      this.vehicle.chassis.body.setBodyType(0, true) // Dynamic
+    const vehicle = this.getVehicle?.()
+
+    if (vehicle?.chassis?.body) {
+
+      vehicle.chassis.mesh.visible = true
+      vehicle.chassis.body.setBodyType(0, true)
+
     }
 
     this.placing?.disablePlacing()

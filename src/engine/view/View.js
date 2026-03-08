@@ -243,74 +243,95 @@ class View {
   //   UPDATE PRINCIPAL
   // ================================
   update(dt) {
-    const vehicle = this.game.world.vehicle;
-    if (!vehicle || !vehicle.chassis) return;
+    const pos = this.game.world.vehicleSystem?.getPosition()
+    if (!pos) return
 
-    const body = vehicle.chassis.body;
-    const pos = body.translation();
-    const carPos = new THREE.Vector3(pos.x, pos.y, pos.z);
+    const carPos = new THREE.Vector3(pos.x, pos.y, pos.z)
 
     // --- Transición hacia modo edición ---
     if (this.transitioningToEdit) {
-      this.transitionTime += dt;
-      const t = Math.min(this.transitionTime / this.editTransitionDuration, 1);
-      const smoothT = t * t * (3 - 2 * t);
 
-      this.camera.position.lerpVectors(this.startCamPos, this.endCamPos, smoothT);
-      const currentTarget = new THREE.Vector3().lerpVectors(this.startCamTarget, this.endCamTarget, smoothT);
-      this.camera.lookAt(currentTarget);
+      this.transitionTime += dt
+      const t = Math.min(this.transitionTime / this.editTransitionDuration, 1)
+      const smoothT = t * t * (3 - 2 * t)
+
+      this.camera.position.lerpVectors(
+        this.startCamPos,
+        this.endCamPos,
+        smoothT
+      )
+
+      const currentTarget = new THREE.Vector3().lerpVectors(
+        this.startCamTarget,
+        this.endCamTarget
+      )
+
+      this.camera.lookAt(currentTarget)
 
       if (t >= 1) {
-        this.transitioningToEdit = false;
-        this.isEditing = true;
-        this.targetCamPos.copy(this.endCamPos);
-        this.editCamTarget.copy(this.endCamTarget);
+
+        this.transitioningToEdit = false
+        this.isEditing = true
+        this.targetCamPos.copy(this.endCamPos)
+        this.editCamTarget.copy(this.endCamTarget)
+
       }
-      return;
+
+      return
     }
 
     // --- Transición desde modo edición ---
     if (this.transitioningFromEdit) {
-      this.transitionTime += dt;
-      const t = Math.min(this.transitionTime / this.editTransitionDuration, 1);
-      const smoothT = t * t * (3 - 2 * t);
 
-      this.camera.position.lerpVectors(this.startCamPos, this.endCamPos, smoothT);
-      const currentTarget = new THREE.Vector3().lerpVectors(this.startCamTarget, this.endCamTarget, smoothT);
-      this.camera.lookAt(currentTarget);
+      this.transitionTime += dt
+      const t = Math.min(this.transitionTime / this.editTransitionDuration, 1)
+      const smoothT = t * t * (3 - 2 * t)
+
+      this.camera.position.lerpVectors(
+        this.startCamPos,
+        this.endCamPos,
+        smoothT
+      )
+
+      const currentTarget = new THREE.Vector3().lerpVectors(
+        this.startCamTarget,
+        this.endCamTarget
+      )
+
+      this.camera.lookAt(currentTarget)
 
       if (t >= 1) {
-        this.transitioningFromEdit = false;
-        this.isEditing = false;
+        this.transitioningFromEdit = false
+        this.isEditing = false
       }
-      return;
+
+      return
     }
 
     // --- Modo edición activo ---
     if (this.isEditing) {
-      this.camera.position.lerp(this.targetCamPos, 1 - Math.exp(-4 * dt));
-      this.camera.lookAt(this.editCamTarget);
-      return;
+
+      this.camera.position.lerp(
+        this.targetCamPos,
+        1 - Math.exp(-4 * dt)
+      )
+
+      this.camera.lookAt(this.editCamTarget)
+      return
+
     }
 
     // --- Seguimiento normal ---
-    const desiredCamPos = carPos.clone().add(this.offset);
-    this.camera.position.lerp(desiredCamPos, 1 - Math.exp(-this.lerpSpeed * dt));
-    const lookAtPos = carPos.clone().add(new THREE.Vector3(0, 1.0, 0));
-    this.camera.lookAt(lookAtPos);
+    const desiredCamPos = carPos.clone().add(this.offset)
+
+    this.camera.position.lerp(
+      desiredCamPos,
+      1 - Math.exp(-this.lerpSpeed * dt)
+    )
+
+    const lookAtPos = carPos.clone().add(new THREE.Vector3(0, 1.0, 0))
+    this.camera.lookAt(lookAtPos)
   }
 }
 
-export default View;
-
-  // onWheel(e) {
-  //   // No hacer zoom si estamos colocando conos o arrastrando un asset
-  //   if (this.game.world.isPlacingAsset || this.game.world.isDraggingAsset) return;
-    
-  //   if (!this.isEditing) return;
-    
-  //   const delta = e.deltaY > 0 ? 1 : -1;
-  //   this.targetCamPos.y += delta * this.zoomSpeed;
-  //   this.targetCamPos.y = Math.max(5, Math.min(50, this.targetCamPos.y));
-  //   e.preventDefault();
-  // }
+export default View
