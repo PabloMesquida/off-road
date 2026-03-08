@@ -192,23 +192,33 @@ export const ASSET_CONFIGS = (size) => ({
     },
     verticalOffset: -size.y / 2
   },
-    tire: {
+  tire: {
     materialMapping: { 
       rubber: 'negro'
     },
+    physicsOptions: {
+      linearDamping: 1.2,
+      angularDamping: 5.0,
+      solverIterations: 8
+    },
     physics: {
-      type: 'dynamic',       
-      usesConvex: true,                  
+      type: 'dynamic',
+      massProperties: {
+        useAdditionalMassProperties: true,
+        massValue: 2,
+        com: { x: 0, y: 0, z: 0 }
+      },                     
       colliders: [
         {
-          shape: "convex",
-          parameters: {},                 
-          friction: 1.3,                 
+          shape: "cylinder",
+          parameters: [0.1, 0.35],             
+          friction: 0.2, 
+          restitution: 0.6,                
           density: 1.0
         }
       ]
     },
-    verticalOffset: 0
+    verticalOffset: -size.y / 2
   },
 
 })

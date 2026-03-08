@@ -60,9 +60,20 @@ class Physics{
     }
 
     if (_desc.type === "dynamic") {
-      bodyDesc.setAngularDamping(1.2)
-      bodyDesc.setLinearDamping(0.8)
+      const po = _desc.physicsOptions || {};
+
+      if (typeof po.linearDamping !== 'number')
+        bodyDesc.setLinearDamping(0.2)
+      else
+        bodyDesc.setLinearDamping(po.linearDamping)
+
+      if (typeof po.angularDamping !== 'number')
+        bodyDesc.setAngularDamping(0.8)
+      else
+        bodyDesc.setAngularDamping(po.angularDamping)
     }
+
+    bodyDesc.setCanSleep(true)
 
     // 2. Posición y rotación inicial
     if (_desc.position) {
@@ -137,6 +148,7 @@ class Physics{
             break
 
           case 'trimesh':
+            console.log("creating trimesh", colliderDef.parameters)
             colliderDesc = RAPIER.ColliderDesc.trimesh(
               colliderDef.parameters.vertices,
               colliderDef.parameters.indices
@@ -144,8 +156,17 @@ class Physics{
             break
 
           case 'convex':
+            console.log("creating convex", colliderDef.parameters)
             colliderDesc = RAPIER.ColliderDesc.convexMesh(
               colliderDef.parameters.vertices
+            )
+            break
+          
+          case 'cylinder':
+            console.log("creating cylinder", colliderDef.parameters)
+            colliderDesc = RAPIER.ColliderDesc.cylinder(
+              colliderDef.parameters[0],
+              colliderDef.parameters[1]
             )
             break
 
