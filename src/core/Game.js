@@ -63,6 +63,7 @@ class Game{
   }
 
   updatePhysics(dt) {
+    this.world.editorSystem?.update()
     this.world.vehicleSystem?.updatePhysics(dt)
   }
 }

@@ -117,6 +117,23 @@ class EditorSystem {
   onAssetDeleted() {
     this.transformManager?.detach()
   }
+
+  update() {
+    if (!this.transformManager?.dragging) return
+    
+    const selected = this.transformManager?.selectedAsset
+    if (!selected) return
+
+    const assetData = this.world.findAssetData(selected)
+    if (!assetData?.body) return
+
+    const body = assetData.body
+
+    if (!body.isKinematic?.()) return
+
+    body.setNextKinematicTranslation(selected.position)
+    body.setNextKinematicRotation(selected.quaternion)
+  }
 }
 
 export default EditorSystem
