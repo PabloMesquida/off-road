@@ -1,7 +1,6 @@
 import * as THREE from 'three/webgpu'
 import Events from '../../core/Events.js'
 import Floor from './floor/Floor.js'
-import Vehicle from './vehicle/Vehicle.js'
 import Environment from './environment/Environment.js'
 import AssetManager from './assets/AssetManager.js'
 import assetsConfig from './assets/assetsConfig.js'
