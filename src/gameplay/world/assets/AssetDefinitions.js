@@ -12,7 +12,11 @@ export const ASSET_CONFIGS = (size) => ({
         com: { x: 0, y: -size.y / 4, z: 0 }
       },
       colliders: [
-        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 1.2 }
+        {
+          shape: 'cone',
+          parameters: [size.y * 0.5, size.x * 0.4],
+          friction: 1.2
+        }
       ]
     },
     verticalOffset: -size.y / 2
@@ -30,8 +34,14 @@ export const ASSET_CONFIGS = (size) => ({
         massValue: 2.5,
         com: { x: 0, y: -size.y / 4, z: 0 }
       },
-      colliders: [
-        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 1.2 }
+    colliders: [
+        {
+          shape: "cylinder",
+          parameters: [0.5, 0.4],             
+          friction: 0.8, 
+          restitution: 0.1,                
+          density: 1.0
+        }
       ]
     },
     verticalOffset: -size.y / 2
@@ -59,6 +69,7 @@ export const ASSET_CONFIGS = (size) => ({
 
     verticalOffset: 0
   },
+
   bump: {
     materialMapping: { 
       body: 'gris',
@@ -78,6 +89,7 @@ export const ASSET_CONFIGS = (size) => ({
     },
     verticalOffset: 0
   },
+
   barrier: {
     materialMapping: { 
       body: 'gris',
@@ -91,7 +103,7 @@ export const ASSET_CONFIGS = (size) => ({
         com: { x: 0, y: -size.y / 2, z: 0 }
       },
       colliders: [
-        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 1.2 }
+        { shape: 'cuboid', parameters: [size.x * 0.25, size.y * 0.5, size.z * 0.5], friction: 1.2 }
       ]
     },
     verticalOffset:  -size.y / 2

@@ -147,6 +147,10 @@ class Physics{
             colliderDesc = RAPIER.ColliderDesc.cuboid(...colliderDef.parameters)
             break
 
+          case 'cone':
+            colliderDesc = RAPIER.ColliderDesc.cone(...colliderDef.parameters)
+            break
+
           case 'trimesh':
             colliderDesc = RAPIER.ColliderDesc.trimesh(
               colliderDef.parameters.vertices,
