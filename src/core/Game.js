@@ -51,14 +51,14 @@ class Game{
 
     this.world = new World(this)    
     this.view = new View()     
-    this.physicsDebug = new PhysicsDebug()
+    // this.physicsDebug = new PhysicsDebug()
 
     this.rendering = new Rendering()
     this.world.toggleEditMode(this.world.isEditing)
   }
 
   updateAll(dt){
-    this.physicsDebug.update()
+   // this.physicsDebug.update()
     this.view.update(dt)
   }
 
