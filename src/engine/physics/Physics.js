@@ -1,3 +1,4 @@
+import * as THREE from 'three'
 import * as RAPIER from '@dimforge/rapier3d-compat'
 import Game from "../../core/Game.js"
 
@@ -152,6 +153,7 @@ class Physics{
             break
 
           case 'trimesh':
+             console.log('TRIMESH')
             colliderDesc = RAPIER.ColliderDesc.trimesh(
               colliderDef.parameters.vertices,
               colliderDef.parameters.indices
@@ -159,6 +161,7 @@ class Physics{
             break
 
           case 'convex':
+             console.log('MESH')
             colliderDesc = RAPIER.ColliderDesc.convexMesh(
               colliderDef.parameters.vertices
             )
@@ -168,6 +171,13 @@ class Physics{
             colliderDesc = RAPIER.ColliderDesc.cylinder(
               colliderDef.parameters[0],
               colliderDef.parameters[1]
+            )
+            break
+
+          case 'hull':
+            console.log('HULL')
+            colliderDesc = RAPIER.ColliderDesc.convexHull(
+              colliderDef.parameters.vertices
             )
             break
 
@@ -192,6 +202,23 @@ class Physics{
         }
         if (colliderDef.offset) {
           colliderDesc.setTranslation(colliderDef.offset.x, colliderDef.offset.y, colliderDef.offset.z)
+        }
+
+        if (colliderDef.rotation) {
+          // si viene como quaternion
+          if ("w" in colliderDef.rotation) {
+            const { x, y, z, w } = colliderDef.rotation
+            colliderDesc.setRotation({ x, y, z, w })
+          }
+
+          // si viene como euler
+          else {
+            const e = colliderDef.rotation
+            const q = new THREE.Quaternion()
+            q.setFromEuler(new THREE.Euler(e.x, e.y, e.z))
+
+            colliderDesc.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w })
+          }
         }
 
         const collider = this.world.createCollider(colliderDesc, body)

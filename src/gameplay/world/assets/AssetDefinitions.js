@@ -54,13 +54,10 @@ export const ASSET_CONFIGS = (size) => ({
       stripe: 'amarillo'
     },
     physics: {
-      type: 'fixed',       
-      usesConvex: true,                  
-
+      type: 'fixed',                    
       colliders: [
-        {
-          shape: "convex",
-          parameters: {},                 
+        {   
+          shape: "hull",         
           friction: 1.3,                 
           density: 1.0
         }
@@ -77,15 +74,13 @@ export const ASSET_CONFIGS = (size) => ({
     },
     physics: {
       type: 'fixed',       
-      usesConvex: true,                  
       colliders: [
-        {
-          shape: "convex",
-          parameters: {},                 
+        { 
+          shape: "hull", 
           friction: 1.3,                 
           density: 1.0
         }
-      ]
+      ]       
     },
     verticalOffset: 0
   },
@@ -96,18 +91,17 @@ export const ASSET_CONFIGS = (size) => ({
       stripe: 'amarillo'
     },
     physics: {
-      type: 'dynamic',
+      type: 'dynamic',   
       massProperties: {
         useAdditionalMassProperties: true,
         massValue: 32,
         com: { x: 0, y: -size.y / 2, z: 0 }
       },
-      colliders: [
-        { shape: 'cuboid', parameters: [size.x * 0.25, size.y * 0.5, size.z * 0.5], friction: 1.2 }
-      ]
+     colliders: [ { shape: "hull", friction: 1.2 } ]
     },
     verticalOffset:  -size.y / 2
   },
+
   signAhead: {
     materialMapping: { 
       bar_1: 'gris',
@@ -127,11 +121,14 @@ export const ASSET_CONFIGS = (size) => ({
         com: { x: 0, y: 0, z: 0 }
       },
       colliders: [
-        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 1.2 }
-      ]
+          { shape: 'cylinder', parameters: [0.8, 0.02], rotation: { x: 0, y: 0, z: 0}, rofriction: 1.2 },
+          { shape: 'cylinder',  parameters: [0.02, 0.34], offset: { x: 0, y:-size.y / 2 + 0.01, z: 0 }, friction: 1.2 },
+          { shape: 'cylinder',  parameters: [0.02, 0.32], offset: { x: 0.05, y:size.y / 2 - 0.32, z: 0 }, rotation: { x: 0, y: 0, z: Math.PI/2}, friction: 1.2 }
+        ]
     },
     verticalOffset: -size.y / 2
   },
+
   signStop: {
     materialMapping: { 
       bar_1: 'gris',
@@ -151,11 +148,14 @@ export const ASSET_CONFIGS = (size) => ({
         com: { x: 0, y: 0, z: 0 }
       },
       colliders: [
-        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 1.2 }
+        { shape: 'cylinder', parameters: [0.8, 0.02], rotation: { x: 0, y: 0, z: 0}, rofriction: 1.2 },
+        { shape: 'cylinder',  parameters: [0.02, 0.34], offset: { x: 0, y:-size.y / 2 + 0.01, z: 0 }, friction: 1.2 },
+        { shape: 'cylinder',  parameters: [0.02, 0.32], offset: { x: 0.05, y:size.y / 2 - 0.32, z: 0 }, rotation: { x: 0, y: 0, z: Math.PI/2}, friction: 1.2 }
       ]
     },
     verticalOffset: -size.y / 2
   },
+
   signWarning: {
     materialMapping: { 
       bar_1: 'gris',
@@ -175,11 +175,14 @@ export const ASSET_CONFIGS = (size) => ({
         com: { x: 0, y: 0, z: 0 }
       },
       colliders: [
-        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 1.2 }
+        { shape: 'cylinder', parameters: [0.8, 0.02], rotation: { x: 0, y: 0, z: 0}, rofriction: 1.2 },
+        { shape: 'cylinder',  parameters: [0.02, 0.34], offset: { x: 0, y:-size.y / 2 + 0.01, z: 0 }, friction: 1.2 },
+        { shape: 'cylinder',  parameters: [0.02, 0.32], offset: { x: 0.05, y:size.y / 2 - 0.32, z: 0 }, rotation: { x: 0, y: 0, z: Math.PI/2}, friction: 1.2 }
       ]
     },
     verticalOffset: -size.y / 2
   },
+
   signNot: {
     materialMapping: { 
       bar_1: 'gris',
@@ -191,6 +194,7 @@ export const ASSET_CONFIGS = (size) => ({
       border: 'blanco',
       front: 'rojo'
     },
+
     physics: {
       type: 'dynamic',
       massProperties: {
@@ -199,11 +203,14 @@ export const ASSET_CONFIGS = (size) => ({
         com: { x: 0, y: 0, z: 0 }
       },
       colliders: [
-        { shape: 'cuboid', parameters: [size.x * 0.5, size.y * 0.5, size.z * 0.5], friction: 1.2 }
+        { shape: 'cylinder', parameters: [0.8, 0.02], rotation: { x: 0, y: 0, z: 0}, rofriction: 1.2 },
+        { shape: 'cylinder',  parameters: [0.02, 0.34], offset: { x: 0, y:-size.y / 2 + 0.01, z: 0 }, friction: 1.2 },
+        { shape: 'cylinder',  parameters: [0.02, 0.32], offset: { x: 0.05, y:size.y / 2 - 0.32, z: 0 }, rotation: { x: 0, y: 0, z: Math.PI/2}, friction: 1.2 }
       ]
     },
     verticalOffset: -size.y / 2
   },
+  
   tire: {
     materialMapping: { 
       rubber: 'negro'

@@ -66,76 +66,80 @@ class AssetManager {
    * Spawn (modelo + física + grupo raíz)
    * ───────────────────────────────────────────── */
   spawn(position = { x: 0, y: 0, z: 0 }) {
+
     if (!this.physics || !this.physics.world) {
       console.warn("[AssetManager] Física no inicializada todavía.");
     }
 
-    // Si el asset usa trimesh
-    if (this.config.physics.usesTrimesh) {
+    // buscar mesh principal
+    const mesh = this.original.getObjectByProperty("isMesh", true);
 
-      // 🔥 toma el mesh principal (o el que quieras)
-      const mesh = this.original.children.find(c => c.isMesh);
+    if (mesh && this.config.physics?.colliders) {
 
-      const { vertices, indices } = this.extractTrimeshData(mesh);
+      const geo = mesh.geometry;
 
-      this.config.physics.colliders = [
-        {
-          shape: "trimesh",
-          parameters: { vertices, indices },
-          friction: 1.0
-        }
-      ];
-    }
-
-  if (this.config.physics.usesConvex) {
-
-      const mesh = this.original.children.find(c => c.isMesh);
-      const geo  = mesh.geometry;
-
+      // vertices para convex / hull
       const vertices = new Float32Array(geo.attributes.position.array);
 
-      // reemplazamos SOLO los parámetros del collider convex
-      this.config.physics.colliders = [
-          {
-              shape: "convex",
-              parameters: { vertices },
-              friction: this.config.physics.colliders[0]?.friction ?? 1.0,
-              density: this.config.physics.colliders[0]?.density ?? 1.0
-          }
-      ];
-  }
+      // datos para trimesh
+      const trimeshData = this.extractTrimeshData(mesh);
 
+      this.config.physics.colliders.forEach(collider => {
 
-    //  Grupo raíz consistente
+        if (collider.shape === "convex" || collider.shape === "hull") {
+          collider.parameters = { vertices };
+        }
+
+        if (collider.shape === "trimesh") {
+          collider.parameters = trimeshData;
+        }
+
+      });
+    }
+
+    // ─────────────────────────────────────────
+    // Grupo raíz
+    // ─────────────────────────────────────────
+
     const group = new THREE.Group();
     group.name = `${this.assetType}_group`;
 
-    // Modelo visual
     const model = this.cloneModelShared();
     model.position.y += this.config.verticalOffset;
     group.add(model);
 
     let finalY = position.y;
+
     if (this.config.physics.type === "dynamic") {
-      const proportionalOffset = this.size.y * 1.5; // mitad de la altura
+      const proportionalOffset = this.size.y * 1.5;
       const configOffset = this.config.verticalOffset || 0;
       finalY += proportionalOffset + configOffset;
     }
 
-    // Posición inicial
     group.position.set(position.x, finalY, position.z);
 
-    // Agregar grupo a escena
     this.scene.add(group);
 
-    // Crear cuerpo físico
+    // ─────────────────────────────────────────
+    // Física
+    // ─────────────────────────────────────────
+
     let entity = null;
+
     if (this.physics?.world) {
-      const physDesc = { ...this.config.physics, position: { x: position.x, y: finalY, z: position.z  }}
+
+      const physDesc = {
+        ...this.config.physics,
+        position: { x: position.x, y: finalY, z: position.z }
+      };
+
       entity = this.physics.addEntity(physDesc, group);
     }
 
-    // Guardar referencias cruzadas
+    // ─────────────────────────────────────────
+    // instancia final
+    // ─────────────────────────────────────────
+
     const instance = {
       group,
       model,
