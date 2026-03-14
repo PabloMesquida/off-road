@@ -23,7 +23,11 @@ class AssetInteractionController {
   }
 
   onPointerHover = (e) => {
-    if (!this.isEditingGetter() || this.isPlacingGetter() || this.transformManager?.transform?.dragging) return
+   //if (!this.isEditingGetter() || this.isPlacingGetter() || this.transformManager?.transform?.dragging) return
+   if (!this.isEditingGetter() || this.isPlacingGetter() || this.transformManager?.transform?.dragging) {
+      this.domElement.style.cursor = 'default'
+      return
+    }
 
     const camera = this.cameraGetter()
     if (!camera) return
@@ -46,6 +50,8 @@ class AssetInteractionController {
         this.hoveredAsset = assetGroup
         this.highlight(this.hoveredAsset, true)
         this._isHoveringAsset = true
+
+        this.domElement.style.cursor = 'pointer'
       }
     } else {
       this.highlight(this.hoveredAsset, false)
@@ -56,6 +62,7 @@ class AssetInteractionController {
 
   onPointerSelect = (e) => {
     if (!this.isEditingGetter() || this.isPlacingGetter() || this.transformManager?.transform?.dragging) return
+
     if (e.button !== 0) return
 
     const camera = this.cameraGetter()

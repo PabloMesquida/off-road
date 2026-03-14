@@ -119,6 +119,8 @@ class View {
       this.endCamTarget = this.initialCamTarget.clone();
     } else {
       // --- SALIR DEL MODO EDICIÓN ---
+      this.game.domElement.style.cursor = 'default'
+
       this.transitioningToEdit = false;
       this.transitioningFromEdit = true;
       this.transitionTime = 0;
@@ -238,7 +240,22 @@ class View {
     this.offset.set(20, 20, 20);
     this.targetCamPos.copy(this.initialCamPos);
   }
-  
+
+  updateCursor() {
+    const editor = this.game.world.editorSystem
+    const placing = editor?.placing?.isPlacing
+    const selected = editor?.transformManager?.selectedAsset
+    const hovering = editor?.assetInteraction?._isHoveringAsset
+
+    if (!this.isEditing || placing || selected) {
+      this.game.domElement.style.cursor = 'default'
+      return
+    }
+
+    if (hovering) return
+    this.game.domElement.style.cursor = this.dragging ? 'grabbing' : 'grab'
+  }
+    
 
   // ================================
   //   UPDATE PRINCIPAL
@@ -311,6 +328,8 @@ class View {
 
     // --- Modo edición activo ---
     if (this.isEditing) {
+
+      this.updateCursor()
 
       this.camera.position.lerp(
         this.targetCamPos,
