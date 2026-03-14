@@ -4,7 +4,7 @@ import Resources from "./Resources.js"
 import Rendering from "../engine/rendering/Rendering.js"
 import View from "../engine/view/View.js"
 import Physics from "../engine/physics/Physics.js"
-import PhysicsDebug from "../engine/physics/PhysicsDebug.js"
+// import PhysicsDebug from "../engine/physics/PhysicsDebug.js"
 import Inputs from "../engine/inputs/Inputs.js"
 import World from "../gameplay/world/World.js"
 import Recorder from "../utils/Recorder.js"
@@ -41,7 +41,7 @@ class Game{
     ])
 
     this.world = null
-     this.physicsDebug = null
+    // this.physicsDebug = null
     this.view = null
     this.rendering = null
   }
@@ -51,14 +51,14 @@ class Game{
 
     this.world = new World(this)    
     this.view = new View()     
-     this.physicsDebug = new PhysicsDebug()
+    // this.physicsDebug = new PhysicsDebug()
 
     this.rendering = new Rendering()
     this.world.toggleEditMode(this.world.isEditing)
   }
 
   updateAll(dt){
-     this.physicsDebug.update()
+    // this.physicsDebug.update()
     this.view.update(dt)
   }
 
