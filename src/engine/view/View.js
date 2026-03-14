@@ -14,7 +14,7 @@ class View {
     );
 
     // POSICIÓN Y ORIENTACIÓN INICIAL DE LA CÁMARA
-    this.initialCamPos = new THREE.Vector3(10, 10, 10);
+    this.initialCamPos = new THREE.Vector3(20, 20, 20);
     this.initialCamTarget = new THREE.Vector3(0, 1.5, 0);
 
     this.camera.position.copy(this.initialCamPos);
@@ -30,7 +30,7 @@ class View {
     this.controls.enabled = false;
 
     // --- Parámetros de cámara ---
-    this.offset = new THREE.Vector3(20, 10, 20);
+    this.offset = new THREE.Vector3(20, 20, 20);
     this.lerpSpeed = 3.5;
 
     // --- Estado ---
@@ -234,7 +234,7 @@ class View {
   }
 
   resetCameraZoom() {
-    this.offset.set(20, 10, 20);
+    this.offset.set(20, 20, 20);
     this.targetCamPos.copy(this.initialCamPos);
   }
   
