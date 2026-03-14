@@ -155,7 +155,8 @@ class View {
   onPointerDown(e) {
     if (e.defaultPrevented) return;
     // no comenzar pan si estamos colocando o si no estamos en modo edición
-    if (this.game.world.isPlacingAsset) return
+    const editor = this.game.world.editorSystem
+    if (editor?.placing?.isPlacing) return
     if (!this.isEditing) return
 
     // Si botón distinto (solo izquierda/centro)
