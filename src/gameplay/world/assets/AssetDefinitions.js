@@ -97,7 +97,11 @@ export const ASSET_CONFIGS = (size) => ({
         massValue: 32,
         com: { x: 0, y: -size.y / 2, z: 0 }
       },
-     colliders: [ { shape: "hull", friction: 1.2 } ]
+     colliders: [ 
+      { shape: 'cuboid',  parameters: [size.x / 4, size.y / 2, size.z / 2], friction: 1.2 },
+      { shape: 'cuboid',  parameters: [size.x / 7.5, size.y / 6, size.z / 2], offset: { x: 0.27, y:-0.38, z: 0 }, rotation: { x: 0, y: 0, z: Math.PI/4.6 },friction: 1.2 },
+      { shape: 'cuboid',  parameters: [size.x / 7.5, size.y / 6, size.z / 2], offset: { x: -0.27, y:-0.38, z: 0}, rotation: { x: 0, y: -Math.PI , z: Math.PI/4.6 },friction: 1.2 }
+    ]
     },
     verticalOffset:  -size.y / 2
   },

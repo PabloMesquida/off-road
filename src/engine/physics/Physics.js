@@ -153,7 +153,6 @@ class Physics{
             break
 
           case 'trimesh':
-             console.log('TRIMESH')
             colliderDesc = RAPIER.ColliderDesc.trimesh(
               colliderDef.parameters.vertices,
               colliderDef.parameters.indices
@@ -161,7 +160,6 @@ class Physics{
             break
 
           case 'convex':
-             console.log('MESH')
             colliderDesc = RAPIER.ColliderDesc.convexMesh(
               colliderDef.parameters.vertices
             )
@@ -175,7 +173,6 @@ class Physics{
             break
 
           case 'hull':
-            console.log('HULL')
             colliderDesc = RAPIER.ColliderDesc.convexHull(
               colliderDef.parameters.vertices
             )
