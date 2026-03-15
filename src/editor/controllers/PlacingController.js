@@ -14,9 +14,11 @@ export default class PlacingController {
 
     this.isPlacing = false
     this.currentAssetType = null
+    this.previewRotation = 0  
 
     this.onPointerMove = this.onPointerMove.bind(this)
     this.onPointerDown = this.onPointerDown.bind(this)
+    this.onWheel = this.onWheel.bind(this)
   }
 
   togglePlacing(assetType) {
@@ -39,9 +41,11 @@ export default class PlacingController {
   enablePlacing() {
     if (!this.currentAssetType) return
     const manager = this.assetManagers[this.currentAssetType]
+    this.previewRotation = 0 
     manager?.createPreview()
     this.domElement.addEventListener('pointermove', this.onPointerMove)
     this.domElement.addEventListener('pointerdown', this.onPointerDown)
+    this.domElement.addEventListener('wheel', this.onWheel, { passive: false })
     this.isPlacing = true
   }
 
@@ -51,6 +55,7 @@ export default class PlacingController {
     }
     this.domElement.removeEventListener('pointermove', this.onPointerMove)
     this.domElement.removeEventListener('pointerdown', this.onPointerDown)
+    this.domElement.removeEventListener('wheel', this.onWheel)
     this.isPlacing = false
     this.currentAssetType = null
   }
@@ -101,13 +106,35 @@ export default class PlacingController {
 
       // Si pasa el filtro, se spawnea normalmente
       const manager = this.assetManagers[this.currentAssetType]
-      const inst = manager?.spawn?.(position)
+      const inst = manager?.spawn?.(position, this.previewRotation)
 
       if (inst) {
         this.onAssetSpawned?.(inst)
       }
     }
   }
+
+  onWheel(e) {
+  if (!this.isPlacing || !this.currentAssetType) return
+
+  e.preventDefault()
+
+  const manager = this.assetManagers[this.currentAssetType]
+
+  const step = Math.PI / 8
+
+  if (e.deltaY > 0) {
+    this.previewRotation += step
+  } else {
+    this.previewRotation -= step
+  }
+
+  // mantener dentro de 0..2π
+  this.previewRotation = this.previewRotation % (Math.PI * 8)
+
+  manager?.updatePreviewRotation?.(this.previewRotation)
+}
+
 
   dispose() {
     this.disablePlacing()

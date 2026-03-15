@@ -65,7 +65,7 @@ class AssetManager {
   /* ─────────────────────────────────────────────
    * Spawn (modelo + física + grupo raíz)
    * ───────────────────────────────────────────── */
-  spawn(position = { x: 0, y: 0, z: 0 }) {
+  spawn(position = { x: 0, y: 0, z: 0 }, rotationY = 0){
 
     if (!this.physics || !this.physics.world) {
       console.warn("[AssetManager] Física no inicializada todavía.");
@@ -108,6 +108,8 @@ class AssetManager {
     model.position.y += this.config.verticalOffset;
     group.add(model);
 
+    group.rotation.y = rotationY
+
     let finalY = position.y;
 
     if (this.config.physics.type === "dynamic") {
@@ -134,6 +136,14 @@ class AssetManager {
       };
 
       entity = this.physics.addEntity(physDesc, group);
+
+      // aplicar rotación al rigidbody
+      if (entity?.physical?.body) {
+        const q = new THREE.Quaternion()
+        q.setFromAxisAngle(new THREE.Vector3(0,1,0), rotationY)
+
+        entity.physical.body.setRotation(q, true)
+      }
     }
 
     // ─────────────────────────────────────────
@@ -229,6 +239,11 @@ class AssetManager {
     }
     group.visible = true;
     group.position.set(worldPos.x, worldPos.y, worldPos.z);
+  }
+
+  updatePreviewRotation(rotationY = 0) {
+    if (!this.preview || !this.preview.group) return
+    this.preview.group.rotation.y = rotationY
   }
 
   disposePreview() {

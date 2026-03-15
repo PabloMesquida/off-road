@@ -14,7 +14,7 @@ class View {
     );
 
     // POSICIÓN Y ORIENTACIÓN INICIAL DE LA CÁMARA
-    this.initialCamPos = new THREE.Vector3(10, 10, 10);
+    this.initialCamPos = new THREE.Vector3(20, 20, 20);
     this.initialCamTarget = new THREE.Vector3(0, 1.5, 0);
 
     this.camera.position.copy(this.initialCamPos);
