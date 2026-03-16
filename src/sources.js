@@ -2,7 +2,7 @@ export default [
     {
         name: 'carRastrojeroModel',
         type: 'gltfModel',
-        path: 'models/Car/Rastrojero/glTF/Rastrojero07.glb'
+        path: 'models/Car/Rastrojero/glTF/Rastrojero09.glb'
     },
     {
         name: 'wheelModel',

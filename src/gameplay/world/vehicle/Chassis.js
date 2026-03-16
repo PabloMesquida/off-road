@@ -14,7 +14,7 @@ class Chassis {
     this.resource = this.resources.items.carRastrojeroModel.scene
 
     this.physics = this.game.physics
-    this.sizes = { x: 4.5, y: 1.25, z: 2}
+    this.size = { x: 4.5, y: 1.25, z: 2}
 
     this.mesh = new THREE.Group()
     this.model = this.resource
@@ -149,7 +149,22 @@ class Chassis {
 }
 
   createPhysics(position) {
-    this.sizes = { x: 4.5, y: 1.6, z: 2 }
+    const cabinMesh = this.model.getObjectByName("COL_HULL_cabin")
+    const cabinMeshTop = this.model.getObjectByName("COL_HULL_cabinTop")
+
+    cabinMesh.visible = false
+    cabinMeshTop.visible = false
+
+    const geo = cabinMesh.geometry.index
+      ? cabinMesh.geometry.toNonIndexed()
+      : cabinMesh.geometry
+
+    const geoTop = cabinMeshTop.geometry.index
+      ? cabinMeshTop.geometry.toNonIndexed()
+      : cabinMeshTop.geometry
+
+    const vertices = new Float32Array(geo.attributes.position.array)
+    const verticesTop = new Float32Array(geoTop.attributes.position.array)
 
     this.entity = this.physics.addEntity({
       type: 'dynamic',
@@ -160,18 +175,17 @@ class Chassis {
         com: { x: -0.5, y: -0.5, z: 0 },
       },
       colliders: [
-        {
-          shape: 'cuboid',
-          parameters: [
-            this.sizes.x * 0.5,
-            this.sizes.y * 0.5,
-            this.sizes.z * 0.5,
-          ],
-          friction: 0.8,
-        },
+        { shape: 'hull', parameters: { vertices: vertices}, offset: { x: -1, y: 0, z: 0 },  friction: 0.8 },
+        { shape: 'hull', parameters: { vertices: verticesTop  }, offset: { x: -1, y: 0, z: 0 },  friction: 0.8 },
+        { shape: 'cuboid', parameters: [ 1, 0.15, 0.9],  offset: { x: 1.2, y:-0.38, z: 0 } },
+        { shape: 'cuboid', parameters: [ 0.05, 0.2, 0.9],  offset: { x: 2.1, y:-0.05, z: 0 } },
+        { shape: 'cuboid', parameters: [ 1, 0.2, 0.05],  offset: { x: 1.2, y:-0.05, z: 0.85 } },
+        { shape: 'cuboid', parameters: [ 1, 0.2, 0.05],  offset: { x: 1.2, y:-0.05, z: -0.85 } },
       ],
     }, this.mesh)
   }
+
+  
  
 
   get body() {
