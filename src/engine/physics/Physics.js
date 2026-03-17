@@ -41,192 +41,221 @@ class Physics{
   }
 
   getPhysical(_desc) {
-    if (!_desc) return null
+  if (!_desc) return null
 
-    // 1. Crear el RigidBody según type
-    let bodyDesc
-    switch (_desc.type) {
-      case 'dynamic':
-        bodyDesc = RAPIER.RigidBodyDesc.dynamic()
-        break
-      case 'fixed':
-        bodyDesc = RAPIER.RigidBodyDesc.fixed()
-        break
-      case 'kinematic':
-        bodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
-        break
-      default:
-        console.warn(`Tipo de cuerpo no soportado: ${_desc.type}, usando dynamic por defecto`)
-        bodyDesc = RAPIER.RigidBodyDesc.dynamic()
-    }
+  // ─────────────────────────────
+  // 1. RigidBody
+  // ─────────────────────────────
 
-    if (_desc.type === "dynamic") {
-      const po = _desc.physicsOptions || {};
+  let bodyDesc
+  switch (_desc.type) {
+    case 'dynamic':
+      bodyDesc = RAPIER.RigidBodyDesc.dynamic()
+      break
+    case 'fixed':
+      bodyDesc = RAPIER.RigidBodyDesc.fixed()
+      break
+    case 'kinematic':
+      bodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
+      break
+    default:
+      console.warn(`Tipo de cuerpo no soportado: ${_desc.type}, usando dynamic por defecto`)
+      bodyDesc = RAPIER.RigidBodyDesc.dynamic()
+  }
 
-      if (typeof po.linearDamping !== 'number')
-        bodyDesc.setLinearDamping(0.2)
-      else
-        bodyDesc.setLinearDamping(po.linearDamping)
+  if (_desc.type === "dynamic") {
+    const po = _desc.physicsOptions || {}
 
-      if (typeof po.angularDamping !== 'number')
-        bodyDesc.setAngularDamping(0.8)
-      else
-        bodyDesc.setAngularDamping(po.angularDamping)
-    }
+    bodyDesc.setLinearDamping(
+      typeof po.linearDamping === 'number' ? po.linearDamping : 0.2
+    )
 
-    bodyDesc.setCanSleep(true)
+    bodyDesc.setAngularDamping(
+      typeof po.angularDamping === 'number' ? po.angularDamping : 0.8
+    )
+  }
 
-    // 2. Posición y rotación inicial
-    if (_desc.position) {
-      bodyDesc.setTranslation(
-        _desc.position.x,
-        _desc.position.y,
-        _desc.position.z
-      )
-    }
+  bodyDesc.setCanSleep(true)
 
-    if (_desc.rotation) {
-      const { x, y, z, w } = _desc.rotation
-      bodyDesc.setRotation({ x, y, z, w })
-    }
+  // posición
+  if (_desc.position) {
+    bodyDesc.setTranslation(
+      _desc.position.x,
+      _desc.position.y,
+      _desc.position.z
+    )
+  }
 
-    // Mass / massProperties (usamos preferentemente massProperties si vienen)
-    const mp = _desc.massProperties
-    if (mp && mp.useAdditionalMassProperties) {
-      // esperar objetos bien formados; si faltan campos usamos valores por defecto razonables
-      const massVal = (typeof mp.massValue === 'number') ? mp.massValue : (_desc.mass ?? 10)
-      const com = mp.com || { x: 0.0, y: 0.0, z: 0.0 }
-      const principalInertia = mp.principalInertia || { x: 1.0, y: 1.0, z: 1.0 }
-      const inertiaFrame = mp.inertiaFrame || { w: 1.0, x: 0.0, y: 0.0, z: 0.0 }
+  // rotación
+  if (_desc.rotation) {
+    const { x, y, z, w } = _desc.rotation
+    bodyDesc.setRotation({ x, y, z, w })
+  }
 
-      // Aplica setAdditionalMassProperties con los valores pasados desde addEntity
-      bodyDesc.setAdditionalMassProperties(
-        massVal,
-        { x: com.x, y: com.y, z: com.z },
-        { x: principalInertia.x, y: principalInertia.y, z: principalInertia.z },
-        { w: inertiaFrame.w, x: inertiaFrame.x, y: inertiaFrame.y, z: inertiaFrame.z }
-      )
-    } else if (typeof _desc.mass === 'number') {
-      // compatibilidad: si sólo pasas mass, lo aplicamos con setAdditionalMass
-      bodyDesc.setAdditionalMass(_desc.mass)
-    }
+  // ─────────────────────────────
+  // Mass
+  // ─────────────────────────────
 
-    // Opciones de estabilidad/ayuda (opcionales, puedes pasarlas en _desc.physicsOptions)
-    const po = _desc.physicsOptions || {};
-    if (typeof po.linearDamping !== 'number') bodyDesc.setLinearDamping(0.2);
-    else bodyDesc.setLinearDamping(po.linearDamping);
+  const mp = _desc.massProperties
 
-    if (typeof po.angularDamping !== 'number') bodyDesc.setAngularDamping(0.8);
-    else bodyDesc.setAngularDamping(po.angularDamping);
+  if (mp && mp.useAdditionalMassProperties) {
+    bodyDesc.setAdditionalMassProperties(
+      mp.massValue ?? 10,
+      mp.com ?? { x: 0, y: 0, z: 0 },
+      mp.principalInertia ?? { x: 1, y: 1, z: 1 },
+      mp.inertiaFrame ?? { w: 1, x: 0, y: 0, z: 0 }
+    )
+  } else if (typeof _desc.mass === 'number') {
+    bodyDesc.setAdditionalMass(_desc.mass)
+  }
 
-    if (typeof po.ccd === 'boolean') bodyDesc.setCcdEnabled(po.ccd);
-    if (typeof po.solverIterations === 'number') bodyDesc.setAdditionalSolverIterations(po.solverIterations);
+  const po = _desc.physicsOptions || {}
 
-    const body = this.world.createRigidBody(bodyDesc);
+  if (typeof po.ccd === 'boolean') bodyDesc.setCcdEnabled(po.ccd)
+  if (typeof po.solverIterations === 'number')
+    bodyDesc.setAdditionalSolverIterations(po.solverIterations)
 
-    //  Crear los colliders
-    const colliders = []
+  const body = this.world.createRigidBody(bodyDesc)
 
-    if (Array.isArray(_desc.colliders)) {
-      _desc.colliders.forEach(colliderDef => {
-        let colliderDesc
-        
-        switch (colliderDef.shape) {
-          case 'cuboid':
-            colliderDesc = RAPIER.ColliderDesc.cuboid(...colliderDef.parameters)
-            break
+  // ─────────────────────────────
+  // 🧠 NUEVO: Collision Groups
+  // ─────────────────────────────
 
-          case 'sphere':
-            colliderDesc = RAPIER.ColliderDesc.ball(...colliderDef.parameters)
-            break
+  const GROUPS = {
+    DEFAULT: 0b0001,
+    VEHICLE: 0b0010,
+    EDITOR:  0b0100
+  }
 
-          case 'capsule':
-            colliderDesc = RAPIER.ColliderDesc.capsule(...colliderDef.parameters)
-            break
+  const getCollisionGroups = (membership, filter) =>
+    (membership << 16) | filter
 
-          case 'plane':
-            colliderDesc = RAPIER.ColliderDesc.cuboid(...colliderDef.parameters)
-            break
+  // ─────────────────────────────
+  // Colliders
+  // ─────────────────────────────
 
-          case 'cone':
-            colliderDesc = RAPIER.ColliderDesc.cone(...colliderDef.parameters)
-            break
+  const colliders = []
 
-          case 'trimesh':
-            colliderDesc = RAPIER.ColliderDesc.trimesh(
-              colliderDef.parameters.vertices,
-              colliderDef.parameters.indices
-            )
-            break
+  if (Array.isArray(_desc.colliders)) {
+    _desc.colliders.forEach(colliderDef => {
 
-          case 'convex':
-            colliderDesc = RAPIER.ColliderDesc.convexMesh(
-              colliderDef.parameters.vertices
-            )
-            break
-          
-          case 'cylinder':
-            colliderDesc = RAPIER.ColliderDesc.cylinder(
-              colliderDef.parameters[0],
-              colliderDef.parameters[1]
-            )
-            break
+      let colliderDesc
 
-          case 'hull':
-            colliderDesc = RAPIER.ColliderDesc.convexHull(
-              colliderDef.parameters.vertices
-            )
-            break
+      switch (colliderDef.shape) {
+        case 'cuboid':
+          colliderDesc = RAPIER.ColliderDesc.cuboid(...colliderDef.parameters)
+          break
 
-          default:
-            console.warn(`Forma no soportada: ${colliderDef.shape}`)
-        }
+        case 'sphere':
+          colliderDesc = RAPIER.ColliderDesc.ball(...colliderDef.parameters)
+          break
 
-       if (colliderDesc) {
-        // Si se pide que los colliders NO contribuyan a la masa, ponemos density = 0
-        // (cuando usas setAdditionalMassProperties quieres controlar tú la masa)
+        case 'capsule':
+          colliderDesc = RAPIER.ColliderDesc.capsule(...colliderDef.parameters)
+          break
+
+        case 'cone':
+          colliderDesc = RAPIER.ColliderDesc.cone(...colliderDef.parameters)
+          break
+
+        case 'trimesh':
+          colliderDesc = RAPIER.ColliderDesc.trimesh(
+            colliderDef.parameters.vertices,
+            colliderDef.parameters.indices
+          )
+          break
+
+        case 'convex':
+          colliderDesc = RAPIER.ColliderDesc.convexMesh(
+            colliderDef.parameters.vertices
+          )
+          break
+
+        case 'cylinder':
+          colliderDesc = RAPIER.ColliderDesc.cylinder(
+            colliderDef.parameters[0],
+            colliderDef.parameters[1]
+          )
+          break
+
+        case 'hull':
+          colliderDesc = RAPIER.ColliderDesc.convexHull(
+            colliderDef.parameters.vertices
+          )
+          break
+
+        default:
+          console.warn(`Forma no soportada: ${colliderDef.shape}`)
+      }
+
+      if (colliderDesc) {
+
+        // density
         if (mp && mp.collidersContribute === false) {
           colliderDesc.setDensity(0)
         } else if (typeof colliderDef.density === 'number') {
           colliderDesc.setDensity(colliderDef.density)
         }
 
-        if (typeof colliderDef.restitution === 'number') {
+        // material
+        if (typeof colliderDef.restitution === 'number')
           colliderDesc.setRestitution(colliderDef.restitution)
-        }
-        if (typeof colliderDef.friction === 'number') {
+
+        if (typeof colliderDef.friction === 'number')
           colliderDesc.setFriction(colliderDef.friction)
-        }
+
+        // offset
         if (colliderDef.offset) {
-          colliderDesc.setTranslation(colliderDef.offset.x, colliderDef.offset.y, colliderDef.offset.z)
+          colliderDesc.setTranslation(
+            colliderDef.offset.x,
+            colliderDef.offset.y,
+            colliderDef.offset.z
+          )
         }
 
+        // rotation
         if (colliderDef.rotation) {
-          // si viene como quaternion
           if ("w" in colliderDef.rotation) {
-            const { x, y, z, w } = colliderDef.rotation
-            colliderDesc.setRotation({ x, y, z, w })
-          }
-
-          // si viene como euler
-          else {
+            colliderDesc.setRotation(colliderDef.rotation)
+          } else {
             const e = colliderDef.rotation
             const q = new THREE.Quaternion()
             q.setFromEuler(new THREE.Euler(e.x, e.y, e.z))
-
-            colliderDesc.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w })
+            colliderDesc.setRotation(q)
           }
         }
+
+        // ─────────────────────────────
+        // 🔥 AQUI ESTA LA CLAVE
+        // ─────────────────────────────
+
+        const group = colliderDef.collisionGroup || _desc.collisionGroup
+
+        let membership = GROUPS.DEFAULT
+        let filter = GROUPS.DEFAULT | GROUPS.VEHICLE | GROUPS.EDITOR
+
+        if (group === "vehicle") {
+          membership = GROUPS.VEHICLE
+          filter = GROUPS.VEHICLE
+        }
+
+        if (group === "editor") {
+          membership = GROUPS.EDITOR
+          filter = GROUPS.EDITOR
+        }
+
+        colliderDesc.setCollisionGroups(
+          getCollisionGroups(membership, filter)
+        )
 
         const collider = this.world.createCollider(colliderDesc, body)
         colliders.push(collider)
       }
-      })
-    }
-
-    // 3. Devolver el paquete físico
-    return { body, colliders }
+    })
   }
+
+  return { body, colliders }
+}
 
   // Método para eliminar entidades
   removeEntity(entity) {
@@ -307,6 +336,9 @@ class Physics{
     return this.entities.get(key)
   }
 
+  getCollisionGroups(membership, filter) {
+    return (membership << 16) | filter
+  }
 }
 
 export default Physics

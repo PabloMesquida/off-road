@@ -206,9 +206,7 @@ class Floor{
         this.createStartZoneCollider();   // crearlo limpio
     }
     else {
-        setTimeout(() => {
-            this.removeStartZoneCollider(); // mejor borrar que esconder
-        }, 100);
+        this.removeStartZoneCollider(); // mejor borrar que esconder
     }
   }
 

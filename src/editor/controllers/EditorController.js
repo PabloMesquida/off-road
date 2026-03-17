@@ -52,6 +52,7 @@ export default class EditorController {
 
       vehicle.chassis.mesh.visible = false
       body.setBodyType(1, true)
+      
 
     }
 
@@ -61,11 +62,23 @@ export default class EditorController {
   _exitEditMode() {
     const vehicle = this.getVehicle?.()
 
+    this.floor?.removeStartZoneCollider?.()
+
     if (vehicle?.chassis?.body) {
+      const body = vehicle.chassis.body
+
+      // limpiar estado físico
+      body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+      body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+
+      // forzar wake + reset
+      body.setTranslation(body.translation(), true)
+      body.setRotation(body.rotation(), true)
+
+      // ahora sí volver a dynamic
+      body.setBodyType(0, true)
 
       vehicle.chassis.mesh.visible = true
-      vehicle.chassis.body.setBodyType(0, true)
-
     }
 
     this.placing?.disablePlacing()
