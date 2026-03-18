@@ -27,7 +27,7 @@ class View {
 
     this.controls = new OrbitControls(this.camera, this.game.domElement);
     this.controls.enableDamping = true;
-    this.controls.enabled = true;
+    this.controls.enabled = false;
 
     // --- Parámetros de cámara ---
     this.offset = new THREE.Vector3(20, 20, 20);
