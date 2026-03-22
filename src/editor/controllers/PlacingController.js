@@ -252,6 +252,10 @@ export default class PlacingController {
   // Cleanup
   // ─────────────────────────────────────────────
 
+  clearCargoZone() {
+    this.cargoZoneInstance = null
+  }
+
   dispose() {
     this.disablePlacing()
     this.raycaster = null

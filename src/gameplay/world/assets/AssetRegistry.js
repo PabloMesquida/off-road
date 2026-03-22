@@ -1,7 +1,8 @@
 class AssetRegistry {
-  constructor(scene, physics) {
+  constructor(scene, physics, { onZoneRemoved } = {}) {
     this.scene = scene
     this.physics = physics
+    this.onZoneRemoved = onZoneRemoved
 
     this.assetIndex = new Map()
     this.assets = []
@@ -29,6 +30,16 @@ class AssetRegistry {
   }
 
   remove(group) {
+    // detectar zones primero
+    if (group?.userData?.type === 'cargoZone') {
+      this.scene.remove(group)
+
+      this.onZoneRemoved?.('cargoZone')
+
+      return null
+    }
+
+    // flujo normal assets
     const inst = this.assetIndex.get(group)
     if (!inst) return null
 

@@ -4,13 +4,19 @@ class AssetSystem {
 
   constructor({ scene, physics, assetManagers }) {
 
-    this.scene = scene
-    this.physics = physics
-    this.assetManagers = assetManagers
+  this.scene = scene
+  this.physics = physics
+  this.assetManagers = assetManagers
+  this.onZoneRemoved = null
 
-    this.registry = new AssetRegistry(scene, physics)
-
-  }
+  this.registry = new AssetRegistry(scene, physics, {
+    onZoneRemoved: (type) => {
+      if (this.onZoneRemoved) {
+        this.onZoneRemoved(type)
+      }
+    }
+  })
+}
 
   add(inst) {
     this.registry.add(inst)

@@ -26,6 +26,12 @@ class EditorSystem {
     this._createUI()
     this._createEditorController()
     this._createInteractionController()
+
+    this.world.assetSystem.onZoneRemoved = (type) => {
+      if (type === 'cargoZone') {
+        this.placing?.clearCargoZone()
+      }
+    }
   }
 
   _createTransformManager() {
