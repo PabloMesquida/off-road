@@ -197,9 +197,11 @@ export default class PlacingController {
         position
       })
 
+      // 🔥 aplicar rotación final
+      zone.group.rotation.y = this.previewRotation
+
       this.cargoZoneInstance = zone
 
-      // permitir usar TransformManager
       this.onAssetSpawned?.({
         group: zone.group,
         assetType: 'cargoZone',
@@ -233,8 +235,6 @@ export default class PlacingController {
 
     e.preventDefault()
 
-    const manager = this.assetManagers[this.currentAssetType]
-
     const step = Math.PI / 8
 
     if (e.deltaY > 0) {
@@ -243,8 +243,21 @@ export default class PlacingController {
       this.previewRotation -= step
     }
 
+    // mantener dentro de rango
     this.previewRotation = this.previewRotation % (Math.PI * 8)
 
+    // ───────────── cargoZone ─────────────
+    if (this.currentAssetType === "cargoZone") {
+
+      if (this.previewZone?.group) {
+        this.previewZone.group.rotation.y = this.previewRotation
+      }
+
+      return
+    }
+
+    // ───────────── assets normales ─────────────
+    const manager = this.assetManagers[this.currentAssetType]
     manager?.updatePreviewRotation?.(this.previewRotation)
   }
 
