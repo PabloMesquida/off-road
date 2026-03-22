@@ -54,6 +54,9 @@ export default class TweakpaneUI {
       this._controls.placingButtons.push(makePlaceBtn(this.signsFolder, 'Sign Warning', 'signWarning'))
       this._controls.placingButtons.push(makePlaceBtn(this.signsFolder, 'Sign Do Not Enter', 'signNot'))
 
+      // zones
+      this._controls.placingButtons.push(makePlaceBtn(this.assetsfolder, 'Cargo Zone', 'cargoZone'))
+      
       // save button
       this._controls.save = {}
       const saveBtn = this.assetsfolder.addButton({ title: 'Save Assets' })
