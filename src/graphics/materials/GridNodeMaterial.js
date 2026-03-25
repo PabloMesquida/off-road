@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
 import * as TSL from 'three/tsl';
+import { computeWorldBorder } from '../tsl/functions/border.js'
 
 // -------------------------
 // Funciones TSL 
@@ -49,73 +50,6 @@ const computePlusMask = TSL.Fn(({ uv, lineWidth, cellSize, segmentLen, uvDeriv }
   return plusMask;
 });
 
-const computeWorldBorder = TSL.Fn(({ position, planeSize, borderWidth, borderOffset, stripeSize  }) => {
-  const pos = position.xz
-        
-  const half = planeSize.mul(0.5)  
-
-  const one = TSL.float(1.0)
-  const zero = TSL.float(0.0)
-
-  // distancia hasta el interior desde cada eje
-  const distX = half.x.sub(pos.x.abs())
-  const distZ = half.y.sub(pos.y.abs())
-
-  // distancia hasta el borde real: el mínimo de las dos
-  const distToEdge = TSL.min(distX, distZ)
-
-  // máscara "inside" (1 cuando estamos dentro del rectángulo, 0 fuera)
-  const insideMask = distToEdge.step(zero)
-
-  // Umbrales del anillo
-  const start = borderOffset
-  const end = borderOffset.add(borderWidth)
-
-  const edgeSmooth = TSL.float(0.025)
-  const maskStart = TSL.smoothstep(start.sub(edgeSmooth), start.add(edgeSmooth), distToEdge)
-  const maskEnd   = TSL.smoothstep(end.sub(edgeSmooth), end.add(edgeSmooth), distToEdge)
-
-  const borderMask = maskStart.sub(maskEnd).mul(insideMask)
-  const emptyMask = maskEnd.mul(insideMask)
-  const outsideMask = one.sub(insideMask)
-
-  const sSize = stripeSize ?? TSL.float(0.5)
-  const angle = TSL.float(45.0);
-
-  // convertimos a radianes
-  const rad = angle.mul(Math.PI / 180.0)
-
-  // rotamos las coordenadas (x,z)
-  const rotX = pos.x.mul(TSL.cos(rad)).sub(pos.y.mul(TSL.sin(rad)))
-  const stripeCoord = rotX.div(sSize)
-
-  // MANTENEMOS EL PATRÓN ORIGINAL PERO CON SUAVIZADO
-  const stripePattern = TSL.mod(TSL.floor(stripeCoord), TSL.float(2.0));
-  
-  // Suavizado de los bordes de las barras
-  const stripeSmooth = TSL.float(0.025); // control del suavizado (ajustable)
-  const periodic = TSL.fract(stripeCoord);
-  
-  // Aplicamos smoothstep en los bordes de transición
-  const smoothTransition = TSL.smoothstep(
-    zero, 
-    stripeSmooth, 
-    periodic
-  ).sub(TSL.smoothstep(
-    one.sub(stripeSmooth), 
-    one, 
-    periodic
-  ));
-  
-  // Combinamos el patrón original con el suavizado
-  const stripes = stripePattern.mul(smoothTransition);
-
-  // aplicamos el patrón al borde
-  const stripedBorder = borderMask.mul(stripes);
-
-  // devolvemos las tres máscaras
-  return TSL.vec3(emptyMask, stripedBorder, outsideMask);
-});
 
 const computeStartBorder = TSL.Fn(({ position, planeSize, borderWidth, borderOffset }) => {
   const pos = position.xz;
