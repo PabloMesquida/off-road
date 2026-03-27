@@ -123,12 +123,47 @@ class CargoZone {
 
   setPosition({ x, y, z }) {
     this.group.position.set(x, y, z)
+
+    if (this.collider) {
+      this.collider.setPosition?.(x, y, z)
+    }
+  }
+
+  getPosition() {
+    return this.group.position
+  }
+
+  getBounds() {
+    const halfX = this.width * 0.5
+    const halfZ = this.depth * 0.5
+    const pos = this.group.position
+
+    return {
+      xMin: pos.x - halfX,
+      xMax: pos.x + halfX,
+      zMin: pos.z - halfZ,
+      zMax: pos.z + halfZ
+    }
+  }
+
+  isInside(position) {
+    const b = this.getBounds()
+    return (
+      position.x >= b.xMin &&
+      position.x <= b.xMax &&
+      position.z >= b.zMin &&
+      position.z <= b.zMax
+    )
   }
 
   dispose() {
     if (!this.group) return
 
     if (this.scene) this.scene.remove(this.group)
+
+    if (this.collider?.destroy) {
+      this.collider.destroy()
+    }
 
     this.group.traverse((child) => {
       child.geometry?.dispose?.()
@@ -137,6 +172,8 @@ class CargoZone {
 
     this.group = null
     this.mesh = null
+    this.model = null
+    this.collider = null
   }
 }
 
