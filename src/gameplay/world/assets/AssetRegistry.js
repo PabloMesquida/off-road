@@ -33,15 +33,11 @@ class AssetRegistry {
     const inst = this.assetIndex.get(group)
     if (!inst) return null
 
-    if (typeof inst.dispose === 'function') {
-      inst.dispose()
-    } else {
-      if (inst.physicsEntity) {
-        this.physics.removeEntity(inst.physicsEntity)
-      }
-
-      this.scene.remove(group)
+    if (inst.physicsEntity) {
+      this.physics.removeEntity(inst.physicsEntity)
     }
+
+    this.scene.remove(group)
 
     this.assetIndex.delete(group)
     this.assets = this.assets.filter(a => a !== inst)

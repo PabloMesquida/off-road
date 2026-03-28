@@ -34,13 +34,38 @@ class CargoZoneManager {
     })
   }
 
-  createPreview() {
-    if (this.preview?.group) return this.preview
+  createModel() {
+    const resource = this.resources?.items?.[this.resourceName]
 
-    this.preview = new CargoZone({
+    if (!resource?.scene) {
+      console.warn(`⚠ ${this.resourceName} GLB no cargado en Resources`)
+      return
+    }
+
+    const model = resource.scene.clone(true)
+
+    const box = new THREE.Box3().setFromObject(model)
+    const center = new THREE.Vector3()
+    box.getCenter(center)
+
+    model.scale.setScalar(1.25)
+    model.position.set(
+      this.modelOffset.x,
+      this.modelOffset.y,
+      this.modelOffset.z
+    )
+
+    this.model = model
+    this.group.add(model)
+  }
+
+  createPreview() {
+    if (this.preview) return this.preview
+
+    const zone = new CargoZone({
       scene: this.scene,
       resources: this.resources,
-      physics: null,
+      physics: null, // 🔑 SIN física
       position: { x: 0, y: 0, z: 0 },
       rotationY: 0,
       width: this.width,
@@ -48,17 +73,26 @@ class CargoZoneManager {
       color: this.color,
       borderWidth: this.borderWidth,
       resourceName: this.resourceName,
-      createCollider: false,
+      createCollider: false
     })
 
-    this.preview.group.traverse((c) => {
-      if (c.material) {
-        c.material.opacity = 0.2
+    zone.group.traverse((c) => {
+      if (!c.isMesh) return
+
+      // materiales normales (GLB)
+      if (c.material && !c.material.isNodeMaterial) {
+        c.material = c.material.clone()
         c.material.transparent = true
-        c.material.depthWrite = false
+        c.material.opacity = 0.35
+        c.material.depthWrite = true
       }
+
+      c.userData.isPreview = true
     })
 
+    zone.group.userData.isPreview = true
+
+    this.preview = zone
     return this.preview
   }
 

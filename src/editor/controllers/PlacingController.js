@@ -131,6 +131,8 @@ export default class PlacingController {
         this.cargoZoneInstance = inst
       }
 
+       manager?.disposePreview?.()
+
       this.onAssetSpawned?.(inst)
     }
   }

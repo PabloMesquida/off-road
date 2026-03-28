@@ -33,10 +33,11 @@ export default class TweakpaneUI {
       const makePlaceBtn = (folder, title, type) => {
         const btn = folder.addButton({ title })
         const handler = () => {
+          if (type === 'cargoZone' && this._controls.cargoZoneLocked) return
           this.onPlaceAsset?.(type)
         }
         btn.on('click', handler)
-        return { btn, handler }
+        return { btn, handler, type }
       }
 
       this._controls.placingButtons = []
@@ -90,6 +91,28 @@ export default class TweakpaneUI {
 
     } catch (e) {
       // silencioso
+    }
+  }
+
+  setPlaceAssetEnabled(type, enabled) {
+    const item = this._controls.placingButtons?.find(b => b.type === type)
+    if (!item) return
+
+    item.enabled = enabled
+
+    if ('disabled' in item.btn) {
+      item.btn.disabled = !enabled
+    }
+
+    const el =
+      item.btn?.element ||
+      item.btn?.controller?.view?.element ||
+      item.btn?.controller?.view?.labelElement
+
+    if (el) {
+      el.style.opacity = enabled ? '1' : '0.45'
+      el.style.pointerEvents = enabled ? 'auto' : 'none'
+      el.style.filter = enabled ? '' : 'grayscale(1)'
     }
   }
 

@@ -30,6 +30,7 @@ class EditorSystem {
     this.world.assetSystem.onZoneRemoved = (type) => {
       if (type === 'cargoZone') {
         this.placing?.clearCargoZone()
+        this.tweakpaneUI?.setPlaceAssetEnabled('cargoZone', true)
       }
     }
   }
@@ -70,9 +71,20 @@ class EditorSystem {
       cameraGetter: () => this.game.view.camera,
       floor: this.world.floor,
       assetManagers: this.world.assetManagers,
-      onAssetSpawned: (inst) => {
-        this.world.assetSystem.add(inst)
+     onAssetSpawned: (inst) => {
+      this.world.assetSystem.add(inst)
+
+      if (inst.assetType === 'cargoZone') {
+
+        // 🔑 eliminar preview SIEMPRE
+        const manager = this.world.assetManagers['cargoZone']
+        manager?.disposePreview?.()
+
+        this.placing?.disablePlacing()
+
+        this.tweakpaneUI?.setPlaceAssetEnabled('cargoZone', false)
       }
+    }
     })
   }
 
