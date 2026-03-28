@@ -27,13 +27,13 @@ class CargoZone {
     this.resourceName = resourceName
     this.createColliderEnabled = createCollider
 
-    // offsets locales (🔥 ahora correctos)
+    // offsets locales
     this.modelOffset = { x: 0, y: 0, z: 0.35 }
-    this.colliderOffset = { x: 0, y: 0, z: -1.8 }
+    this.colliderOffset = { x: 0, y: 0, z: -1.85 }
 
     this.group = new THREE.Group()
     this.group.name = 'cargoZone'
-    
+
     this.visualRoot = new THREE.Group()
     this.colliderRoot = new THREE.Group()
 
@@ -152,8 +152,8 @@ class CargoZone {
     if (!this.physics) return
 
     const halfX = this.width * 0.46
-    const halfZ = this.depth * 0.25
-    const height = 0.65
+    const halfZ = this.depth * 0.2325
+    const height = 0.765
 
     const worldPos = new THREE.Vector3()
     const worldQuat = new THREE.Quaternion()
