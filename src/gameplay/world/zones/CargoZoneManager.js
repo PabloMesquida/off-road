@@ -14,7 +14,6 @@ class CargoZoneManager {
     this.depth = options.depth ?? 8
     this.color = options.color ?? 0xffff00
     this.borderWidth = options.borderWidth ?? 0.034
-    this.collisionGroup = options.collisionGroup || 'editor'
 
     this.preview = null
   }
@@ -32,7 +31,6 @@ class CargoZoneManager {
       borderWidth: this.borderWidth,
       resourceName: this.resourceName,
       createCollider: true,
-      collisionGroup: this.collisionGroup
     })
   }
 
@@ -51,7 +49,6 @@ class CargoZoneManager {
       borderWidth: this.borderWidth,
       resourceName: this.resourceName,
       createCollider: false,
-      collisionGroup: this.collisionGroup
     })
 
     this.preview.group.traverse((c) => {

@@ -14,7 +14,7 @@ class CargoZone {
     color = 0xffff00,
     borderWidth = 0.034,
     resourceName = 'cargoZone',
-    createCollider = true,
+    createCollider = true
   }) {
     this.scene = scene
     this.resources = resources
@@ -122,7 +122,7 @@ class CargoZone {
 
     const halfX = this.width * 0.46
     const halfZ = this.depth * 0.23
-    const height = 0.66
+    const height = 0.8
 
     this.physicsEntity = this.physics.addEntity({
       type: 'fixed',
