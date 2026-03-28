@@ -4,9 +4,10 @@ import Floor from './floor/Floor.js'
 import Environment from './environment/Environment.js'
 import AssetManager from './assets/AssetManager.js'
 import assetsConfig from './assets/assetsConfig.js'
-import AssetSystem from "./systems/AssetSystem.js"
-import EditorSystem from "./systems/EditorSystem.js"
-import VehicleSystem from "./systems/VehicleSystem.js"
+import AssetSystem from './systems/AssetSystem.js'
+import EditorSystem from './systems/EditorSystem.js'
+import VehicleSystem from './systems/VehicleSystem.js'
+import CargoZoneManager from './zones/CargoZoneManager.js'
 
 class World {
   constructor(game) {
@@ -36,7 +37,8 @@ class World {
     this.assetSystem = new AssetSystem({
       scene: this.scene,
       physics: this.game.physics,
-      assetManagers: this.assetManagers
+      assetManagers: this.assetManagers,
+      resources: this.resources
     })
 
     this.vehicleSystem = new VehicleSystem({ world: this })
@@ -64,17 +66,18 @@ class World {
   /*────────────────────────────*/
 
   initAssetManagers() {
-    for (const item of assetsConfig) {
-      this.assetManagers[item.key] = new AssetManager(this.scene, {
-        resourcePathName: item.resourcePathName,
-        assetType: item.assetType
-      })
-    }
+  // assets normales
+  for (const item of assetsConfig) {
+    this.assetManagers[item.key] = new AssetManager(this.scene, {
+      resourcePathName: item.resourcePathName,
+      assetType: item.assetType
+    })
   }
-
-  findAssetData(object) {
-    return this.assetSystem.find(object)
-  }
+  
+  this.assetManagers['cargoZone'] = new CargoZoneManager(this.scene, {
+    resourceName: 'cargoZone' // nombre en Resources.items
+  })
+}
 
   /*────────────────────────────*/
   /* Edit Mode */

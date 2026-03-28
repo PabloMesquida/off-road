@@ -1,45 +1,68 @@
 import * as THREE from 'three/webgpu'
 import * as TSL from 'three/tsl'
-import Game from "../../../core/Game.js"
 import { computePlaneBorder } from '../../../graphics/tsl/functions/border.js'
 
 class CargoZone {
   constructor({
     scene,
+    resources,
+    physics = null,
     position = { x: 0, y: 0, z: 0 },
+    rotationY = 0,
     width = 8,
     depth = 8,
     color = 0xffff00,
-    borderWidth = 0.034
+    borderWidth = 0.034,
+    resourceName = 'cargoZone',
+    createCollider = true,
+    collisionGroup = 'editor'
   }) {
-    this.game = new Game()
-
-    this.resources = this.game.resources
-    this.physics = this.game.physics
     this.scene = scene
+    this.resources = resources
+    this.physics = physics
+
     this.width = width
     this.depth = depth
+    this.color = color
+    this.borderWidth = borderWidth
+    this.resourceName = resourceName
+    this.createColliderEnabled = createCollider
+    this.collisionGroup = collisionGroup
+
+    this.modelOffset = { x: 0, y: 0, z: 0.35 }
+    this.colliderOffset = { x: 0, y: 0, z: -1.8 }
+
     this.group = new THREE.Group()
     this.group.name = 'cargoZone'
 
-    this.createVisual(color, borderWidth)
-    this.createModel()
-    this.createCollider()
+    this.assetType = 'cargoZone'
+    this.physicsEntity = null
 
+    this.createVisual()
+    this.createModel()
+
+    this.setRotationY(rotationY)
     this.setPosition(position)
 
+    if (this.createColliderEnabled) {
+      this.createCollider()
+    }
+
     this.scene.add(this.group)
+
     this.group.userData.zone = this
     this.group.userData.type = 'cargoZone'
+    this.group.userData.assetType = 'cargoZone'
+    this.group.userData.assetInstance = this
   }
 
-  createVisual(color, borderWidth) {
+  createVisual() {
     const geo = new THREE.PlaneGeometry(this.width, this.depth)
     geo.rotateX(-Math.PI / 2)
 
     const planeSize = TSL.uniform(new THREE.Vector2(this.width, this.depth))
-    const borderW = TSL.uniform(borderWidth)
-     const colorFinal = TSL.uniform(new THREE.Color(color))
+    const borderW = TSL.uniform(this.borderWidth)
+    const colorFinal = TSL.uniform(new THREE.Color(this.color))
 
     const material = new THREE.NodeMaterial()
 
@@ -51,8 +74,8 @@ class CargoZone {
 
     material.colorNode = TSL.vec3(colorFinal)
     material.opacityNode = TSL.mix(
-      TSL.float(0.003), // interior suave
-      TSL.float(0.04),  // borde fuerte
+      TSL.float(0.003),
+      TSL.float(0.04),
       border
     )
 
@@ -68,30 +91,29 @@ class CargoZone {
   }
 
   createModel() {
-    const resource = this.resources?.items?.cargoZone
+    const resource = this.resources?.items?.[this.resourceName]
 
-    if (!resource) {
-      console.warn('⚠ cargoZone GLB no cargado en Resources')
+    if (!resource?.scene) {
+      console.warn(`⚠ ${this.resourceName} GLB no cargado en Resources`)
       return
     }
 
     const model = resource.scene.clone(true)
 
-    // centrar modelo
     const box = new THREE.Box3().setFromObject(model)
     const center = new THREE.Vector3()
     const size = new THREE.Vector3()
-
     box.getCenter(center)
     box.getSize(size)
 
     // model.position.sub(center)
 
-    model.scale.setScalar(1.2)
-
-    // levantar un poco
-    model.position.y += 0
-    model.position.z += 0.3
+    model.scale.setScalar(1.25)
+    model.position.set(
+      this.modelOffset.x,
+      this.modelOffset.y,
+      this.modelOffset.z
+    )
 
     this.model = model
     this.group.add(model)
@@ -100,37 +122,93 @@ class CargoZone {
   createCollider() {
     if (!this.physics) return
 
-    const halfX = this.width * 0.5
-    const halfZ = this.depth * 0.5
-    const height = 0
+    const halfX = this.width * 0.47
+    const halfZ = this.depth * 0.23
+    const height = 0.25
 
-    this.collider = this.physics.addEntity({
-      type: 'cuboid',
-      size: {
-        x: halfX,
-        y: height,
-        z: halfZ
+    this.physicsEntity = this.physics.addEntity({
+      type: 'fixed',
+      position: {
+        x: this.group.position.x,
+        y: this.group.position.y,
+        z: this.group.position.z
       },
-      position: this.group.position,
-      rotation: this.group.rotation,
-      fixed: true,
-      userData: {
-        type: 'cargoZone'
-      }
-    })
+      rotation: {
+        x: 0,
+        y: 0,
+        z: 0,
+        w: 1
+      },
+      colliders: [
+        {
+          shape: 'cuboid',
+          parameters: [halfX, height, halfZ],
+          offset: this.colliderOffset, // 🔑 LA CLAVE
+          collisionGroup: this.collisionGroup
+        }
+      ]
+    }, this.group)
   }
-
 
   setPosition({ x, y, z }) {
     this.group.position.set(x, y, z)
 
-    if (this.collider) {
-      this.collider.setPosition?.(x, y, z)
+    const body = this.body
+    if (body?.setTranslation) {
+
+      const offset = new THREE.Vector3(
+        this.colliderOffset.x,
+        this.colliderOffset.y,
+        this.colliderOffset.z
+      )
+
+      offset.applyQuaternion(this.group.quaternion)
+
+      body.setTranslation({
+        x: x + offset.x,
+        y: y + offset.y,
+        z: z + offset.z
+      }, true)
+    }
+  }
+
+  setRotationY(rotationY = 0) {
+    this.group.rotation.y = rotationY
+
+    const body = this.body
+    if (body?.setRotation) {
+
+      const q = new THREE.Quaternion().setFromAxisAngle(
+        new THREE.Vector3(0, 1, 0),
+        rotationY
+      )
+
+      const offset = new THREE.Vector3(
+        this.colliderOffset.x,
+        this.colliderOffset.y,
+        this.colliderOffset.z
+      )
+
+      offset.applyQuaternion(q)
+
+      body.setRotation(q, true)
+
+      const pos = this.group.position
+
+      body.setTranslation({
+        x: pos.x + offset.x,
+        y: pos.y + offset.y,
+        z: pos.z + offset.z
+      }, true)
     }
   }
 
   getPosition() {
     return this.group.position
+  }
+
+  get body() {
+    return this.physicsEntity?.physical?.body || null
   }
 
   getBounds() {
@@ -157,15 +235,16 @@ class CargoZone {
   }
 
   dispose() {
-    if (!this.group) return
-
-    if (this.scene) this.scene.remove(this.group)
-
-    if (this.collider?.destroy) {
-      this.collider.destroy()
+    if (this.physicsEntity) {
+      this.physics?.removeEntity?.(this.physicsEntity)
+      this.physicsEntity = null
     }
 
-    this.group.traverse((child) => {
+    if (this.scene && this.group) {
+      this.scene.remove(this.group)
+    }
+
+    this.group?.traverse((child) => {
       child.geometry?.dispose?.()
       child.material?.dispose?.()
     })
@@ -173,7 +252,6 @@ class CargoZone {
     this.group = null
     this.mesh = null
     this.model = null
-    this.collider = null
   }
 }
 

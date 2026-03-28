@@ -30,27 +30,25 @@ class AssetRegistry {
   }
 
   remove(group) {
-    // detectar zones primero
-    if (group?.userData?.type === 'cargoZone') {
-      this.scene.remove(group)
-
-      this.onZoneRemoved?.('cargoZone')
-
-      return null
-    }
-
-    // flujo normal assets
     const inst = this.assetIndex.get(group)
     if (!inst) return null
 
-    if (inst.physicsEntity) {
-      this.physics.removeEntity(inst.physicsEntity)
-    }
+    if (typeof inst.dispose === 'function') {
+      inst.dispose()
+    } else {
+      if (inst.physicsEntity) {
+        this.physics.removeEntity(inst.physicsEntity)
+      }
 
-    this.scene.remove(group)
+      this.scene.remove(group)
+    }
 
     this.assetIndex.delete(group)
     this.assets = this.assets.filter(a => a !== inst)
+
+    if (inst.assetType === 'cargoZone') {
+      this.onZoneRemoved?.('cargoZone')
+    }
 
     return inst
   }

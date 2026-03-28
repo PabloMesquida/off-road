@@ -1,12 +1,14 @@
 import AssetRegistry from "../assets/AssetRegistry.js"
+import CargoZone from "../zones/CargoZone.js"
 
 class AssetSystem {
 
-  constructor({ scene, physics, assetManagers }) {
+  constructor({ scene, physics, assetManagers, resources }) {
 
   this.scene = scene
   this.physics = physics
   this.assetManagers = assetManagers
+  this.resources = resources
   this.onZoneRemoved = null
 
   this.registry = new AssetRegistry(scene, physics, {
@@ -51,7 +53,6 @@ class AssetSystem {
     const data = JSON.parse(json)
 
     for (const item of data) {
-
       const manager = this.assetManagers[item.type]
       if (!manager) continue
 
@@ -70,7 +71,6 @@ class AssetSystem {
         inst.body.setTranslation(item.position, true)
         inst.body.setRotation(item.rotation, true)
       }
-
     }
   }
 
