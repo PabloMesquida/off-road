@@ -129,11 +129,19 @@ class AssetManager {
     let entity = null;
 
     if (this.physics?.world) {
+      const q = new THREE.Quaternion()
+      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationY)
 
       const physDesc = {
         ...this.config.physics,
-        position: { x: position.x, y: finalY, z: position.z }
-      };
+        position: { x: position.x, y: finalY, z: position.z },
+        rotation: {
+          x: q.x,
+          y: q.y,
+          z: q.z,
+          w: q.w
+        }
+      }
 
       entity = this.physics.addEntity(physDesc, group);
 
@@ -142,7 +150,7 @@ class AssetManager {
         const q = new THREE.Quaternion()
         q.setFromAxisAngle(new THREE.Vector3(0,1,0), rotationY)
 
-        entity.physical.body.setRotation(q, true)
+        // entity.physical.body.setRotation(q, true)
       }
     }
 

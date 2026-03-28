@@ -27,11 +27,18 @@ class CargoZone {
     this.resourceName = resourceName
     this.createColliderEnabled = createCollider
 
+    // offsets locales (🔥 ahora correctos)
     this.modelOffset = { x: 0, y: 0, z: 0.35 }
     this.colliderOffset = { x: 0, y: 0, z: -1.8 }
 
     this.group = new THREE.Group()
     this.group.name = 'cargoZone'
+    
+    this.visualRoot = new THREE.Group()
+    this.colliderRoot = new THREE.Group()
+
+    this.group.add(this.visualRoot)
+    this.group.add(this.colliderRoot)
 
     this.assetType = 'cargoZone'
     this.physicsEntity = null
@@ -39,8 +46,15 @@ class CargoZone {
     this.createVisual()
     this.createModel()
 
-    this.setRotationY(rotationY)
+    // offsets locales
+    this.colliderRoot.position.set(
+      this.colliderOffset.x,
+      this.colliderOffset.y,
+      this.colliderOffset.z
+    )
+
     this.setPosition(position)
+    this.setRotationY(rotationY)
 
     if (this.createColliderEnabled) {
       this.createCollider()
@@ -53,6 +67,10 @@ class CargoZone {
     this.group.userData.assetType = 'cargoZone'
     this.group.userData.assetInstance = this
   }
+
+  // ─────────────────────────────
+  // VISUAL (plano con borde)
+  // ─────────────────────────────
 
   createVisual() {
     const geo = new THREE.PlaneGeometry(this.width, this.depth)
@@ -71,6 +89,7 @@ class CargoZone {
     })
 
     material.colorNode = TSL.vec3(colorFinal)
+
     material.opacityNode = TSL.mix(
       TSL.float(0.003),
       TSL.float(0.04),
@@ -85,8 +104,12 @@ class CargoZone {
     mesh.position.y = 0.02
 
     this.mesh = mesh
-    this.group.add(mesh)
+    this.visualRoot.add(mesh)
   }
+
+  // ─────────────────────────────
+  // MODELO GLB
+  // ─────────────────────────────
 
   createModel() {
     const resource = this.resources?.items?.[this.resourceName]
@@ -98,15 +121,19 @@ class CargoZone {
 
     const model = resource.scene.clone(true)
 
-    const box = new THREE.Box3().setFromObject(model)
-    const center = new THREE.Vector3()
-    const size = new THREE.Vector3()
-    box.getCenter(center)
-    box.getSize(size)
+    model.traverse((child) => {
+      if (!child.isMesh) return
 
-    // model.position.sub(center)
+      if (child.material) {
+        child.material = child.material.clone()
+      }
+
+      child.castShadow = true
+      child.receiveShadow = true
+    })
 
     model.scale.setScalar(1.25)
+
     model.position.set(
       this.modelOffset.x,
       this.modelOffset.y,
@@ -114,58 +141,58 @@ class CargoZone {
     )
 
     this.model = model
-    this.group.add(model)
+    this.visualRoot.add(model)
   }
+
+  // ─────────────────────────────
+  // COLLIDER 
+  // ─────────────────────────────
 
   createCollider() {
     if (!this.physics) return
 
     const halfX = this.width * 0.46
-    const halfZ = this.depth * 0.23
-    const height = 0.8
+    const halfZ = this.depth * 0.25
+    const height = 0.65
+
+    const worldPos = new THREE.Vector3()
+    const worldQuat = new THREE.Quaternion()
+
+    this.colliderRoot.getWorldPosition(worldPos)
+    this.colliderRoot.getWorldQuaternion(worldQuat)
 
     this.physicsEntity = this.physics.addEntity({
       type: 'fixed',
       position: {
-        x: this.group.position.x,
-        y: this.group.position.y,
-        z: this.group.position.z
+        x: worldPos.x,
+        y: worldPos.y,
+        z: worldPos.z
       },
       rotation: {
-        x: 0,
-        y: 0,
-        z: 0,
-        w: 1
+        x: worldQuat.x,
+        y: worldQuat.y,
+        z: worldQuat.z,
+        w: worldQuat.w
       },
       colliders: [
         {
           shape: 'cuboid',
-          parameters: [halfX, height, halfZ],
-          offset: this.colliderOffset, 
+          parameters: [halfX, height, halfZ]
         }
       ]
-    }, this.group)
+    }, this.colliderRoot)
   }
+
+  // ─────────────────────────────
+  // TRANSFORM
+  // ─────────────────────────────
 
   setPosition({ x, y, z }) {
     this.group.position.set(x, y, z)
 
     const body = this.body
     if (body?.setTranslation) {
-
-      const offset = new THREE.Vector3(
-        this.colliderOffset.x,
-        this.colliderOffset.y,
-        this.colliderOffset.z
-      )
-
-      offset.applyQuaternion(this.group.quaternion)
-
-      body.setTranslation({
-        x: x + offset.x,
-        y: y + offset.y,
-        z: z + offset.z
-      }, true)
+      body.setTranslation({ x, y, z }, true)
     }
   }
 
@@ -174,38 +201,30 @@ class CargoZone {
 
     const body = this.body
     if (body?.setRotation) {
-
       const q = new THREE.Quaternion().setFromAxisAngle(
         new THREE.Vector3(0, 1, 0),
         rotationY
       )
 
-      const offset = new THREE.Vector3(
-        this.colliderOffset.x,
-        this.colliderOffset.y,
-        this.colliderOffset.z
-      )
-
-      offset.applyQuaternion(q)
-
-      body.setRotation(q, true)
-
-      const pos = this.group.position
-
-      body.setTranslation({
-        x: pos.x + offset.x,
-        y: pos.y + offset.y,
-        z: pos.z + offset.z
+      body.setRotation({
+        x: q.x,
+        y: q.y,
+        z: q.z,
+        w: q.w
       }, true)
     }
   }
 
-  getPosition() {
-    return this.group.position
-  }
-
   get body() {
     return this.physicsEntity?.physical?.body || null
+  }
+
+  // ─────────────────────────────
+  // UTILS
+  // ─────────────────────────────
+
+  getPosition() {
+    return this.group.position
   }
 
   getBounds() {
@@ -230,6 +249,10 @@ class CargoZone {
       position.z <= b.zMax
     )
   }
+
+  // ─────────────────────────────
+  // CLEANUP
+  // ─────────────────────────────
 
   dispose() {
     if (this.physicsEntity) {

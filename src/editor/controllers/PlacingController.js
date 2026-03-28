@@ -127,13 +127,16 @@ export default class PlacingController {
     const inst = manager?.spawn?.(position, this.previewRotation)
 
     if (inst) {
+
+      // 🔑 SIEMPRE registrar
+      this.onAssetSpawned?.(inst)
+
       if (this.currentAssetType === 'cargoZone') {
         this.cargoZoneInstance = inst
+
+        this.disablePlacing()
+        return
       }
-
-       manager?.disposePreview?.()
-
-      this.onAssetSpawned?.(inst)
     }
   }
 

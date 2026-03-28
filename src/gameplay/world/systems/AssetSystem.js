@@ -1,5 +1,5 @@
+import * as THREE from 'three/webgpu'
 import AssetRegistry from "../assets/AssetRegistry.js"
-import CargoZone from "../zones/CargoZone.js"
 
 class AssetSystem {
 
@@ -46,6 +46,7 @@ class AssetSystem {
     localStorage.setItem("world_assets", JSON.stringify(data))
   }
 
+
   load() {
     const json = localStorage.getItem("world_assets")
     if (!json) return
@@ -56,20 +57,31 @@ class AssetSystem {
       const manager = this.assetManagers[item.type]
       if (!manager) continue
 
-      const inst = manager.spawn(item.position)
+      const r = item.rotation
 
+      const q = Array.isArray(r)
+        ? new THREE.Quaternion(r[0], r[1], r[2], r[3])
+        : new THREE.Quaternion(r.x, r.y, r.z, r.w)
+
+      if (item.type === 'cargoZone') {
+        const euler = new THREE.Euler().setFromQuaternion(q, 'YXZ')
+        const inst = manager.spawn(item.position, euler.y)
+        this.add(inst)
+        continue
+      }
+
+      const inst = manager.spawn(item.position)
       this.add(inst)
 
-      inst.group.quaternion.set(
-        item.rotation.x,
-        item.rotation.y,
-        item.rotation.z,
-        item.rotation.w
-      )
+      inst.group.quaternion.copy(q)
 
       if (inst.body) {
-        inst.body.setTranslation(item.position, true)
-        inst.body.setRotation(item.rotation, true)
+        inst.body.setRotation({
+          x: q.x,
+          y: q.y,
+          z: q.z,
+          w: q.w
+        }, true)
       }
     }
   }
