@@ -117,10 +117,6 @@ class Physics{
 
   const body = this.world.createRigidBody(bodyDesc)
 
-  // ─────────────────────────────
-  // 🧠 NUEVO: Collision Groups
-  // ─────────────────────────────
-
   const GROUPS = {
     DEFAULT: 0b0001,
     VEHICLE: 0b0010,
@@ -224,10 +220,6 @@ class Physics{
             colliderDesc.setRotation(q)
           }
         }
-
-        // ─────────────────────────────
-        // 🔥 AQUI ESTA LA CLAVE
-        // ─────────────────────────────
 
         const group = colliderDef.collisionGroup || _desc.collisionGroup
 

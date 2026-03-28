@@ -15,7 +15,6 @@ class CargoZone {
     borderWidth = 0.034,
     resourceName = 'cargoZone',
     createCollider = true,
-    collisionGroup = 'editor'
   }) {
     this.scene = scene
     this.resources = resources
@@ -27,7 +26,6 @@ class CargoZone {
     this.borderWidth = borderWidth
     this.resourceName = resourceName
     this.createColliderEnabled = createCollider
-    this.collisionGroup = collisionGroup
 
     this.modelOffset = { x: 0, y: 0, z: 0.35 }
     this.colliderOffset = { x: 0, y: 0, z: -1.8 }
@@ -122,9 +120,9 @@ class CargoZone {
   createCollider() {
     if (!this.physics) return
 
-    const halfX = this.width * 0.47
+    const halfX = this.width * 0.46
     const halfZ = this.depth * 0.23
-    const height = 0.25
+    const height = 0.66
 
     this.physicsEntity = this.physics.addEntity({
       type: 'fixed',
@@ -143,8 +141,7 @@ class CargoZone {
         {
           shape: 'cuboid',
           parameters: [halfX, height, halfZ],
-          offset: this.colliderOffset, // 🔑 LA CLAVE
-          collisionGroup: this.collisionGroup
+          offset: this.colliderOffset, 
         }
       ]
     }, this.group)
