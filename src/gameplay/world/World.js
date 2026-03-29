@@ -56,6 +56,7 @@ class World {
     this.environment = new Environment(this.scene)
   }
 
+ 
   _initAssets() {
     this.initAssetManagers()
     this.assetSystem.load()

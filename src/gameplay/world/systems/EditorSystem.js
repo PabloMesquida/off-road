@@ -32,6 +32,8 @@ class EditorSystem {
         this.tweakpaneUI?.setPlaceAssetEnabled('cargoZone', true)
       }
     }
+
+    this._syncInitialState()
   }
 
   _createTransformManager() {
@@ -124,6 +126,16 @@ class EditorSystem {
       isPlacingGetter: () => this.placing?.isPlacing,
       isDraggingGetter: () => this.transformManager?.dragging ?? false
     })
+  }
+
+  _syncInitialState() {
+    const hasCargoZone = this.world.assetSystem
+      .getAll()
+      .some(a => a.assetType === 'cargoZone')
+
+    if (hasCargoZone) {
+      this.tweakpaneUI?.setPlaceAssetEnabled('cargoZone', false)
+    }
   }
 
   setEditMode(isEditing) {
