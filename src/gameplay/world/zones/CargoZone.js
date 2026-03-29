@@ -189,7 +189,7 @@ class CargoZone {
           parameters: [halfX, height, halfZ]
         }
       ]
-    }, this.colliderRoot)
+    })
   }
 
   // ─────────────────────────────

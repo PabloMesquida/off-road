@@ -1,3 +1,4 @@
+import * as THREE from 'three/webgpu'
 import * as RAPIER from '@dimforge/rapier3d-compat'
 import TweakpaneUI from "../../../editor/UI/TweakpaneUI.js"
 import PlacingController from "../../../editor/controllers/PlacingController.js"
@@ -43,21 +44,39 @@ class EditorSystem {
       domElement: this.domElement,
       inputsEvents: this.game.inputs.events,
       onChangeKinematic: (isDragging, selectedAsset) => {
-
         const assetData = this.world.assetSystem.find(selectedAsset)
         if (!assetData?.body) return
 
         const body = assetData.body
+        const inst = assetData
 
         if (isDragging) {
           assetData.originalBodyType = body.bodyType()
           body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
         } else {
-          body.setTranslation(selectedAsset.position, true)
-          body.setRotation(selectedAsset.quaternion, true)
+          if (inst?.colliderRoot) {
+            inst.group.updateMatrixWorld(true)
+
+            const worldPos = new THREE.Vector3()
+            const worldQuat = new THREE.Quaternion()
+
+            inst.colliderRoot.getWorldPosition(worldPos)
+            inst.colliderRoot.getWorldQuaternion(worldQuat)
+
+            body.setTranslation(worldPos, true)
+            body.setRotation({
+              x: worldQuat.x,
+              y: worldQuat.y,
+              z: worldQuat.z,
+              w: worldQuat.w
+            }, true)
+          } else {
+            body.setTranslation(selectedAsset.position, true)
+            body.setRotation(selectedAsset.quaternion, true)
+          }
+
           body.setBodyType(assetData.originalBodyType, true)
         }
-
       },
       onDeleteAsset: (assetGroup) => {
         this.world.assetSystem.delete(assetGroup)
@@ -148,21 +167,36 @@ class EditorSystem {
   }
 
   update() {
-    if (!this.transformManager?.dragging) return
+  if (!this.transformManager?.dragging) return
 
-    const selected = this.transformManager?.selectedAsset
-    if (!selected) return
+  const selected = this.transformManager?.selectedAsset
+  if (!selected) return
 
-    const assetData = this.world.assetSystem.find(selected)
-    if (!assetData?.body) return
+  const assetData = this.world.assetSystem.find(selected)
+  if (!assetData?.body) return
 
-    const body = assetData.body
+  const body = assetData.body
+  if (!body.isKinematic?.()) return
 
-    if (!body.isKinematic?.()) return
+  const inst = assetData
 
-    body.setNextKinematicTranslation(selected.position)
-    body.setNextKinematicRotation(selected.quaternion)
+  if (inst?.colliderRoot) {
+    inst.group.updateMatrixWorld(true)
+
+    const worldPos = new THREE.Vector3()
+    const worldQuat = new THREE.Quaternion()
+
+    inst.colliderRoot.getWorldPosition(worldPos)
+    inst.colliderRoot.getWorldQuaternion(worldQuat)
+
+    body.setNextKinematicTranslation(worldPos)
+    body.setNextKinematicRotation(worldQuat)
+    return
   }
+
+  body.setNextKinematicTranslation(selected.position)
+  body.setNextKinematicRotation(selected.quaternion)
+}
 }
 
 export default EditorSystem

@@ -122,7 +122,6 @@ export default class PlacingController {
       return
     }
 
-    // 🔑 VALIDACIÓN CENTRAL
     if (!this.canPlaceAsset(this.currentAssetType)) {
       console.warn('❌ No permitido')
       return
