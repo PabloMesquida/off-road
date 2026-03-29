@@ -149,11 +149,11 @@ class EditorSystem {
 
   update() {
     if (!this.transformManager?.dragging) return
-    
+
     const selected = this.transformManager?.selectedAsset
     if (!selected) return
 
-    const assetData = this.world.findAssetData(selected)
+    const assetData = this.world.assetSystem.find(selected)
     if (!assetData?.body) return
 
     const body = assetData.body
