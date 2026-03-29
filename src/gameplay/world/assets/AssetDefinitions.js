@@ -246,20 +246,15 @@ export const ASSET_CONFIGS = (size) => ({
   cargoZone: {
     materialMapping: {
       base: 'gris',
-      baseLine: 'amarillo'
-    },
-
-    physics: {
-      type: 'fixed',
-      colliders: [
-        {
-          shape: 'cuboid',
-          parameters: [ size.x * 0.46, 0.765, size.z * 0.2325] 
-        }
-      ]
-    },
-
-    verticalOffset: 0
+      baseLine: 'amarillo',
+      greenLight: 'verde',
+      handrail01: 'amarillo',
+      handrail02: 'amarillo',
+      handrail03: 'amarillo',
+      handrail04: 'amarillo',
+      lightPole: 'gris',
+      redLight: 'rojo'
+    }
   }
 
 })

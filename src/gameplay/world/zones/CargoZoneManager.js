@@ -1,5 +1,7 @@
+import * as THREE from 'three/webgpu'
 import Game from '../../../core/Game.js'
 import CargoZone from './CargoZone.js'
+import { ASSET_CONFIGS } from '../assets/AssetDefinitions.js'
 
 class CargoZoneManager {
   constructor(scene, options = {}) {
@@ -10,12 +12,27 @@ class CargoZoneManager {
     this.physics = this.game.physics
 
     this.resourceName = options.resourceName || 'cargoZone'
+
+    const resource = this.resources.items?.[this.resourceName]
+    if (!resource?.scene) {
+      console.warn(`⚠ ${this.resourceName} no encontrado`)
+      return
+    }
+
     this.width = options.width ?? 8
     this.depth = options.depth ?? 8
     this.color = options.color ?? 0xffff00
     this.borderWidth = options.borderWidth ?? 0.034
 
     this.preview = null
+
+    const box = new THREE.Box3().setFromObject(resource.scene)
+    this.size = new THREE.Vector3()
+    box.getSize(this.size)
+
+    const configs = ASSET_CONFIGS(this.size)
+    this.config = configs['cargoZone']
+
   }
 
   spawn(position = { x: 0, y: 0, z: 0 }, rotationY = 0) {
@@ -30,6 +47,7 @@ class CargoZoneManager {
       color: this.color,
       borderWidth: this.borderWidth,
       resourceName: this.resourceName,
+      materialMapping: this.config.materialMapping,
       createCollider: true,
     })
   }
@@ -73,6 +91,7 @@ class CargoZoneManager {
       color: this.color,
       borderWidth: this.borderWidth,
       resourceName: this.resourceName,
+      materialMapping: this.config.materialMapping,
       createCollider: false
     })
 

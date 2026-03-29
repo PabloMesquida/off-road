@@ -15,6 +15,7 @@ class CargoZone {
     color = 0xffff00,
     borderWidth = 0.034,
     resourceName = 'cargoZoneModel',
+    materialMapping,
     createCollider = true
   }) {
     this.scene = scene
@@ -26,6 +27,7 @@ class CargoZone {
     this.color = color
     this.borderWidth = borderWidth
     this.resourceName = resourceName
+    this.materialMapping = materialMapping
     this.createColliderEnabled = createCollider
 
     // offsets locales
@@ -126,6 +128,10 @@ class CargoZone {
     }
 
     const model = resource.scene.clone(true)
+
+    if (this.resources?.assetMaterialResolver) {
+      this.resources.assetMaterialResolver.apply(model, this.assetType)
+    }
 
     model.traverse((child) => {
       if (!child.isMesh) return
