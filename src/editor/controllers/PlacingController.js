@@ -1,7 +1,15 @@
 import * as THREE from 'three/webgpu'
 
 export default class PlacingController {
-  constructor({ scene, domElement, cameraGetter, floor, assetManagers, onAssetSpawned, canPlaceAsset }) {
+  constructor({
+    scene,
+    domElement,
+    cameraGetter,
+    floor,
+    assetManagers,
+    onAssetSpawned,
+    canPlaceAsset
+  }) {
     this.scene = scene
     this.domElement = domElement
     this.cameraGetter = cameraGetter
@@ -122,7 +130,7 @@ export default class PlacingController {
       return
     }
 
-    if (!this.canPlaceAsset(this.currentAssetType)) {
+    if (!this.canPlaceAsset?.(this.currentAssetType, position)) {
       console.warn('❌ No permitido')
       return
     }

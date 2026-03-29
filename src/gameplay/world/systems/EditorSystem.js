@@ -7,7 +7,6 @@ import AssetInteractionController from "../../../editor/controllers/AssetInterac
 import TransformGizmoManager from "../../../editor/gizmos/TransformGizmoManager.js"
 
 class EditorSystem {
-
   constructor({ world }) {
     this.world = world
     this.game = world.game
@@ -52,31 +51,95 @@ class EditorSystem {
 
         if (isDragging) {
           assetData.originalBodyType = body.bodyType()
+          assetData.originalPosition = selectedAsset.position.clone?.() || new THREE.Vector3().copy(selectedAsset.position)
+          assetData.originalQuaternion = selectedAsset.quaternion.clone?.() || new THREE.Quaternion().copy(selectedAsset.quaternion)
+
           body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
-        } else {
-          if (inst?.colliderRoot) {
-            inst.group.updateMatrixWorld(true)
+          return
+        }
 
-            const worldPos = new THREE.Vector3()
-            const worldQuat = new THREE.Quaternion()
+        if (inst?.colliderRoot) {
+          inst.group.updateMatrixWorld(true)
 
-            inst.colliderRoot.getWorldPosition(worldPos)
-            inst.colliderRoot.getWorldQuaternion(worldQuat)
+          const worldPos = new THREE.Vector3()
+          const worldQuat = new THREE.Quaternion()
 
-            body.setTranslation(worldPos, true)
-            body.setRotation({
+          inst.colliderRoot.getWorldPosition(worldPos)
+          inst.colliderRoot.getWorldQuaternion(worldQuat)
+
+          const insideCargoZone = this.world.assetSystem.isInsideCargoZone(worldPos, inst.group)
+
+          if (insideCargoZone && inst.assetType !== 'cargoZone') {
+            const originalPos = assetData.originalPosition || selectedAsset.position
+            const originalQuat = assetData.originalQuaternion || selectedAsset.quaternion
+
+            selectedAsset.position.copy(originalPos)
+            selectedAsset.quaternion.copy(originalQuat)
+
+            body.setTranslation(
+              { x: originalPos.x, y: originalPos.y, z: originalPos.z },
+              true
+            )
+            body.setRotation(
+              {
+                x: originalQuat.x,
+                y: originalQuat.y,
+                z: originalQuat.z,
+                w: originalQuat.w
+              },
+              true
+            )
+
+            body.setBodyType(assetData.originalBodyType, true)
+            return
+          }
+
+          body.setTranslation(
+            { x: worldPos.x, y: worldPos.y, z: worldPos.z },
+            true
+          )
+          body.setRotation(
+            {
               x: worldQuat.x,
               y: worldQuat.y,
               z: worldQuat.z,
               w: worldQuat.w
-            }, true)
-          } else {
-            body.setTranslation(selectedAsset.position, true)
-            body.setRotation(selectedAsset.quaternion, true)
+            },
+            true
+          )
+        } else {
+          const insideCargoZone = this.world.assetSystem.isInsideCargoZone(selectedAsset.position, selectedAsset)
+
+          if (insideCargoZone && assetData.assetType !== 'cargoZone') {
+            const originalPos = assetData.originalPosition || selectedAsset.position
+            const originalQuat = assetData.originalQuaternion || selectedAsset.quaternion
+
+            selectedAsset.position.copy(originalPos)
+            selectedAsset.quaternion.copy(originalQuat)
+
+            body.setTranslation(
+              { x: originalPos.x, y: originalPos.y, z: originalPos.z },
+              true
+            )
+            body.setRotation(
+              {
+                x: originalQuat.x,
+                y: originalQuat.y,
+                z: originalQuat.z,
+                w: originalQuat.w
+              },
+              true
+            )
+
+            body.setBodyType(assetData.originalBodyType, true)
+            return
           }
 
-          body.setBodyType(assetData.originalBodyType, true)
+          body.setTranslation(selectedAsset.position, true)
+          body.setRotation(selectedAsset.quaternion, true)
         }
+
+        body.setBodyType(assetData.originalBodyType, true)
       },
       onDeleteAsset: (assetGroup) => {
         this.world.assetSystem.delete(assetGroup)
@@ -91,19 +154,15 @@ class EditorSystem {
       cameraGetter: () => this.game.view.camera,
       floor: this.world.floor,
       assetManagers: this.world.assetManagers,
-
       onAssetSpawned: (inst) => {
         this.world.assetSystem.add(inst)
 
-        // 🔑 desactivar botón si es cargoZone
         if (inst.assetType === 'cargoZone') {
           this.tweakpaneUI?.setPlaceAssetEnabled('cargoZone', false)
         }
       },
-
-      // 🔑 validación central
-      canPlaceAsset: (type) => {
-        return this.world.assetSystem.canPlace(type)
+      canPlaceAsset: (type, position) => {
+        return this.world.assetSystem.canPlace(type, position)
       }
     })
   }
@@ -167,36 +226,48 @@ class EditorSystem {
   }
 
   update() {
-  if (!this.transformManager?.dragging) return
+    if (!this.transformManager?.dragging) return
 
-  const selected = this.transformManager?.selectedAsset
-  if (!selected) return
+    const selected = this.transformManager?.selectedAsset
+    if (!selected) return
 
-  const assetData = this.world.assetSystem.find(selected)
-  if (!assetData?.body) return
+    const assetData = this.world.assetSystem.find(selected)
+    if (!assetData?.body) return
 
-  const body = assetData.body
-  if (!body.isKinematic?.()) return
+    const body = assetData.body
+    if (!body.isKinematic?.()) return
 
-  const inst = assetData
+    const inst = assetData
 
-  if (inst?.colliderRoot) {
-    inst.group.updateMatrixWorld(true)
+    if (inst?.colliderRoot) {
+      inst.group.updateMatrixWorld(true)
 
-    const worldPos = new THREE.Vector3()
-    const worldQuat = new THREE.Quaternion()
+      const worldPos = new THREE.Vector3()
+      const worldQuat = new THREE.Quaternion()
 
-    inst.colliderRoot.getWorldPosition(worldPos)
-    inst.colliderRoot.getWorldQuaternion(worldQuat)
+      inst.colliderRoot.getWorldPosition(worldPos)
+      inst.colliderRoot.getWorldQuaternion(worldQuat)
 
-    body.setNextKinematicTranslation(worldPos)
-    body.setNextKinematicRotation(worldQuat)
-    return
+      const insideCargoZone = this.world.assetSystem.isInsideCargoZone(worldPos, inst.group)
+
+      if (insideCargoZone && inst.assetType !== 'cargoZone') {
+        return
+      }
+
+      body.setNextKinematicTranslation(worldPos)
+      body.setNextKinematicRotation(worldQuat)
+      return
+    }
+
+    const insideCargoZone = this.world.assetSystem.isInsideCargoZone(selected.position, selected)
+
+    if (insideCargoZone && assetData.assetType !== 'cargoZone') {
+      return
+    }
+
+    body.setNextKinematicTranslation(selected.position)
+    body.setNextKinematicRotation(selected.quaternion)
   }
-
-  body.setNextKinematicTranslation(selected.position)
-  body.setNextKinematicRotation(selected.quaternion)
-}
 }
 
 export default EditorSystem

@@ -2,9 +2,7 @@ import * as THREE from 'three/webgpu'
 import AssetRegistry from "../assets/AssetRegistry.js"
 
 class AssetSystem {
-
   constructor({ scene, physics, assetManagers, resources }) {
-
     this.scene = scene
     this.physics = physics
     this.assetManagers = assetManagers
@@ -85,13 +83,33 @@ class AssetSystem {
     }
   }
 
-  canPlace(type) {
-    if (type === 'cargoZone') {
-      return !this.getAll().some(a => a.assetType === 'cargoZone')
-    }
-    return true
+  hasCargoZone(ignoreGroup = null) {
+    return this.getAll().some(a => {
+      if (a.assetType !== 'cargoZone') return false
+      if (ignoreGroup && a.group === ignoreGroup) return false
+      return true
+    })
   }
 
+  isInsideCargoZone(position, ignoreGroup = null) {
+    return this.getAll().some(a => {
+      if (a.assetType !== 'cargoZone') return false
+      if (ignoreGroup && a.group === ignoreGroup) return false
+      return typeof a.isInside === 'function' && a.isInside(position)
+    })
+  }
+
+  canPlace(type, position = null, ignoreGroup = null) {
+    if (type === 'cargoZone') {
+      return !this.hasCargoZone(ignoreGroup)
+    }
+
+    if (position && this.isInsideCargoZone(position, ignoreGroup)) {
+      return false
+    }
+
+    return true
+  }
 }
 
 export default AssetSystem
