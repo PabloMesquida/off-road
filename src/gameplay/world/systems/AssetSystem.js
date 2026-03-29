@@ -5,20 +5,20 @@ class AssetSystem {
 
   constructor({ scene, physics, assetManagers, resources }) {
 
-  this.scene = scene
-  this.physics = physics
-  this.assetManagers = assetManagers
-  this.resources = resources
-  this.onZoneRemoved = null
+    this.scene = scene
+    this.physics = physics
+    this.assetManagers = assetManagers
+    this.resources = resources
+    this.onZoneRemoved = null
 
-  this.registry = new AssetRegistry(scene, physics, {
-    onZoneRemoved: (type) => {
-      if (this.onZoneRemoved) {
-        this.onZoneRemoved(type)
+    this.registry = new AssetRegistry(scene, physics, {
+      onZoneRemoved: (type) => {
+        if (this.onZoneRemoved) {
+          this.onZoneRemoved(type)
+        }
       }
-    }
-  })
-}
+    })
+  }
 
   add(inst) {
     this.registry.add(inst)
@@ -45,7 +45,6 @@ class AssetSystem {
 
     localStorage.setItem("world_assets", JSON.stringify(data))
   }
-
 
   load() {
     const json = localStorage.getItem("world_assets")
@@ -84,6 +83,13 @@ class AssetSystem {
         }, true)
       }
     }
+  }
+
+  canPlace(type) {
+    if (type === 'cargoZone') {
+      return !this.getAll().some(a => a.assetType === 'cargoZone')
+    }
+    return true
   }
 
 }

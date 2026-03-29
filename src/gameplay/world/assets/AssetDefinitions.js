@@ -243,5 +243,23 @@ export const ASSET_CONFIGS = (size) => ({
     },
     verticalOffset: -size.y / 2
   },
+  cargoZone: {
+    materialMapping: {
+      base: 'gris',
+      baseLine: 'amarillo'
+    },
+
+    physics: {
+      type: 'fixed',
+      colliders: [
+        {
+          shape: 'cuboid',
+          parameters: [ size.x * 0.46, 0.765, size.z * 0.2325] 
+        }
+      ]
+    },
+
+    verticalOffset: 0
+  }
 
 })

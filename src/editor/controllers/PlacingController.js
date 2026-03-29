@@ -1,13 +1,14 @@
 import * as THREE from 'three/webgpu'
 
 export default class PlacingController {
-  constructor({ scene, domElement, cameraGetter, floor, assetManagers, onAssetSpawned }) {
+  constructor({ scene, domElement, cameraGetter, floor, assetManagers, onAssetSpawned, canPlaceAsset }) {
     this.scene = scene
     this.domElement = domElement
     this.cameraGetter = cameraGetter
     this.floor = floor
     this.assetManagers = assetManagers
     this.onAssetSpawned = onAssetSpawned
+    this.canPlaceAsset = canPlaceAsset
 
     this.raycaster = new THREE.Raycaster()
     this.pointer = new THREE.Vector2()
@@ -15,8 +16,6 @@ export default class PlacingController {
     this.isPlacing = false
     this.currentAssetType = null
     this.previewRotation = 0
-
-    this.cargoZoneInstance = null
 
     this.onPointerMove = this.onPointerMove.bind(this)
     this.onPointerDown = this.onPointerDown.bind(this)
@@ -123,20 +122,17 @@ export default class PlacingController {
       return
     }
 
+    // 🔑 VALIDACIÓN CENTRAL
+    if (!this.canPlaceAsset(this.currentAssetType)) {
+      console.warn('❌ No permitido')
+      return
+    }
+
     const manager = this.assetManagers[this.currentAssetType]
     const inst = manager?.spawn?.(position, this.previewRotation)
 
     if (inst) {
-
-      // 🔑 SIEMPRE registrar
       this.onAssetSpawned?.(inst)
-
-      if (this.currentAssetType === 'cargoZone') {
-        this.cargoZoneInstance = inst
-
-        this.disablePlacing()
-        return
-      }
     }
   }
 
@@ -157,10 +153,6 @@ export default class PlacingController {
 
     const manager = this.assetManagers[this.currentAssetType]
     manager?.updatePreviewRotation?.(this.previewRotation)
-  }
-
-  clearCargoZone() {
-    this.cargoZoneInstance = null
   }
 
   dispose() {

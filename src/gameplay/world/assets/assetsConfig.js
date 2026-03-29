@@ -8,7 +8,8 @@ const assetsConfig = [
   { key: 'signStop', resourcePathName: "signStopModel", assetType: "signStop" },
   { key: 'signWarning', resourcePathName: "signWarningModel", assetType: "signWarning" },
   { key: 'signNot', resourcePathName: "signNotModel", assetType: "signNot" },
-  { key: 'tire', resourcePathName: "tireModel", assetType: "tire" }
+  { key: 'tire', resourcePathName: "tireModel", assetType: "tire" },
+  { key: 'cargoZone', resourcePathName: 'cargoZoneModel', assetType: 'cargoZone' }
 ];
 
 export default assetsConfig;

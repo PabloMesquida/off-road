@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu'
 import * as TSL from 'three/tsl'
+import materialResolver from '../assets/AssetMaterialResolver.js'
 import { computePlaneBorder } from '../../../graphics/tsl/functions/border.js'
 
 class CargoZone {
@@ -13,7 +14,7 @@ class CargoZone {
     depth = 8,
     color = 0xffff00,
     borderWidth = 0.034,
-    resourceName = 'cargoZone',
+    resourceName = 'cargoZoneModel',
     createCollider = true
   }) {
     this.scene = scene
@@ -42,6 +43,11 @@ class CargoZone {
 
     this.assetType = 'cargoZone'
     this.physicsEntity = null
+
+    // this.materialMapping = {
+    //   base: 'gris',
+    //   zone: 'amarillo'
+    // }
 
     this.createVisual()
     this.createModel()
@@ -124,13 +130,16 @@ class CargoZone {
     model.traverse((child) => {
       if (!child.isMesh) return
 
-      if (child.material) {
-        child.material = child.material.clone()
-      }
-
       child.castShadow = true
       child.receiveShadow = true
     })
+
+    if (this.materialMapping) {
+      materialResolver.applyMaterialMapping(
+        model,
+        this.materialMapping
+      )
+    }
 
     model.scale.setScalar(1.25)
 
