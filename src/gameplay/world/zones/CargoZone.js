@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu'
 import * as TSL from 'three/tsl'
 import materialResolver from '../assets/AssetMaterialResolver.js'
 import { computePlaneBorder } from '../../../graphics/tsl/functions/border.js'
+import LightMaterial from '../../../graphics/materials/vehicle/LightMaterial.js'
 
 class CargoZone {
   constructor({
@@ -30,7 +31,6 @@ class CargoZone {
     this.materialMapping = materialMapping
     this.createColliderEnabled = createCollider
 
-    // offsets locales
     this.modelOffset = { x: 0, y: 0, z: 0.35 }
     this.colliderOffset = { x: 0, y: 0, z: -1.85 }
 
@@ -46,15 +46,9 @@ class CargoZone {
     this.assetType = 'cargoZone'
     this.physicsEntity = null
 
-    // this.materialMapping = {
-    //   base: 'gris',
-    //   zone: 'amarillo'
-    // }
-
     this.createVisual()
     this.createModel()
 
-    // offsets locales
     this.colliderRoot.position.set(
       this.colliderOffset.x,
       this.colliderOffset.y,
@@ -116,7 +110,7 @@ class CargoZone {
   }
 
   // ─────────────────────────────
-  // MODELO GLB
+  // MODELO GLB + LIGHT MATERIAL
   // ─────────────────────────────
 
   createModel() {
@@ -129,16 +123,10 @@ class CargoZone {
 
     const model = resource.scene.clone(true)
 
+    // resolver base (PBR + mappings)
     if (this.resources?.assetMaterialResolver) {
       this.resources.assetMaterialResolver.apply(model, this.assetType)
     }
-
-    model.traverse((child) => {
-      if (!child.isMesh) return
-
-      child.castShadow = true
-      child.receiveShadow = true
-    })
 
     if (this.materialMapping) {
       materialResolver.applyMaterialMapping(
@@ -146,6 +134,43 @@ class CargoZone {
         this.materialMapping
       )
     }
+
+    // ───────────────
+    // LIGHTS
+    // ───────────────
+
+    const greenLightMat = new LightMaterial({
+      baseColor: 0x000000,
+      intensity: 0,
+      maxIntensity: 15.0
+    })
+
+    const redLightMat = new LightMaterial({
+      baseColor: 0xff0f0f,
+      intensity: 15,
+      maxIntensity: 15.0
+    })
+
+    model.traverse((child) => {
+      if (!child.isMesh) return
+
+      const tag = child.userData?.tag
+
+      if (tag === 'greenLight') {
+        child.material = greenLightMat
+      }
+
+      if (tag === 'redLight') {
+        child.material = redLightMat
+      }
+
+      child.castShadow = true
+      child.receiveShadow = true
+    })
+
+    // guardar refs para runtime
+    this.greenLightMaterial = greenLightMat
+    this.redLightMaterial = redLightMat
 
     model.scale.setScalar(1.25)
 
@@ -160,7 +185,34 @@ class CargoZone {
   }
 
   // ─────────────────────────────
-  // COLLIDER 
+  // CONTROL DE LUCES
+  // ─────────────────────────────
+
+  setGreenLight(on = true) {
+    if (!this.greenLightMaterial) return
+    this.greenLightMaterial.setIntensity(on ? 4.0 : 0)
+  }
+
+  setRedLight(on = true) {
+    if (!this.redLightMaterial) return
+    this.redLightMaterial.setIntensity(on ? 6.0 : 0)
+  }
+
+  setState(state) {
+    // ejemplo simple
+    if (state === 'idle') {
+      this.setGreenLight(false)
+      this.setRedLight(true)
+    }
+
+    if (state === 'active') {
+      this.setGreenLight(true)
+      this.setRedLight(false)
+    }
+  }
+
+  // ─────────────────────────────
+  // COLLIDER
   // ─────────────────────────────
 
   createCollider() {

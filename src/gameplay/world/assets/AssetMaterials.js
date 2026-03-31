@@ -11,5 +11,6 @@ export const GLOBAL_MATERIALS = {
   amarillo2:new THREE.MeshStandardMaterial({ color: 0xa1a10d, metalness: 0, roughness: 0.9 }),
   negro:   new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0, roughness: 0.9 }),
   gris:    new THREE.MeshStandardMaterial({ color: 0x3D444D, metalness: 0, roughness: 0.9 }),
+  gris2:   new THREE.MeshStandardMaterial({ color: 0x292E36, metalness: 0, roughness: 0.9 }),
   default: new THREE.MeshStandardMaterial({ color: 0xffffaa, metalness: 0, roughness: 0.9 })
 }
