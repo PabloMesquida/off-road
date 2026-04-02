@@ -154,6 +154,33 @@ class CargoZone {
     model.traverse((child) => {
       if (!child.isMesh) return
 
+      const geom = child.geometry
+
+      // UV2 obligatorio
+      if (geom?.attributes?.uv && !geom.attributes.uv2) {
+        geom.setAttribute(
+          'uv2',
+          new THREE.BufferAttribute(geom.attributes.uv.array, 2)
+        )
+      }
+
+      const mat = child.material
+
+      if (mat) {
+        // fallback ORM si vino mal del GLB
+        if (mat.map && !mat.aoMap) {
+          mat.aoMap = mat.map
+        }
+
+        // boost AO
+        if (mat.aoMap) {
+          mat.aoMapIntensity = 1
+        }
+
+        mat.needsUpdate = true
+      }
+
+      // luces (mantener)
       const tag = child.userData?.tag
 
       if (tag === 'greenLight') {

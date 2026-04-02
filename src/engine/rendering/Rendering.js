@@ -54,7 +54,7 @@ class Rendering
     document.body.appendChild(this.stats.dom)
 
     this.instance.toneMapping = THREE.CineonToneMapping
-    this.instance.toneMappingExposure = 1.2 // 1.75
+    this.instance.toneMappingExposure = 0.8 // 1.75
     this.instance.shadowMap.enabled = true
     this.instance.shadowMap.type = THREE.VSMShadowMap          
     
@@ -70,7 +70,7 @@ class Rendering
     this.instance.setSize(width, height);
     this.instance.setPixelRatio(this.ratio);
 
-    // 🔄 Reconstruir nodos post-procesado
+    // Reconstruir nodos post-procesado
     if (this.postProcessing) {
       this.postProcessing.dispose()
 

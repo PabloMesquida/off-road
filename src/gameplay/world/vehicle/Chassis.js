@@ -71,7 +71,8 @@ class Chassis {
         dst.roughnessMap = src.map;
         dst.metalnessMap = src.map;
 
-        dst.aoMapIntensity = src.aoMapIntensity ?? 1.0;
+        // dst.aoMapIntensity = src.aoMapIntensity ?? 1.0;
+        dst.aoMapIntensity = 1.2;
         dst.roughness = src.roughness ?? 1.0;
         dst.metalness = src.metalness ?? 1.0;
 
