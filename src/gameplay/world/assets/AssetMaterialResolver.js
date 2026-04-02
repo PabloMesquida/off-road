@@ -4,8 +4,8 @@ import { GLOBAL_MATERIALS } from './AssetMaterials.js'
 class AssetMaterialResolver {
 
   constructor() {
-    this.AO_INTENSITY = 1
-    this.ENV_INTENSITY = 1.3
+    this.AO_INTENSITY = 0.5
+    this.ENV_INTENSITY = 1
   }
 
   getMaterial(materialKey) {
