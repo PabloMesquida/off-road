@@ -12,6 +12,7 @@ class CargoZoneManager {
     this.physics = this.game.physics
 
     this.resourceName = options.resourceName || 'cargoZone'
+    this.assetManagers = options.assetManagers
 
     const resource = this.resources.items?.[this.resourceName]
     if (!resource?.scene) {
@@ -33,10 +34,11 @@ class CargoZoneManager {
     const configs = ASSET_CONFIGS(this.size)
     this.config = configs['cargoZone']
 
+    this.zones = []
   }
 
   spawn(position = { x: 0, y: 0, z: 0 }, rotationY = 0) {
-    return new CargoZone({
+    const zone = new CargoZone({
       scene: this.scene,
       resources: this.resources,
       physics: this.physics,
@@ -49,32 +51,12 @@ class CargoZoneManager {
       resourceName: this.resourceName,
       materialMapping: this.config.materialMapping,
       createCollider: true,
+      assetManagers: this.assetManagers
     })
-  }
 
-  createModel() {
-    const resource = this.resources?.items?.[this.resourceName]
+    this.zones.push(zone)
 
-    if (!resource?.scene) {
-      console.warn(`⚠ ${this.resourceName} GLB no cargado en Resources`)
-      return
-    }
-
-    const model = resource.scene.clone(true)
-
-    const box = new THREE.Box3().setFromObject(model)
-    const center = new THREE.Vector3()
-    box.getCenter(center)
-
-    model.scale.setScalar(1.25)
-    model.position.set(
-      this.modelOffset.x,
-      this.modelOffset.y,
-      this.modelOffset.z
-    )
-
-    this.model = model
-    this.group.add(model)
+    return zone
   }
 
   createPreview() {
@@ -83,7 +65,7 @@ class CargoZoneManager {
     const zone = new CargoZone({
       scene: this.scene,
       resources: this.resources,
-      physics: null, // 🔑 SIN física
+      physics: null,
       position: { x: 0, y: 0, z: 0 },
       rotationY: 0,
       width: this.width,
@@ -98,7 +80,6 @@ class CargoZoneManager {
     zone.group.traverse((c) => {
       if (!c.isMesh) return
 
-      // materiales normales (GLB)
       if (c.material && !c.material.isNodeMaterial) {
         c.material = c.material.clone()
         c.material.transparent = true

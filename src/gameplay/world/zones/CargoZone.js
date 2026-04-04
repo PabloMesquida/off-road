@@ -17,7 +17,8 @@ class CargoZone {
     borderWidth = 0.034,
     resourceName = 'cargoZoneModel',
     materialMapping,
-    createCollider = true
+    createCollider = true,
+    assetManagers
   }) {
     this.scene = scene
     this.resources = resources
@@ -30,6 +31,7 @@ class CargoZone {
     this.resourceName = resourceName
     this.materialMapping = materialMapping
     this.createColliderEnabled = createCollider
+    this.assetManagers = assetManagers
 
     this.modelOffset = { x: 0, y: 0, z: 0.35 }
     this.colliderOffset = { x: 0, y: 0, z: -1.85 }
@@ -57,6 +59,8 @@ class CargoZone {
 
     this.setPosition(position)
     this.setRotationY(rotationY)
+
+      this.createCargoBoxes(16)
 
     if (this.createColliderEnabled) {
       this.createCollider()
@@ -140,15 +144,15 @@ class CargoZone {
     // ───────────────
 
     const greenLightMat = new LightMaterial({
-      baseColor: 0x000000,
+      baseColor: 0x1cd68e,
       intensity: 0,
-      maxIntensity: 15.0
+      maxIntensity: 10.0
     })
 
     const redLightMat = new LightMaterial({
       baseColor: 0xff0f0f,
-      intensity: 15,
-      maxIntensity: 15.0
+      intensity: 0,
+      maxIntensity: 10.0
     })
 
     model.traverse((child) => {
@@ -217,15 +221,39 @@ class CargoZone {
 
   setGreenLight(on = true) {
     if (!this.greenLightMaterial) return
-    this.greenLightMaterial.setIntensity(on ? 4.0 : 0)
+
+    if (on) {
+      this.greenLightMaterial.setIntensity(4.0)
+
+      // color visible
+      this.greenLightMaterial.setColor?.(new THREE.Color(0x00ff88))
+      this.greenLightMaterial.baseColor?.set?.(0x00ff88)
+
+      // por si el shader usa otra referencia interna
+      this.greenLightMaterial.emissiveColor?.set?.(0x00ff88)
+      this.greenLightMaterial.emissive?.set?.(0x00ff88)
+
+      this.greenLightMaterial.needsUpdate = true
+    } else {
+      this.greenLightMaterial.setIntensity(0)
+
+      this.greenLightMaterial.setColor?.(new THREE.Color(0x0a3d2a))
+      this.greenLightMaterial.baseColor?.set?.(0x0a3d2a)
+
+      this.greenLightMaterial.emissiveColor?.set?.(0x0a3d2a)
+      this.greenLightMaterial.emissive?.set?.(0x0a3d2a)
+
+      this.greenLightMaterial.needsUpdate = true
+    }
   }
 
   setRedLight(on = true) {
     if (!this.redLightMaterial) return
-    this.redLightMaterial.setIntensity(on ? 6.0 : 0)
+    this.redLightMaterial.setIntensity(on ? 8.0 : 0)
   }
 
   setState(state) {
+    console.log('OK')
     // ejemplo simple
     if (state === 'idle') {
       this.setGreenLight(false)
@@ -276,6 +304,56 @@ class CargoZone {
       ]
     })
   }
+
+  createCargoBoxes(count = 5) {
+  const manager = this.assetManagers?.['cargoBox']
+
+  if (!manager) {
+    console.warn('no cargoBox manager')
+    return
+  }
+
+  const cols = 2
+  const spacing = 0.7
+
+  const basePos = this.group.position
+  const rotY = -Math.PI/2
+
+  for (let i = 0; i < count; i++) {
+    const col = i % cols
+    const row = Math.floor(i / cols)
+
+    // ─────────────────────────────
+    // POSICIÓN LOCAL (grid)
+    // ─────────────────────────────
+
+    let localX = (col - 0.5) * spacing
+    let localZ = row * spacing
+
+    // ─────────────────────────────
+    // ROTAR POSICIÓN (CLAVE)
+    // ─────────────────────────────
+
+    const cos = Math.cos(rotY)
+    const sin = Math.sin(rotY)
+
+    const worldX = basePos.x - 2.5 + localX * cos - localZ * sin
+    const worldZ = basePos.z - 2.0 + localX * sin + localZ * cos
+
+    const y = basePos.y + 0.1
+
+    // ─────────────────────────────
+    // SPAWN
+    // ─────────────────────────────
+
+    const inst = manager.spawn(
+      { x: worldX, y, z: worldZ },
+      rotY // 
+    )
+
+    inst.group.userData.cargoZone = this
+  }
+}
 
   // ─────────────────────────────
   // TRANSFORM

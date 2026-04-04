@@ -21,5 +21,7 @@ export const GLOBAL_MATERIALS = {
   negro:   createMat(0x333333),
   gris:    createMat(0x3D444D),
   gris2:   createMat(0x292E36),
+  marron:  createMat(0xBC8850),
+  marron2: createMat(0xA66721),
   default: createMat(0xffffaa)
 }

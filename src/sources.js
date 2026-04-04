@@ -12,6 +12,7 @@ export default [
     { name: 'signNotModel', type: 'gltfModel', path: 'models/Assets/Signs/signNot_02.glb' },
     { name: 'tireModel', type: 'gltfModel', path: 'models/Assets/Tire/tire_02.glb' },
     { name: 'cargoZoneModel', type: 'gltfModel', path: 'models/Assets/Zones/cargo_07.glb' },
+    { name: 'cargoBox', type: 'gltfModel', path: 'models/Assets/Box/caja_01.glb' },
     {
         name: 'environmentMapTexture',
         type: 'cubeTexture',

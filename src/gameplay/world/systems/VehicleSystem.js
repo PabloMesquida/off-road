@@ -1,5 +1,23 @@
 import Vehicle from '../vehicle/Vehicle.js'
 
+function isVehicleFullyInside(zone, chassis) {
+  const pos = chassis.body.translation()
+
+  const halfX = chassis.size.x / 2
+  const halfZ = chassis.size.z / 2
+
+  const corners = [
+    { x: pos.x + halfX, z: pos.z + halfZ },
+    { x: pos.x + halfX, z: pos.z - halfZ },
+    { x: pos.x - halfX, z: pos.z + halfZ },
+    { x: pos.x - halfX, z: pos.z - halfZ }
+  ]
+
+  return corners.every(corner =>
+    zone.isInside({ x: corner.x, z: corner.z })
+  )
+}
+
 class VehicleSystem {
   constructor({ world }) {
     this.world = world
@@ -59,7 +77,6 @@ class VehicleSystem {
 
   update() {
     if (!this.vehicle) return
-
     const pos = this.vehicle.chassis.mesh.position
     const limit = this.floor.getLimit()
     const vel = this.vehicle.chassis.body.linvel()
@@ -70,6 +87,25 @@ class VehicleSystem {
 
     this.vehicle.controller.isOutsideLimit = isOutside
     this.vehicle.visuals.isOutsideLimit = isOutside
+
+    const cargoManager = this.world.assetManagers['cargoZone']
+  
+    if (!cargoManager?.zones?.length) return
+
+    const chassis = this.vehicle.chassis
+
+    cargoManager.zones.forEach(zone => {
+      const inside = isVehicleFullyInside(zone, chassis)
+
+      // evita recalcular estado cada frame
+      if (zone._isVehicleInside === inside) return
+      zone._isVehicleInside = inside
+      if (inside) {
+        zone.setState('active')
+      } else {
+        zone.setState('idle')  
+      }
+    })
   }
 }
 

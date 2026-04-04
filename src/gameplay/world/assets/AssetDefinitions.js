@@ -255,6 +255,30 @@ export const ASSET_CONFIGS = (size) => ({
       lightPole: 'gris',
       redLight: 'rojo'
     }
+  },
+  cargoBox: {
+    materialMapping: {
+      body: 'marron',
+      tape: 'marron2',
+      tag1: 'negro',
+      tag2: 'blanco',
+      stripe: 'marron',
+    },
+    physics: {
+      type: 'dynamic',
+      massProperties: {
+        massValue: 2,
+        com: { x: 0, y: 0, z: 0 }
+      },
+      colliders: [
+        {
+          shape: 'cuboid',
+          parameters: [size.x / 2, size.y / 2, size.z / 2],
+          friction: 1.0
+        }
+      ]
+    },
+    verticalOffset: -size.y / 2
   }
 
 })

@@ -76,7 +76,8 @@ class World {
   }
   
   this.assetManagers['cargoZone'] = new CargoZoneManager(this.scene, {
-    resourceName: 'cargoZoneModel' // nombre en Resources.items
+    resourceName: 'cargoZoneModel',
+    assetManagers: this.assetManagers 
   })
 }
 

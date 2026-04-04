@@ -60,6 +60,7 @@ class Game{
   updateAll(dt){
     // this.physicsDebug.update()
     this.view.update(dt)
+     this.world?.update()
   }
 
   updatePhysics(dt) {
