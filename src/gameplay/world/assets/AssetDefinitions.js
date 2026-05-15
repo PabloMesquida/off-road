@@ -267,7 +267,7 @@ export const ASSET_CONFIGS = (size) => ({
     physics: {
       type: 'dynamic',
       massProperties: {
-        massValue: 2,
+        massValue: 1,
         com: { x: 0, y: 0, z: 0 }
       },
       colliders: [

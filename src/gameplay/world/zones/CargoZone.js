@@ -351,6 +351,8 @@ class CargoZone {
       rotY // 
     )
 
+    inst.group.userData.draggable = true
+    inst.group.userData.assetInstance = inst
     inst.group.userData.cargoZone = this
   }
 }

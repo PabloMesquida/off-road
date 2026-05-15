@@ -7,6 +7,7 @@ import assetsConfig from './assets/assetsConfig.js'
 import AssetSystem from './systems/AssetSystem.js'
 import EditorSystem from './systems/EditorSystem.js'
 import VehicleSystem from './systems/VehicleSystem.js'
+import CargoDragSystem from './systems/CargoDragSystem'
 import CargoZoneManager from './zones/CargoZoneManager.js'
 
 class World {
@@ -43,6 +44,11 @@ class World {
 
     this.vehicleSystem = new VehicleSystem({ world: this })
     this.vehicleSystem.init()
+
+    this.cargoDragSystem = new CargoDragSystem({
+      scene: this.scene,
+      camera: this.game.view.camera
+    })
 
     this._initEnvironment()
     this._initAssets()
@@ -109,6 +115,7 @@ class World {
 
   update() {
     this.vehicleSystem?.update()
+    this.cargoDragSystem?.update()
   }
 
   get isPlacingAsset() {
