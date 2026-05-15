@@ -32,7 +32,10 @@ export default class CargoDragSystem {
   update() {
     if (!this.currentDrag) return
 
-    this.raycaster.setFromCamera(this.mouse, this.camera)
+    this.raycaster.setFromCamera(
+      this.mouse,
+      this.camera
+    )
 
     const hit = this.raycaster.ray.intersectPlane(
       this.dragPlane,
@@ -47,25 +50,7 @@ export default class CargoDragSystem {
       x: this.dragPoint.x,
       y: this.dragPoint.y,
       z: this.dragPoint.z
-    })  
-
-    body.setLinvel(
-      {
-        x: 0,
-        y: 0,
-        z: 0
-      },
-      true
-    )
-
-    body.setAngvel(
-      {
-        x: 0,
-        y: 0,
-        z: 0
-      },
-      true
-    )
+    })
   }
 
   _bindEvents() {
@@ -167,9 +152,34 @@ export default class CargoDragSystem {
 
     const { body } = this.currentDrag
 
-    // dynamic
-    // body.setBodyType(0, true)
-    body.setBodyType(RAPIER.RigidBodyType.Dynamic, true)
+    // volver a dynamic
+    body.setBodyType(
+      RAPIER.RigidBodyType.Dynamic,
+      true
+    )
+
+    // limpiar velocidad residual
+    body.setLinvel(
+      {
+        x: 0,
+        y: 0,
+        z: 0
+      },
+      true
+    )
+
+    // limpiar torque residual
+    body.setAngvel(
+      {
+        x: 0,
+        y: 0,
+        z: 0
+      },
+      true
+    )
+
+    // despertar solver correctamente
+    body.wakeUp()
 
     this.currentDrag = null
   }

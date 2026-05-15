@@ -117,6 +117,15 @@ class Physics{
 
   const body = this.world.createRigidBody(bodyDesc)
 
+  if (po.lockRotations) {
+    body.setEnabledRotations(
+      !po.lockRotations.x,
+      !po.lockRotations.y,
+      !po.lockRotations.z,
+      true
+    )
+  }
+
   const GROUPS = {
     DEFAULT: 0b0001,
     VEHICLE: 0b0010,

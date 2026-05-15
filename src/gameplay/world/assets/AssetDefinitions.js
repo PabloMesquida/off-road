@@ -264,21 +264,44 @@ export const ASSET_CONFIGS = (size) => ({
       tag2: 'blanco',
       stripe: 'marron',
     },
+
+    physicsOptions: {
+      linearDamping: 4.0,
+      angularDamping: 12.0,
+      ccd: true,
+
+      lockRotations: {
+        x: true,
+        y: false,
+        z: true
+      }
+    },
+
     physics: {
       type: 'dynamic',
+
       massProperties: {
-        massValue: 1,
+        massValue: 4,
         com: { x: 0, y: 0, z: 0 }
       },
+
       colliders: [
         {
           shape: 'cuboid',
-          parameters: [size.x / 2, size.y / 2, size.z / 2],
-          friction: 1.0
+
+          parameters: [
+            size.x / 2,
+            size.y / 2,
+            size.z / 2
+          ],
+
+          friction: 1.4,
+          restitution: 0.0
         }
       ]
     },
+
     verticalOffset: -size.y / 2
-  }
+}
 
 })

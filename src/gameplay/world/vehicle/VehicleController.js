@@ -13,8 +13,8 @@ class VehicleController {
     this.wheels = wheels
 
     // constructor
-    this.maxForwardSpeed = 15.0   
-    this.maxReverseSpeed = 6.0  
+    this.maxForwardSpeed = 18.0   
+    this.maxReverseSpeed = 10.0  
     this.speedLimitBrake = 100.0 // torque de freno suave para reducir si ya superaste el límite
 
     this.isOutsideLimit = false
@@ -40,10 +40,10 @@ class VehicleController {
     wheels.forEach((_, i) => {
       this.controller.setWheelSuspensionRestLength(i, 0.7);
       this.controller.setWheelMaxSuspensionTravel(i, 0.6);
-      this.controller.setWheelSuspensionStiffness(i, 65); // N/m aproximado 55
+      this.controller.setWheelSuspensionStiffness(i, 85); // N/m aproximado 65
       this.controller.setWheelSuspensionCompression(i, 3.0); // 4
       this.controller.setWheelSuspensionRelaxation(i, 3.0); // 2
-      this.controller.setWheelMaxSuspensionForce(i, 20000); // 20000
+      this.controller.setWheelMaxSuspensionForce(i, 42000); // 20000
     })
 
     // Fricción 
@@ -53,12 +53,12 @@ class VehicleController {
     this.controller.setWheelFrictionSlip(3, 3.5)            // tracción normal
     this.controller.setWheelSideFrictionStiffness(0, 1.2)  // agarre lateral medio
     this.controller.setWheelSideFrictionStiffness(1, 1.2)  
-    this.controller.setWheelSideFrictionStiffness(2, 0.85)  
-    this.controller.setWheelSideFrictionStiffness(3, 0.85)  
+    this.controller.setWheelSideFrictionStiffness(2, 1.0)  // 0.85
+    this.controller.setWheelSideFrictionStiffness(3, 1.0)  // 0.85
 
     // parámetros de control
-    this.accelerateForce = 50 // 25.0
-    this.brakeForce = 25.0
+    this.accelerateForce = 320 // 25.0
+    this.brakeForce = 50.0
     this.steerAngleMax = Math.PI / 6
   }
 

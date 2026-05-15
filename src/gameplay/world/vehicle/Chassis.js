@@ -164,25 +164,169 @@ class Chassis {
       ? cabinMeshTop.geometry.toNonIndexed()
       : cabinMeshTop.geometry
 
-    const vertices = new Float32Array(geo.attributes.position.array)
-    const verticesTop = new Float32Array(geoTop.attributes.position.array)
+    const vertices = new Float32Array(
+      geo.attributes.position.array
+    )
+
+    const verticesTop = new Float32Array(
+      geoTop.attributes.position.array
+    )
 
     this.entity = this.physics.addEntity({
       type: 'dynamic',
+
       position,
+
+      physicsOptions: {
+        linearDamping: 1.5,
+        angularDamping: 2.5,
+        solverIterations: 24,
+        ccd: true
+      },
+
       massProperties: {
         useAdditionalMassProperties: true,
-        massValue: 12,
-        com: { x: -0.5, y: -0.5, z: 0 },
+        massValue: 35,
+
+        com: {
+          x: -0.5,
+          y: -0.5,
+          z: 0
+        }
       },
+
       colliders: [
-        { shape: 'hull', parameters: { vertices: vertices}, offset: { x: -1, y: 0, z: 0 },  friction: 0.8 },
-        { shape: 'hull', parameters: { vertices: verticesTop  }, offset: { x: -1, y: 0, z: 0 },  friction: 0.8 },
-        { shape: 'cuboid', parameters: [ 1, 0.15, 0.9],  offset: { x: 1.2, y:-0.38, z: 0 } },
-        { shape: 'cuboid', parameters: [ 0.05, 0.2, 0.9],  offset: { x: 2.1, y:-0.05, z: 0 } },
-        { shape: 'cuboid', parameters: [ 1, 0.2, 0.05],  offset: { x: 1.2, y:-0.05, z: 0.85 } },
-        { shape: 'cuboid', parameters: [ 1, 0.2, 0.05],  offset: { x: 1.2, y:-0.05, z: -0.85 } },
-      ],
+
+        // ─────────────────────────────
+        // CABINA
+        // ─────────────────────────────
+
+        {
+          shape: 'hull',
+
+          parameters: {
+            vertices: vertices
+          },
+
+          offset: {
+            x: -1,
+            y: 0,
+            z: 0
+          },
+
+          friction: 0.8,
+          restitution: 0
+        },
+
+        {
+          shape: 'hull',
+
+          parameters: {
+            vertices: verticesTop
+          },
+
+          offset: {
+            x: -1,
+            y: 0,
+            z: 0
+          },
+
+          friction: 0.8,
+          restitution: 0
+        },
+
+        // ─────────────────────────────
+        // PISO PICKUP
+        // ─────────────────────────────
+
+        {
+          shape: 'cuboid',
+
+          parameters: [
+            1,
+            0.25,
+            0.9
+          ],
+
+          offset: {
+            x: 1.2,
+            y: -0.38,
+            z: 0
+          },
+
+          friction: 2.0,
+          restitution: 0
+        },
+
+        // ─────────────────────────────
+        // PARED TRASERA
+        // ─────────────────────────────
+
+        {
+          shape: 'cuboid',
+
+          parameters: [
+            0.12,
+            0.2,
+            0.9
+          ],
+
+          offset: {
+            x: 2.25,
+            y: 0.0,
+            z: 0
+          },
+
+          friction: 1.5,
+          restitution: 0
+        },
+
+        // ─────────────────────────────
+        // LATERAL DERECHO
+        // ─────────────────────────────
+
+        {
+          shape: 'cuboid',
+
+          parameters: [
+            1,
+            0.2,
+            0.12
+          ],
+
+          offset: {
+            x: 1.2,
+            y: 0.0,
+            z: 0.95
+          },
+
+          friction: 1.5,
+          restitution: 0
+        },
+
+        // ─────────────────────────────
+        // LATERAL IZQUIERDO
+        // ─────────────────────────────
+
+        {
+          shape: 'cuboid',
+
+          parameters: [
+            1,
+            0.2,
+            0.12
+          ],
+
+          offset: {
+            x: 1.2,
+            y: 0.0,
+            z: -0.95
+          },
+
+          friction: 1.5,
+          restitution: 0
+        }
+      ]
     }, this.mesh)
   }
 
