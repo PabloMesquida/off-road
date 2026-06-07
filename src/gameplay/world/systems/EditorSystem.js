@@ -44,17 +44,40 @@ class EditorSystem {
       inputsEvents: this.game.inputs.events,
       onChangeKinematic: (isDragging, selectedAsset) => {
         const assetData = this.world.assetSystem.find(selectedAsset)
+
         if (!assetData?.body) return
+
+        // ─────────────────────────────
+        // Cargo Zone
+        // ─────────────────────────────
+
+        if (assetData.assetType === 'cargoZone') {
+          if (isDragging) {
+            assetData.setBoxesKinematic?.()
+          } else {
+            assetData.restoreBoxesDynamic?.()
+          }
+        }
 
         const body = assetData.body
         const inst = assetData
 
         if (isDragging) {
           assetData.originalBodyType = body.bodyType()
-          assetData.originalPosition = selectedAsset.position.clone?.() || new THREE.Vector3().copy(selectedAsset.position)
-          assetData.originalQuaternion = selectedAsset.quaternion.clone?.() || new THREE.Quaternion().copy(selectedAsset.quaternion)
 
-          body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
+          assetData.originalPosition =
+            selectedAsset.position.clone?.() ||
+            new THREE.Vector3().copy(selectedAsset.position)
+
+          assetData.originalQuaternion =
+            selectedAsset.quaternion.clone?.() ||
+            new THREE.Quaternion().copy(selectedAsset.quaternion)
+
+          body.setBodyType(
+            RAPIER.RigidBodyType.KinematicPositionBased,
+            true
+          )
+
           return
         }
 
@@ -67,19 +90,36 @@ class EditorSystem {
           inst.colliderRoot.getWorldPosition(worldPos)
           inst.colliderRoot.getWorldQuaternion(worldQuat)
 
-          const insideCargoZone = this.world.assetSystem.isInsideCargoZone(worldPos, inst.group)
+          const insideCargoZone =
+            this.world.assetSystem.isInsideCargoZone(
+              worldPos,
+              inst.group
+            )
 
-          if (insideCargoZone && inst.assetType !== 'cargoZone') {
-            const originalPos = assetData.originalPosition || selectedAsset.position
-            const originalQuat = assetData.originalQuaternion || selectedAsset.quaternion
+          if (
+            insideCargoZone &&
+            inst.assetType !== 'cargoZone'
+          ) {
+            const originalPos =
+              assetData.originalPosition ||
+              selectedAsset.position
+
+            const originalQuat =
+              assetData.originalQuaternion ||
+              selectedAsset.quaternion
 
             selectedAsset.position.copy(originalPos)
             selectedAsset.quaternion.copy(originalQuat)
 
             body.setTranslation(
-              { x: originalPos.x, y: originalPos.y, z: originalPos.z },
+              {
+                x: originalPos.x,
+                y: originalPos.y,
+                z: originalPos.z
+              },
               true
             )
+
             body.setRotation(
               {
                 x: originalQuat.x,
@@ -90,14 +130,23 @@ class EditorSystem {
               true
             )
 
-            body.setBodyType(assetData.originalBodyType, true)
+            body.setBodyType(
+              assetData.originalBodyType,
+              true
+            )
+
             return
           }
 
           body.setTranslation(
-            { x: worldPos.x, y: worldPos.y, z: worldPos.z },
+            {
+              x: worldPos.x,
+              y: worldPos.y,
+              z: worldPos.z
+            },
             true
           )
+
           body.setRotation(
             {
               x: worldQuat.x,
@@ -108,19 +157,36 @@ class EditorSystem {
             true
           )
         } else {
-          const insideCargoZone = this.world.assetSystem.isInsideCargoZone(selectedAsset.position, selectedAsset)
+          const insideCargoZone =
+            this.world.assetSystem.isInsideCargoZone(
+              selectedAsset.position,
+              selectedAsset
+            )
 
-          if (insideCargoZone && assetData.assetType !== 'cargoZone') {
-            const originalPos = assetData.originalPosition || selectedAsset.position
-            const originalQuat = assetData.originalQuaternion || selectedAsset.quaternion
+          if (
+            insideCargoZone &&
+            assetData.assetType !== 'cargoZone'
+          ) {
+            const originalPos =
+              assetData.originalPosition ||
+              selectedAsset.position
+
+            const originalQuat =
+              assetData.originalQuaternion ||
+              selectedAsset.quaternion
 
             selectedAsset.position.copy(originalPos)
             selectedAsset.quaternion.copy(originalQuat)
 
             body.setTranslation(
-              { x: originalPos.x, y: originalPos.y, z: originalPos.z },
+              {
+                x: originalPos.x,
+                y: originalPos.y,
+                z: originalPos.z
+              },
               true
             )
+
             body.setRotation(
               {
                 x: originalQuat.x,
@@ -131,15 +197,29 @@ class EditorSystem {
               true
             )
 
-            body.setBodyType(assetData.originalBodyType, true)
+            body.setBodyType(
+              assetData.originalBodyType,
+              true
+            )
+
             return
           }
 
-          body.setTranslation(selectedAsset.position, true)
-          body.setRotation(selectedAsset.quaternion, true)
+          body.setTranslation(
+            selectedAsset.position,
+            true
+          )
+
+          body.setRotation(
+            selectedAsset.quaternion,
+            true
+          )
         }
 
-        body.setBodyType(assetData.originalBodyType, true)
+        body.setBodyType(
+          assetData.originalBodyType,
+          true
+        )
       },
       onDeleteAsset: (assetGroup) => {
         this.world.assetSystem.delete(assetGroup)
@@ -233,6 +313,10 @@ class EditorSystem {
 
     const assetData = this.world.assetSystem.find(selected)
     if (!assetData?.body) return
+
+    if (assetData.assetType === 'cargoZone') {
+      assetData.updateAttachedBoxes?.()
+    }
 
     const body = assetData.body
     if (!body.isKinematic?.()) return

@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu'
 import * as TSL from 'three/tsl'
+import * as RAPIER from '@dimforge/rapier3d-compat'
 import materialResolver from '../assets/AssetMaterialResolver.js'
 import { computePlaneBorder } from '../../../graphics/tsl/functions/border.js'
 import LightMaterial from '../../../graphics/materials/vehicle/LightMaterial.js'
@@ -32,6 +33,9 @@ class CargoZone {
     this.materialMapping = materialMapping
     this.createColliderEnabled = createCollider
     this.assetManagers = assetManagers
+
+    this.cargoBoxes = []
+    this.attachedBoxes = []
 
     this.modelOffset = { x: 0, y: 0, z: 0.35 }
     this.colliderOffset = { x: 0, y: 0, z: -1.85 }
@@ -306,56 +310,58 @@ class CargoZone {
   }
 
   createCargoBoxes(count = 5) {
-  const manager = this.assetManagers?.['cargoBox']
+    const manager = this.assetManagers?.['cargoBox']
 
-  if (!manager) {
-    console.warn('no cargoBox manager')
-    return
+    if (!manager) {
+      console.warn('no cargoBox manager')
+      return
+    }
+
+    const cols = 2
+    const spacing = 0.7
+
+    const basePos = this.group.position
+    const rotY = -Math.PI/2
+
+    for (let i = 0; i < count; i++) {
+      const col = i % cols
+      const row = Math.floor(i / cols)
+
+      // ─────────────────────────────
+      // POSICIÓN LOCAL (grid)
+      // ─────────────────────────────
+
+      let localX = (col - 0.5) * spacing
+      let localZ = row * spacing
+
+      // ─────────────────────────────
+      // ROTAR POSICIÓN (CLAVE)
+      // ─────────────────────────────
+
+      const cos = Math.cos(rotY)
+      const sin = Math.sin(rotY)
+
+      const worldX = basePos.x - 2.5 + localX * cos - localZ * sin
+      const worldZ = basePos.z - 2.0 + localX * sin + localZ * cos
+
+      const y = basePos.y + 0.1
+
+      // ─────────────────────────────
+      // SPAWN
+      // ─────────────────────────────
+
+      const inst = manager.spawn(
+        { x: worldX, y, z: worldZ },
+        rotY 
+      )
+
+      this.cargoBoxes.push(inst)
+      
+      inst.group.userData.draggable = true
+      inst.group.userData.assetInstance = inst
+      inst.group.userData.cargoZone = this
+    }
   }
-
-  const cols = 2
-  const spacing = 0.7
-
-  const basePos = this.group.position
-  const rotY = -Math.PI/2
-
-  for (let i = 0; i < count; i++) {
-    const col = i % cols
-    const row = Math.floor(i / cols)
-
-    // ─────────────────────────────
-    // POSICIÓN LOCAL (grid)
-    // ─────────────────────────────
-
-    let localX = (col - 0.5) * spacing
-    let localZ = row * spacing
-
-    // ─────────────────────────────
-    // ROTAR POSICIÓN (CLAVE)
-    // ─────────────────────────────
-
-    const cos = Math.cos(rotY)
-    const sin = Math.sin(rotY)
-
-    const worldX = basePos.x - 2.5 + localX * cos - localZ * sin
-    const worldZ = basePos.z - 2.0 + localX * sin + localZ * cos
-
-    const y = basePos.y + 0.1
-
-    // ─────────────────────────────
-    // SPAWN
-    // ─────────────────────────────
-
-    const inst = manager.spawn(
-      { x: worldX, y, z: worldZ },
-      rotY // 
-    )
-
-    inst.group.userData.draggable = true
-    inst.group.userData.assetInstance = inst
-    inst.group.userData.cargoZone = this
-  }
-}
 
   // ─────────────────────────────
   // TRANSFORM
@@ -422,6 +428,98 @@ class CargoZone {
       position.z >= b.zMin &&
       position.z <= b.zMax
     )
+  }
+
+  setBoxesKinematic() {
+    this.attachedBoxes = []
+
+    this.cargoBoxes.forEach(box => {
+
+      if (!box.body) return
+
+      const pos = box.group.position
+
+      if (!this.isInside(pos)) return
+
+      box.body.setBodyType(
+        RAPIER.RigidBodyType.KinematicPositionBased,
+        true
+      )
+
+      box.localOffset = this.group.worldToLocal(
+        box.group.position.clone()
+      )
+
+      box.localQuat =
+        this.group.quaternion
+          .clone()
+          .invert()
+          .multiply(
+            box.group.quaternion.clone()
+          )
+
+      this.attachedBoxes.push(box)
+    })
+  }
+
+  restoreBoxesDynamic() {
+    this.attachedBoxes.forEach(box => {
+
+      if (!box.body) return
+
+      box.body.setBodyType(
+        RAPIER.RigidBodyType.Dynamic,
+        true
+      )
+
+      box.body.setLinvel(
+        { x: 0, y: 0, z: 0 },
+        true
+      )
+
+      box.body.setAngvel(
+        { x: 0, y: 0, z: 0 },
+        true
+      )
+
+      box.body.wakeUp()
+
+      delete box.localOffset
+      delete box.localQuat
+      
+    })
+
+    this.attachedBoxes = []
+  }
+
+  updateAttachedBoxes() {
+    this.attachedBoxes.forEach(box => {
+
+      if (!box.localOffset) return
+      if (!box.localQuat) return
+
+      const worldPos = this.group.localToWorld(
+        box.localOffset.clone()
+      )
+
+      const worldQuat =
+        this.group.quaternion
+          .clone()
+          .multiply(box.localQuat)
+
+      box.body.setNextKinematicTranslation({
+        x: worldPos.x,
+        y: worldPos.y,
+        z: worldPos.z
+      })
+
+      box.body.setNextKinematicRotation({
+        x: worldQuat.x,
+        y: worldQuat.y,
+        z: worldQuat.z,
+        w: worldQuat.w
+      })
+    })
   }
 
   // ─────────────────────────────
