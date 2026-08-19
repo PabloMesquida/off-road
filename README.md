@@ -19,6 +19,6 @@
 - [Los materiales del modelo se ven bien por ahora](https://www.linkedin.com/posts/pablomesquida_threejs-activity-7385956171595206656-WnrN?utm_source=share&utm_medium=member_desktop&rcm=ACoAAAOrwu4B0RO09_Bykdb0H4iCUEZjPd9H-IE)
 - [Hice una retopología](https://www.linkedin.com/posts/pablomesquida_blender-activity-7383448908913590272-gpj7?utm_source=share&utm_medium=member_desktop&rcm=ACoAAAOrwu4B0RO09_Bykdb0H4iCUEZjPd9H-IE)
 - [Three.js](https://www.linkedin.com/posts/pablomesquida_threejs-activity-7382323048814886912-Gkg8?utm_source=share&utm_medium=member_desktop&rcm=ACoAAAOrwu4B0RO09_Bykdb0H4iCUEZjPd9H-IE)
-- [Rastrojero 1971 Final](https://www.linkedin.com/posts/pablomesquida_blender-activity-7381596435009396736-HRWl?utm_source=share&utm_medium=member_desktop&rcm=ACoAAAOrwu4B0RO09_Bykdb0H4iCUEZjPd9H-IE)
+- [Rastrojero 1971](https://www.linkedin.com/posts/pablomesquida_blender-activity-7381596435009396736-HRWl?utm_source=share&utm_medium=member_desktop&rcm=ACoAAAOrwu4B0RO09_Bykdb0H4iCUEZjPd9H-IE)
 
 ![Imagen](https://media.licdn.com/dms/image/v2/D4D22AQEbdUOJECXZBA/feedshare-shrink_800/B4DZrfZJdXKQAo-/0/1764684503062?e=1787788800&v=beta&t=qc7gtF3DGt0PBH3MXf--2KLJU9-D6RdnTFlESIzUMGM)
