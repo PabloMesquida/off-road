@@ -2,10 +2,11 @@ import * as THREE from 'three'
 import Game from '../../../core/Game'
 
 class Environment {
-  constructor(scene) {
+  constructor(scene, { terrainSize = { x: 160, z: 160 } } = {}) {
     this.game = new Game()
     this.resources = this.game.resources
     this.scene = scene
+    this.terrainSize = terrainSize
 
     this.setSunLight()
     this.setEnvironmentMap()
@@ -17,13 +18,23 @@ class Environment {
     const light = new THREE.DirectionalLight('#ffe9cf', 2.5)
     light.castShadow = true
 
-    // Tamaño del área donde se proyectan sombras
-    light.shadow.camera.near = 0.5
-    light.shadow.camera.far = 1000
-    light.shadow.camera.left = -100
-    light.shadow.camera.right = 100
-    light.shadow.camera.top = 100
-    light.shadow.camera.bottom = -100
+    // La luz direccional ilumina según la dirección position → target, pero su cámara de sombras
+    // se ubica en position: hay que alejarla para que todo el terreno quede delante del plano near.
+    // Misma dirección que antes (5, 4, 2.5): la iluminación no cambia.
+    const direction = new THREE.Vector3(5, 4, 2.5).normalize()
+    const distance = 150
+
+    // Frustum que cubre el terreno completo desde cualquier ángulo (semidiagonal + margen
+    // para objetos altos como carteles o la camioneta en el aire)
+    const halfDiagonal = Math.hypot(this.terrainSize.x, this.terrainSize.z) * 0.5
+    const extent = halfDiagonal + 5
+
+    light.shadow.camera.near = distance - extent
+    light.shadow.camera.far = distance + extent
+    light.shadow.camera.left = -extent
+    light.shadow.camera.right = extent
+    light.shadow.camera.top = extent
+    light.shadow.camera.bottom = -extent
 
     // Resolución de la sombra
     light.shadow.mapSize.set(1024 * 2, 1024 * 2)
@@ -34,7 +45,7 @@ class Environment {
     light.shadow.normalBias = 0.05
 
     // Posición y dirección
-    light.position.set(5, 4, 2.5)
+    light.position.copy(direction).multiplyScalar(distance)
     light.target.position.set(0, 0,0)
     this.scene.add(light.target)
 

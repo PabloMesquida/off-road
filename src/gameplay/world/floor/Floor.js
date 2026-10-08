@@ -102,6 +102,12 @@ class Floor{
     this.scene.add(this.floorGroup)
   }
 
+  // Se llama cuando el renderer ya está inicializado (ver Rendering)
+  bakeMaterial(renderer) {
+    const { x, y, z } = this.size
+    this.mesh.material.bake?.(renderer, { width: x, depth: z, topY: y * 0.5 })
+  }
+
   setPhysics(){
     const { x, y, z } = this.size
     this.physics.addEntity({
@@ -117,26 +123,7 @@ class Floor{
   }
 
   updateGridPreset() {
-    // Crear un nuevo material basado en el nuevo preset
-    const newMaterial = GridNodeMaterial.fromPreset(this.PARAMS.preset)
-
-    // Conservar algunas propiedades personalizadas
-    newMaterial.gridSize = this.subFloorMaterial.gridSize
-    newMaterial.borderColor = this.subFloorMaterial.borderColor
-    newMaterial.borderWidth = this.PARAMS.width
-    newMaterial.borderOffset = this.PARAMS.offset
-    newMaterial.stripeSize = this.PARAMS.stripeSize
-    newMaterial.opacity =  this.PARAMS.opacity   
-
-    // Reemplazar el material en la malla
-    const subFloorMesh = this.floorGroup.children.find(m => m.material === this.subFloorMaterial)
-    if (subFloorMesh) subFloorMesh.material = newMaterial
-
-    // Liberar el material anterior
-    this.subFloorMaterial.dispose()
-
-    // Actualizar referencia
-    this.subFloorMaterial = newMaterial
+    this.applyParamsToMaterial()
   }
 
   getLimit() {
@@ -287,29 +274,12 @@ class Floor{
   applyParamsToMaterial() {
     if (!this.subFloorMaterial) return;
 
+    // Todo son uniforms: se actualiza el mismo material, sin recompilar el shader
+    this.subFloorMaterial.applyPreset(this.PARAMS.preset);
     this.subFloorMaterial.borderWidth = this.PARAMS.width;
     this.subFloorMaterial.borderOffset = this.PARAMS.offset;
     this.subFloorMaterial.stripeSize = this.PARAMS.stripeSize;
     this.subFloorMaterial.opacity = this.PARAMS.opacity;
-
-    // Cambiar preset (crea nuevo material)
-    const newMaterial = GridNodeMaterial.fromPreset(this.PARAMS.preset);
-
-    newMaterial.gridSize = this.subFloorMaterial.gridSize;
-    newMaterial.borderColor = this.subFloorMaterial.borderColor;
-    newMaterial.borderWidth = this.PARAMS.width;
-    newMaterial.borderOffset = this.PARAMS.offset;
-    newMaterial.stripeSize = this.PARAMS.stripeSize;
-    newMaterial.opacity = this.PARAMS.opacity;
-
-    const subFloorMesh = this.floorGroup.children.find(
-      m => m.material === this.subFloorMaterial
-    );
-
-    if (subFloorMesh) subFloorMesh.material = newMaterial;
-
-    this.subFloorMaterial.dispose();
-    this.subFloorMaterial = newMaterial;
   }
 }
 

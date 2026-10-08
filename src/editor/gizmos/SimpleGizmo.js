@@ -43,10 +43,14 @@ class SimpleGizmo {
 
     this._createMeshes()
 
-    // listeners
-    this.dom.addEventListener('pointerdown', e => this._onPointerDown(e), { capture:true })
-    this.dom.addEventListener('pointermove', e => this._onPointerMove(e), { capture:true })
-    this.dom.addEventListener('pointerup',   e => this._onPointerUp(e),   { capture:true })
+    // listeners (guardamos las referencias para poder quitarlos en dispose)
+    this._handlePointerDown = e => this._onPointerDown(e)
+    this._handlePointerMove = e => this._onPointerMove(e)
+    this._handlePointerUp = e => this._onPointerUp(e)
+
+    this.dom.addEventListener('pointerdown', this._handlePointerDown, { capture:true })
+    this.dom.addEventListener('pointermove', this._handlePointerMove, { capture:true })
+    this.dom.addEventListener('pointerup',   this._handlePointerUp,   { capture:true })
   }
 
   /* =========================================================
@@ -414,7 +418,21 @@ class SimpleGizmo {
   }
 
   dispose() {
+    this.dom.removeEventListener('pointerdown', this._handlePointerDown, { capture:true })
+    this.dom.removeEventListener('pointermove', this._handlePointerMove, { capture:true })
+    this.dom.removeEventListener('pointerup',   this._handlePointerUp,   { capture:true })
+
     this.scene.remove(this.group)
+
+    // geometrías y materiales son propios del gizmo (se crean en createSimpleGizmoMeshes)
+    const materials = new Set()
+    this.group.traverse(child => {
+      child.geometry?.dispose()
+      if (child.material) materials.add(child.material)
+    })
+    materials.forEach(m => m.dispose())
+
+    this.object = null
   }
 }
 

@@ -169,6 +169,14 @@ export const GridPresets = {
 
 export const GridStyles = Object.keys(GridPresets);
 
+// Claves de preset: todas están respaldadas por uniforms
+const PRESET_KEYS = [
+  'cellSizeA', 'lineWidthA', 'colorA',
+  'cellSizeB', 'lineWidthB', 'colorB',
+  'cellSizeC', 'lineWidthC', 'colorC', 'segmentLen',
+  'bgColor'
+];
+
 // -------------------------
 // Clase principal
 // -------------------------
@@ -367,9 +375,7 @@ set gridSize(v) {
   } else {
     throw new Error('gridSize: valor no válido');
   }
-
-
-  this.needsUpdate = true;
+  // Es un uniform: no hace falta needsUpdate (eso fuerza a reconstruir el shader)
 }
 
   get borderWidth() {
@@ -433,6 +439,12 @@ set gridSize(v) {
     // suponiendo plano en XZ
     if (!this._planeSize) this._planeSize = TSL.uniform(new THREE.Vector2(size.x, size.z));
     else this._planeSize.value.set(size.x, size.z);
+  }
+
+  // Cambiar de preset solo actualiza uniforms: mismo shader, sin recompilar
+  applyPreset(style = 'default') {
+    const preset = GridPresets[style] || GridPresets.default;
+    for (const key of PRESET_KEYS) this[key] = preset[key];
   }
 
   // Factory estática estilo WoodNodeMaterial

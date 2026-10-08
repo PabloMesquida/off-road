@@ -5,15 +5,16 @@ class LightMaterial extends THREE.MeshPhysicalNodeMaterial {
   constructor({ baseColor = 0xFFFFFF, intensity = 0, maxIntensity = 1 } = {}) {
     super()
 
-    // Uniform que se puede actualizar dinámicamente
-    this.intensityNode = TSL.uniform(TSL.float(intensity))
+    // Uniforms: se pueden cambiar en runtime sin recompilar el shader
+    this.colorUniform = TSL.uniform(new THREE.Color(baseColor))
+    this.intensityNode = TSL.uniform(intensity)
     this.maxIntensity = maxIntensity
 
     // Nodo de color base
-    this.colorNode = TSL.color(baseColor)
+    this.colorNode = this.colorUniform
 
     // Nodo emisivo = color * intensidad
-    this.emissiveNode = TSL.mul(this.colorNode, this.intensityNode)
+    this.emissiveNode = this.colorUniform.mul(this.intensityNode)
 
     // Evita clamping
     this.toneMapped = false
@@ -33,9 +34,9 @@ class LightMaterial extends THREE.MeshPhysicalNodeMaterial {
     this.setIntensity(0.0)
   }
 
-  setColor(hex) {
-    this.colorNode = TSL.color(hex)
-    this.emissiveNode = TSL.mul(this.colorNode, this.intensityNode)
+  // Acepta hex, string o THREE.Color
+  setColor(value) {
+    this.colorUniform.value.set(value)
   }
 }
 

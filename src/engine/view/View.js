@@ -281,7 +281,8 @@ class View {
 
       const currentTarget = new THREE.Vector3().lerpVectors(
         this.startCamTarget,
-        this.endCamTarget
+        this.endCamTarget,
+        smoothT
       )
 
       this.camera.lookAt(currentTarget)
@@ -313,7 +314,8 @@ class View {
 
       const currentTarget = new THREE.Vector3().lerpVectors(
         this.startCamTarget,
-        this.endCamTarget
+        this.endCamTarget,
+        smoothT
       )
 
       this.camera.lookAt(currentTarget)

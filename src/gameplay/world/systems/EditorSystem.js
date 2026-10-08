@@ -62,6 +62,14 @@ class EditorSystem {
         const body = assetData.body
         const inst = assetData
 
+        // Mientras es kinematic, Rapier le asigna la velocidad del desplazamiento impuesto;
+        // al volver a dynamic hay que descartarla o el asset sale disparado al soltarlo.
+        const restoreBodyType = () => {
+          body.setBodyType(assetData.originalBodyType, true)
+          body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+          body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+        }
+
         if (isDragging) {
           assetData.originalBodyType = body.bodyType()
 
@@ -130,10 +138,7 @@ class EditorSystem {
               true
             )
 
-            body.setBodyType(
-              assetData.originalBodyType,
-              true
-            )
+            restoreBodyType()
 
             return
           }
@@ -197,10 +202,7 @@ class EditorSystem {
               true
             )
 
-            body.setBodyType(
-              assetData.originalBodyType,
-              true
-            )
+            restoreBodyType()
 
             return
           }
@@ -216,10 +218,7 @@ class EditorSystem {
           )
         }
 
-        body.setBodyType(
-          assetData.originalBodyType,
-          true
-        )
+        restoreBodyType()
       },
       onDeleteAsset: (assetGroup) => {
         this.world.assetSystem.delete(assetGroup)

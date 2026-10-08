@@ -43,6 +43,7 @@ class AssetRegistry {
     this.assets = this.assets.filter(a => a !== inst)
 
     if (inst.assetType === 'cargoZone') {
+      inst.removeCargoBoxes?.()
       this.onZoneRemoved?.('cargoZone')
     }
 

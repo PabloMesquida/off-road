@@ -16,6 +16,9 @@ class Viewport{
 
   setResize(){
     window.addEventListener('resize', () => {
+      // Ventana oculta/minimizada: conservar el último tamaño válido (un canvas 0x0 es inválido en WebGPU)
+      if (window.innerWidth === 0 || window.innerHeight === 0) return
+
       this.sizes.width = window.innerWidth
       this.sizes.height = window.innerHeight
       this.ratio = Math.min(window.devicePixelRatio, 2) 

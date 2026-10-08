@@ -31,7 +31,15 @@ class AssetSystem {
   }
 
   delete(group) {
-    return this.registry.remove(group)
+    const inst = this.registry.remove(group)
+
+    // El manager de zonas guarda su propia lista (la recorre VehicleSystem cada frame)
+    if (inst?.assetType === 'cargoZone') {
+      const zoneManager = this.assetManagers['cargoZone']
+      if (zoneManager?.zones) zoneManager.zones = zoneManager.zones.filter(z => z !== inst)
+    }
+
+    return inst
   }
 
   save() {

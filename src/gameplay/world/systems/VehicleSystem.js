@@ -1,21 +1,32 @@
+import * as THREE from 'three/webgpu'
 import Vehicle from '../vehicle/Vehicle.js'
 
-function isVehicleFullyInside(zone, chassis) {
+// Esquinas del piso de la caja de carga en coordenadas locales del chasis
+// (mismo rectángulo que el collider "PISO PICKUP": offset x 1.2, mitades 1 × 0.9).
+// La camioneta (~4.6 m) no entra entera en la mitad libre de la zona (4 m): lo que importa
+// para cargar es que la caja esté dentro.
+const BED_CORNERS = [
+  new THREE.Vector3(0.2, 0, -0.9),
+  new THREE.Vector3(0.2, 0, 0.9),
+  new THREE.Vector3(2.2, 0, -0.9),
+  new THREE.Vector3(2.2, 0, 0.9)
+]
+
+const _corner = new THREE.Vector3()
+const _quaternion = new THREE.Quaternion()
+
+function isCargoBedInside(zone, chassis) {
   const pos = chassis.body.translation()
+  const rot = chassis.body.rotation()
+  _quaternion.set(rot.x, rot.y, rot.z, rot.w)
 
-  const halfX = chassis.size.x / 2
-  const halfZ = chassis.size.z / 2
-
-  const corners = [
-    { x: pos.x + halfX, z: pos.z + halfZ },
-    { x: pos.x + halfX, z: pos.z - halfZ },
-    { x: pos.x - halfX, z: pos.z + halfZ },
-    { x: pos.x - halfX, z: pos.z - halfZ }
-  ]
-
-  return corners.every(corner =>
-    zone.isInside({ x: corner.x, z: corner.z })
-  )
+  // Usa la rotación real del coche (antes se asumía alineado al eje X del mundo)
+  return BED_CORNERS.every(corner => {
+    _corner.copy(corner).applyQuaternion(_quaternion)
+    _corner.x += pos.x
+    _corner.z += pos.z
+    return zone.isInside(_corner)
+  })
 }
 
 class VehicleSystem {
@@ -95,7 +106,7 @@ class VehicleSystem {
     const chassis = this.vehicle.chassis
 
     cargoManager.zones.forEach(zone => {
-      const inside = isVehicleFullyInside(zone, chassis)
+      const inside = isCargoBedInside(zone, chassis)
 
       // evita recalcular estado cada frame
       if (zone._isVehicleInside === inside) return

@@ -59,7 +59,7 @@ class World {
   }
 
   _initEnvironment() {
-    this.environment = new Environment(this.scene)
+    this.environment = new Environment(this.scene, { terrainSize: this.floor.size })
   }
 
  

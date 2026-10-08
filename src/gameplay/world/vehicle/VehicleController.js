@@ -60,6 +60,18 @@ class VehicleController {
     this.accelerateForce = 320 // 25.0
     this.brakeForce = 50.0
     this.steerAngleMax = Math.PI / 6
+
+    // Damping lineal: el del chasis (ajustado para el suelo) solo con ruedas apoyadas.
+    // En el aire Rapier lo seguiría aplicando y frenaría el vuelo como un paracaídas.
+    this.groundLinearDamping = chassis.body.linearDamping()
+    this.airLinearDamping = 0.05
+    this.isGrounded = true
+
+    // Anti-caballito: inclinación de la trompa (respecto del suelo bajo las ruedas traseras)
+    // a partir de la cual se corta el motor. En llano las delanteras nunca se despegan.
+    this.wheelieSinThreshold = Math.sin(THREE.MathUtils.degToRad(4))
+    this.wheelieDelay = 0.2 // segundos
+    this.wheelieTime = 0
   }
 
   update(dt) {
@@ -181,12 +193,33 @@ class VehicleController {
       }
     }
 
+    // ---------- control anti-caballito ----------
+    // El empuje (2 × accelerateForce ≈ 1.6 veces el peso del chasis) se aplica en el contacto de
+    // las ruedas traseras, por debajo del centro de masa: si la trompa ya está levantada (p. ej. por
+    // el rebote al aterrizar) su par supera al del peso y el coche queda en equilibrio sobre la cola.
+    // Se corta el motor mientras dure; currentForce vuelve a subir con el suavizado de arriba.
+    // La inclinación se mide contra el suelo bajo las ruedas traseras (no contra el horizonte):
+    // al despegar de la rampa el coche va paralelo a ella y no debe cortarse el motor.
+    const frontInAir = !this.controller.wheelIsInContact(0) && !this.controller.wheelIsInContact(1)
+    const rearContact = this.controller.wheelIsInContact(2) ? 2 : (this.controller.wheelIsInContact(3) ? 3 : -1)
+    const rearNormal = rearContact >= 0 ? this.controller.wheelContactNormal(rearContact) : null
+    const noseUp = rearNormal !== null &&
+      forwardVec.x * rearNormal.x + forwardVec.y * rearNormal.y + forwardVec.z * rearNormal.z > this.wheelieSinThreshold
+    // Persistencia: los rebotes breves (p. ej. las delanteras al pegar contra el inicio de la rampa)
+    // duran unos pocos frames; el caballito se sostiene. Solo se corta si dura más de wheelieDelay.
+    this.wheelieTime = frontInAir && noseUp ? this.wheelieTime + dt : 0
+    const wheelie = this.wheelieTime > this.wheelieDelay && this.currentForce > 0
+
     // ---------- APLICAR engineForce FINAL (siempre al final para evitar re-aplicaciones) ----------
-    // Si frenas, motor 0; si no, aplicamos this.currentForce (que respetó el límite más arriba).
+    // Si frenas (o hay caballito), motor 0; si no, aplicamos this.currentForce (que respetó el límite más arriba).
     if (effectiveBrake) {
       this.controller.setWheelEngineForce(2, 0)
       this.controller.setWheelEngineForce(3, 0)
       this.currentForce = 0;
+    } else if (wheelie) {
+      this.controller.setWheelEngineForce(2, 0)
+      this.controller.setWheelEngineForce(3, 0)
+      this.currentForce = 0
     } else {
       this.controller.setWheelEngineForce(2, this.currentForce)
       this.controller.setWheelEngineForce(3, this.currentForce)
@@ -194,6 +227,13 @@ class VehicleController {
 
     // ---------- avanzar la simulación ----------
     this.controller.updateVehicle(dt)
+
+    // ---------- damping según contacto con el suelo ----------
+    const grounded = this.wheels.some((_, i) => this.controller.wheelIsInContact(i))
+    if (grounded !== this.isGrounded) {
+      this.isGrounded = grounded
+      this.chassis.body.setLinearDamping(grounded ? this.groundLinearDamping : this.airLinearDamping)
+    }
 
     // ---------- DEBUG (opcional) ----------
       // if (this.debugCounter === undefined) this.debugCounter = 0

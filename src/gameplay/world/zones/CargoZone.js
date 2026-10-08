@@ -226,28 +226,13 @@ class CargoZone {
   setGreenLight(on = true) {
     if (!this.greenLightMaterial) return
 
+    // Color e intensidad son uniforms: cambiar el estado no recompila el shader
     if (on) {
       this.greenLightMaterial.setIntensity(4.0)
-
-      // color visible
-      this.greenLightMaterial.setColor?.(new THREE.Color(0x00ff88))
-      this.greenLightMaterial.baseColor?.set?.(0x00ff88)
-
-      // por si el shader usa otra referencia interna
-      this.greenLightMaterial.emissiveColor?.set?.(0x00ff88)
-      this.greenLightMaterial.emissive?.set?.(0x00ff88)
-
-      this.greenLightMaterial.needsUpdate = true
+      this.greenLightMaterial.setColor(0x00ff88)
     } else {
       this.greenLightMaterial.setIntensity(0)
-
-      this.greenLightMaterial.setColor?.(new THREE.Color(0x0a3d2a))
-      this.greenLightMaterial.baseColor?.set?.(0x0a3d2a)
-
-      this.greenLightMaterial.emissiveColor?.set?.(0x0a3d2a)
-      this.greenLightMaterial.emissive?.set?.(0x0a3d2a)
-
-      this.greenLightMaterial.needsUpdate = true
+      this.greenLightMaterial.setColor(0x0a3d2a)
     }
   }
 
@@ -257,7 +242,6 @@ class CargoZone {
   }
 
   setState(state) {
-    console.log('OK')
     // ejemplo simple
     if (state === 'idle') {
       this.setGreenLight(false)
@@ -320,8 +304,13 @@ class CargoZone {
     const cols = 2
     const spacing = 0.7
 
-    const basePos = this.group.position
     const rotY = -Math.PI/2
+
+    // La grilla se define en el espacio local de la zona (sobre la plataforma) y se pasa a mundo
+    // con la transformación del grupo: así respeta la rotación de la zona. Con rotación 0 da
+    // exactamente las mismas posiciones que antes.
+    this.group.updateMatrixWorld(true)
+    const zoneRotY = this.group.rotation.y
 
     for (let i = 0; i < count; i++) {
       const col = i % cols
@@ -341,18 +330,21 @@ class CargoZone {
       const cos = Math.cos(rotY)
       const sin = Math.sin(rotY)
 
-      const worldX = basePos.x - 2.5 + localX * cos - localZ * sin
-      const worldZ = basePos.z - 2.0 + localX * sin + localZ * cos
+      const offset = new THREE.Vector3(
+        -2.5 + localX * cos - localZ * sin,
+        0.1,
+        -2.0 + localX * sin + localZ * cos
+      )
 
-      const y = basePos.y + 0.1
+      const world = this.group.localToWorld(offset)
 
       // ─────────────────────────────
       // SPAWN
       // ─────────────────────────────
 
       const inst = manager.spawn(
-        { x: worldX, y, z: worldZ },
-        rotY 
+        { x: world.x, y: world.y, z: world.z },
+        zoneRotY + rotY
       )
 
       this.cargoBoxes.push(inst)
@@ -361,6 +353,17 @@ class CargoZone {
       inst.group.userData.assetInstance = inst
       inst.group.userData.cargoZone = this
     }
+  }
+
+  // Las cajas no están en el AssetRegistry: se eliminan junto con la zona
+  removeCargoBoxes() {
+    this.cargoBoxes.forEach(box => {
+      if (box.physicsEntity) this.physics?.removeEntity?.(box.physicsEntity)
+      this.scene?.remove(box.group)
+    })
+
+    this.cargoBoxes = []
+    this.attachedBoxes = []
   }
 
   // ─────────────────────────────
@@ -420,14 +423,20 @@ class CargoZone {
     }
   }
 
+  // Prueba en el espacio local de la zona: respeta su rotación (con rotación 0 equivale a getBounds)
   isInside(position) {
-    const b = this.getBounds()
-    return (
-      position.x >= b.xMin &&
-      position.x <= b.xMax &&
-      position.z >= b.zMin &&
-      position.z <= b.zMax
-    )
+    const pos = this.group.position
+    const angle = this.group.rotation.y
+    const cos = Math.cos(angle)
+    const sin = Math.sin(angle)
+
+    const dx = position.x - pos.x
+    const dz = position.z - pos.z
+
+    const localX = dx * cos - dz * sin
+    const localZ = dx * sin + dz * cos
+
+    return Math.abs(localX) <= this.width * 0.5 && Math.abs(localZ) <= this.depth * 0.5
   }
 
   setBoxesKinematic() {
@@ -536,9 +545,18 @@ class CargoZone {
       this.scene.remove(this.group)
     }
 
+    // clone(true) comparte geometrías (y materiales no mapeados) con el GLB original:
+    // solo liberamos los recursos que creó esta zona.
+    const shared = new Set()
+    this.resources?.items?.[this.resourceName]?.scene?.traverse((child) => {
+      if (!child.isMesh) return
+      shared.add(child.geometry)
+      shared.add(child.material)
+    })
+
     this.group?.traverse((child) => {
-      child.geometry?.dispose?.()
-      child.material?.dispose?.()
+      if (child.geometry && !shared.has(child.geometry)) child.geometry.dispose()
+      if (child.material && !shared.has(child.material)) child.material.dispose()
     })
 
     this.group = null
